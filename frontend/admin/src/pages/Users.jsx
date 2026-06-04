@@ -1,16 +1,13 @@
-import React, { useState } from 'react'
-import { Users, Search, Edit3, Shield, Power, Check, X, ShieldAlert, Key, UserCheck, AlertTriangle, Filter } from 'lucide-react'
+import React, { useState, useEffect } from 'react'
+import { Users, Search, Edit3, Shield, Power, Check, X, ShieldAlert, Key, UserCheck, AlertTriangle, Filter, Loader } from 'lucide-react'
 
 export default function UsersPage() {
   const [searchTerm, setSearchTerm] = useState('')
   const [planFilter, setPlanFilter] = useState('all')
   const [statusFilter, setStatusFilter] = useState('all')
-  const [users, setUsers] = useState([
-    { id: '1', name: 'Alice Miller', email: 'alice@agentcorp.io', plan: 'pro', active: true, created_at: '2026-05-12', keys_count: 3, usage: 47291 },
-    { id: '2', name: 'Bob Smith', email: 'bob@flowai.dev', plan: 'starter', active: true, created_at: '2026-05-20', keys_count: 1, usage: 12045 },
-    { id: '3', name: 'Charlie Green', email: 'charlie@rag-pipeline.com', plan: 'enterprise', active: true, created_at: '2026-04-01', keys_count: 5, usage: 287493 },
-    { id: '4', name: 'David Lee', email: 'david@sandbox.net', plan: 'free', active: false, created_at: '2026-06-02', keys_count: 0, usage: 980 }
-  ])
+  const [users, setUsers] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState('')
 
   // Modals state
   const [isEditModalOpen, setIsEditModalOpen] = useState(false)
@@ -18,14 +15,45 @@ export default function UsersPage() {
   const [newPlan, setNewPlan] = useState('')
   const [customLimit, setCustomLimit] = useState(50000)
 
+  const fetchUsers = async () => {
+    try {
+      setLoading(true)
+      const res = await fetch('http://localhost:8000/v1/admin/users')
+      if (!res.ok) throw new Error('Failed to fetch users')
+      const data = await res.json()
+      setUsers(data)
+      setError('')
+    } catch (e) {
+      console.error(e)
+      setError(e.message)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    fetchUsers()
+  }, [])
+
   // Toggle active/inactive status
-  const handleToggleActive = (id) => {
-    setUsers(prev => prev.map(u => {
-      if (u.id === id) {
-        return { ...u, active: !u.active }
-      }
-      return u
-    }))
+  const handleToggleActive = async (id, currentStatus) => {
+    try {
+      const res = await fetch(`http://localhost:8000/v1/admin/users/${id}/status`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ active: !currentStatus })
+      })
+      if (!res.ok) throw new Error('Failed to update status')
+      
+      setUsers(prev => prev.map(u => {
+        if (u.id === id) {
+          return { ...u, active: !currentStatus }
+        }
+        return u
+      }))
+    } catch (e) {
+      alert(e.message)
+    }
   }
 
   // Open modal for plan editing
@@ -37,16 +65,27 @@ export default function UsersPage() {
   }
 
   // Save modified plan
-  const handleSavePlan = () => {
+  const handleSavePlan = async () => {
     if (!selectedUser) return
-    setUsers(prev => prev.map(u => {
-      if (u.id === selectedUser.id) {
-        return { ...u, plan: newPlan }
-      }
-      return u
-    }))
-    setIsEditModalOpen(false)
-    setSelectedUser(null)
+    try {
+      const res = await fetch(`http://localhost:8000/v1/admin/users/${selectedUser.id}/plan`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ plan: newPlan })
+      })
+      if (!res.ok) throw new Error('Failed to update plan')
+      
+      setUsers(prev => prev.map(u => {
+        if (u.id === selectedUser.id) {
+          return { ...u, plan: newPlan }
+        }
+        return u
+      }))
+      setIsEditModalOpen(false)
+      setSelectedUser(null)
+    } catch (e) {
+      alert(e.message)
+    }
   }
 
   // Filter computations
@@ -80,6 +119,16 @@ export default function UsersPage() {
           </p>
         </div>
       </div>
+
+      {error && (
+        <div className="p-4 bg-accent-red/10 border border-accent-red/20 rounded flex gap-2.5 text-accent-red font-mono text-xs z-10 relative">
+          <AlertTriangle size={14} className="shrink-0 mt-0.5" />
+          <div>
+            <span className="font-bold block uppercase">Database Offline</span>
+            {error} (Verify SearchMind backend server is running on port 8000)
+          </div>
+        </div>
+      )}
 
       {/* STATS METRIC ROW */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 relative z-10">
@@ -171,7 +220,12 @@ export default function UsersPage() {
 
       {/* USERS TABLE PANEL */}
       <div className="bg-surface-card rounded-lg border border-hairline-strong overflow-hidden relative z-10">
-        {filteredUsers.length > 0 ? (
+        {loading ? (
+          <div className="py-16 flex flex-col items-center justify-center text-center p-6 space-y-4 font-mono">
+            <Loader className="animate-spin text-accent-blue" size={24} />
+            <p className="text-[11px] text-mute">Loading active subscriptions and key statistics...</p>
+          </div>
+        ) : filteredUsers.length > 0 ? (
           <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-hairline-strong/60 text-xs">
               <thead className="bg-surface-deep text-mute font-mono uppercase text-[10px] tracking-wider">
@@ -254,7 +308,7 @@ export default function UsersPage() {
                           <Edit3 size={11} />
                         </button>
                         <button
-                          onClick={() => handleToggleActive(u.id)}
+                          onClick={() => handleToggleActive(u.id, u.active)}
                           className={`p-1.5 rounded bg-surface-deep border transition-all ${
                             u.active 
                               ? 'border-hairline text-mute hover:text-accent-red hover:border-accent-red/30' 

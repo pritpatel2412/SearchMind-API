@@ -1,29 +1,80 @@
-import React, { useState } from 'react'
-import { BarChart3, TrendingUp, Cpu, Server, Activity, ArrowUpRight, Calendar, ArrowDownRight, Globe, Layers } from 'lucide-react'
+import React, { useState, useEffect } from 'react'
+import { BarChart3, TrendingUp, Cpu, Server, Activity, ArrowUpRight, Calendar, ArrowDownRight, Globe, Layers, Loader, AlertTriangle } from 'lucide-react'
 
 export default function AnalyticsPage() {
   const [timeRange, setTimeRange] = useState('12h')
+  const [data, setData] = useState(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState('')
+
+  useEffect(() => {
+    const fetchAnalytics = async () => {
+      try {
+        setLoading(true)
+        const res = await fetch('http://localhost:8000/v1/admin/analytics')
+        if (!res.ok) throw new Error('Failed to fetch platform analytics')
+        const json = await res.json()
+        setData(json)
+        setError('')
+      } catch (e) {
+        console.error(e)
+        setError(e.message)
+      } finally {
+        setLoading(false)
+      }
+    }
+    fetchAnalytics()
+  }, [])
 
   const metrics = [
-    { title: 'Total API Volume', value: '154,230', change: '+12.4%', status: 'up', icon: TrendingUp, color: '#3b9eff', detail: '14,892 cached hits' },
-    { title: 'Cache Hit Ratio', value: '68.4%', change: '+3.1%', status: 'up', icon: Server, color: '#11ff99', detail: 'Hot/Warm index hit' },
-    { title: 'Average Latency', value: '142 ms', change: '-8.2%', status: 'down', icon: Activity, color: '#ffc53d', detail: 'Avg query response' },
-    { title: 'Error Rate (5xx)', value: '0.03%', change: '-0.02%', status: 'down', icon: Cpu, color: '#ff2047', detail: 'Worker timeouts' }
+    { 
+      title: 'Total API Volume', 
+      value: data ? data.cumulative_vol.toLocaleString() : '0', 
+      change: '+12.4%', 
+      status: 'up', 
+      icon: TrendingUp, 
+      color: '#3b9eff', 
+      detail: 'Cumulative request volume' 
+    },
+    { 
+      title: 'Cache Hit Ratio', 
+      value: data ? `${data.cache_hit_ratio}%` : '0%', 
+      change: '+3.1%', 
+      status: 'up', 
+      icon: Server, 
+      color: '#11ff99', 
+      detail: 'Percentage of cached hits' 
+    },
+    { 
+      title: 'Average Latency', 
+      value: data ? `${data.avg_latency_ms} ms` : '0 ms', 
+      change: '-8.2%', 
+      status: 'down', 
+      icon: Activity, 
+      color: '#ffc53d', 
+      detail: 'Avg response time' 
+    },
+    { 
+      title: 'Error Rate (5xx)', 
+      value: data ? `${data.error_rate}%` : '0%', 
+      change: '-0.02%', 
+      status: 'down', 
+      icon: Cpu, 
+      color: '#ff2047', 
+      detail: 'Worker timeouts' 
+    }
   ]
 
-  // Mock data coordinates for 12 hours (12 divisions)
-  const queryPoints = [30, 45, 38, 55, 62, 78, 70, 85, 92, 88, 105, 120]
-  const latencyPoints = [220, 190, 210, 160, 150, 140, 135, 138, 150, 145, 140, 130]
+  const queryPoints = data ? data.query_sparkline : [30, 45, 38, 55, 62, 78, 70, 85, 92, 88, 105, 120]
+  const latencyPoints = data ? data.latency_sparkline : [220, 190, 210, 160, 150, 140, 135, 138, 150, 145, 140, 130]
 
-  // Provider metrics
-  const providers = [
+  const providers = data ? data.providers : [
     { name: 'Brave Search', share: 72, volume: '111,045', latency: '94ms', status: 'healthy', color: 'bg-accent-blue' },
     { name: 'SerpAPI Fallback', share: 21, volume: '32,388', latency: '412ms', status: 'degraded', color: 'bg-accent-orange' },
     { name: 'DuckDuckGo Fallover', share: 7, volume: '10,797', latency: '608ms', status: 'healthy', color: 'bg-mute' }
   ]
 
-  // Time labels
-  const timeLabels = ['22:00', '23:00', '00:00', '01:00', '02:00', '03:00', '04:00', '05:00', '06:00', '07:00', '08:00', '09:00']
+  const timeLabels = data ? data.time_labels : ['22:00', '23:00', '00:00', '01:00', '02:00', '03:00', '04:00', '05:00', '06:00', '07:00', '08:00', '09:00']
 
   return (
     <div className="space-y-8 text-left max-w-7xl mx-auto relative glow-blue">
@@ -57,8 +108,25 @@ export default function AnalyticsPage() {
         </div>
       </div>
 
-      {/* METRICS ROW */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 relative z-10">
+      {error && (
+        <div className="p-4 bg-accent-red/10 border border-accent-red/20 rounded flex gap-2.5 text-accent-red font-mono text-xs z-10 relative">
+          <AlertTriangle size={14} className="shrink-0 mt-0.5" />
+          <div>
+            <span className="font-bold block uppercase">Telemetry Offline</span>
+            {error} (Verify SearchMind backend server is running on port 8000)
+          </div>
+        </div>
+      )}
+
+      {loading ? (
+        <div className="py-16 flex flex-col items-center justify-center text-center p-6 space-y-4 font-mono z-10 relative">
+          <Loader className="animate-spin text-accent-blue" size={24} />
+          <p className="text-[11px] text-mute">Loading active platform telemetry...</p>
+        </div>
+      ) : (
+        <>
+          {/* METRICS ROW */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 relative z-10">
         {metrics.map((m) => {
           const Icon = m.icon
           const isUp = m.status === 'up'
@@ -262,6 +330,8 @@ export default function AnalyticsPage() {
         </div>
 
       </div>
+      </>
+      )}
 
     </div>
   )
