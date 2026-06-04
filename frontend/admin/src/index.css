@@ -24,15 +24,24 @@
   
   /* Resend Components */
   .button-primary {
-    @apply bg-ink text-canvas hover:bg-surface-light transition-colors font-medium text-sm px-4 py-2 rounded-md h-[36px] flex items-center justify-center shrink-0 font-sans cursor-pointer select-none;
+    @apply bg-ink text-canvas transition-colors font-medium text-sm px-4 py-2 rounded-md h-[36px] flex items-center justify-center shrink-0 font-sans cursor-pointer select-none;
+  }
+  .button-primary:hover {
+    background-color: #f1f7fe;
   }
   
   .button-ghost {
-    @apply bg-surface-elevated text-ink hover:bg-surface-card border border-hairline-strong transition-all font-medium text-sm px-4 py-2 rounded-md h-[36px] flex items-center justify-center shrink-0 font-sans cursor-pointer select-none;
+    @apply bg-surface-elevated text-ink border border-hairline-strong transition-all font-medium text-sm px-4 py-2 rounded-md h-[36px] flex items-center justify-center shrink-0 font-sans cursor-pointer select-none;
+  }
+  .button-ghost:hover {
+    background-color: #0a0a0c;
   }
   
   .button-outline {
-    @apply bg-canvas text-ink hover:bg-surface-card border border-hairline-strong transition-all font-medium text-sm px-4 py-2 rounded-md h-[36px] flex items-center justify-center shrink-0 font-sans cursor-pointer select-none;
+    @apply bg-canvas text-ink border border-hairline-strong transition-all font-medium text-sm px-4 py-2 rounded-md h-[36px] flex items-center justify-center shrink-0 font-sans cursor-pointer select-none;
+  }
+  .button-outline:hover {
+    background-color: #0a0a0c;
   }
 
   .glass-panel {
