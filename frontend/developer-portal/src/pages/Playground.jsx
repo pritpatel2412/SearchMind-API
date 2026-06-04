@@ -113,12 +113,16 @@ export default function Playground({ token, apiKey }) {
     }
 
     try {
+      const headers = {
+        'X-API-Key': urlKey,
+        'Content-Type': 'application/json'
+      }
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`
+      }
       const response = await fetch(requestUrl, {
         method: 'POST',
-        headers: {
-          'X-API-Key': urlKey,
-          'Content-Type': 'application/json'
-        },
+        headers: headers,
         body: JSON.stringify(payload)
       })
 
@@ -582,9 +586,9 @@ result = client._client.post(
           <div className="bg-surface-card border border-hairline-strong px-4 py-3 rounded-lg flex flex-wrap items-center justify-between gap-4 text-xs font-mono">
             <div className="flex items-center gap-3">
               <div className="flex items-center gap-1.5">
-                <span className={`w-2 h-2 rounded-full ${loading ? 'bg-accent-blue animate-pulse' : results ? 'bg-accent-green' : 'bg-mute'}`}></span>
+                <span className={`w-2 h-2 rounded-full ${loading ? 'bg-accent-blue animate-pulse' : error ? 'bg-accent-red' : results ? 'bg-accent-green' : 'bg-mute'}`}></span>
                 <span className="font-bold text-ink uppercase">
-                  {loading ? 'PROCESSING' : results ? '200 OK' : 'IDLE'}
+                  {loading ? 'PROCESSING' : error ? 'ERROR' : results ? '200 OK' : 'IDLE'}
                 </span>
               </div>
               {results && (
