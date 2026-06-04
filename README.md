@@ -1,34 +1,39 @@
 # SearchMind API Platform
 
-SearchMind is an AI-native web search API platform built specifically for LLM agent pipelines, LangChain, LangGraph, and advanced RAG workflows. It provides production-grade endpoints for searching the web, deep extraction, and multi-query research, supported by a full Developer Portal and Admin Console.
+SearchMind is an AI-native web search API platform engineered specifically for LLM agent pipelines, LangChain, LangGraph, and advanced Retrieval-Augmented Generation (RAG) workflows. It provides production-grade endpoints for querying the web, deep HTML extraction, and parallelized multi-query research.
 
-SearchMind handles the heavy lifting of provider fallbacks, headless JS rendering, async crawling, and dual-tier caching, so your autonomous agents get clean, LLM-ready intelligence instantly.
-
----
-
-## ⚡ Core Capabilities
-
-- **Intelligent Search Engine** (`/v1/search`): Queries the web using a robust fallback chain (Brave → SerpAPI → DuckDuckGo). Supports `basic` (snippets) and `advanced` (full page scraping) depth, with built-in LLM synthesis and citations.
-- **Clean Content Extraction** (`/v1/extract`): Strips ads, boilerplate, and navigation from URLs. Powered by Trafilatura and Readability, with optional Playwright headless fallback for JS-heavy domains.
-- **Deep Research Pipelines** (`/v1/research`): Orchestrates parallel search queries, evaluates multiple sources, and synthesizes a comprehensive research report using models like Claude 3.5 Sonnet or Llama 3.
-- **SearchMind Python SDK**: A native, highly optimized Python client with built-in LangGraph and LangChain tool adapters.
-- **Developer Portal & Admin Console**: Beautiful React-based dashboards for users to manage API keys, monitor quotas, and test queries in the Playground, plus a root admin interface for system health and user management.
+The platform abstracts the complexities of search provider fallbacks, headless JavaScript rendering, asynchronous domain crawling, and dual-tier caching, delivering sanitized, LLM-ready context with high throughput and low latency.
 
 ---
 
-## 🛠️ Tech Stack & Architecture
+## Core Capabilities
 
-- **Backend API**: Python 3.12, FastAPI, SQLAlchemy (Async), Celery
-- **Databases**: PostgreSQL (Neon Serverless) + Redis (In-memory caching and message broker)
-- **Frontend UIs**: React, Vite, Tailwind CSS, Lucide Icons (Resend-inspired editorial design)
-- **Caching Layer**: Dual-tier architecture. Sub-10ms Redis reads falling back to durable PostgreSQL records.
-- **SDK**: `httpx`, Pydantic, native `langchain-core` bindings
+- **Intelligent Search Engine** (`/v1/search`): Executes web queries utilizing a robust fallback chain (Brave -> SerpAPI -> DuckDuckGo). Supports `basic` (snippets) and `advanced` (full page DOM extraction) depth, integrating automated LLM synthesis and citation indexing.
+- **Clean Content Extraction** (`/v1/extract`): Parses and sanitizes raw HTML from URLs. Employs Trafilatura and Readability for fast heuristic extraction, with an automated Playwright headless chromium fallback for dynamically rendered client-side applications.
+- **Deep Research Pipelines** (`/v1/research`): Orchestrates parallel search queries, evaluates multiple sources via concurrent fetches, and synthesizes comprehensive research reports utilizing models such as Llama-3.3-70b or Claude.
+- **SearchMind Python SDK**: A native, highly optimized Python client featuring built-in LangGraph and LangChain tool adapters for seamless agent integration.
+- **Developer Portal & Admin Console**: React-based dashboards for API key lifecycle management, usage quota monitoring, and query playground testing. Includes a root administrative interface for system health and tenant management.
 
 ---
 
-## 🚀 Quick Start (Docker)
+## System Architecture
 
-The fastest way to run the entire SearchMind platform (API, Redis, Celery, and Frontends) is via Docker Compose.
+SearchMind is designed for high availability and low latency, utilizing a modern asynchronous microservices stack.
+
+- **Backend API**: Python 3.12, FastAPI, SQLAlchemy (Async), Celery for background tasks.
+- **Databases**: PostgreSQL (Neon Serverless) for durable storage, API key hashing (SHA-256), and tenant usage records.
+- **Caching Layer**: Dual-tier architecture. 
+  - Tier 1: Redis (In-memory, sub-10ms reads)
+  - Tier 2: PostgreSQL `cached_results` (Durable, queryable)
+  - Cache misses automatically hydrate both tiers.
+- **Rate Limiting**: Enforced via a sliding window algorithm in Redis (requests/min) and durable monthly quotas verified against PostgreSQL `usage_records`.
+- **Frontend UIs**: React, Vite, Tailwind CSS, utilizing a custom Resend-inspired design system.
+
+---
+
+## Quick Start (Docker)
+
+The fastest method to deploy the complete SearchMind platform (API, Redis, Celery workers, and Frontends) is via Docker Compose.
 
 1. **Clone & Configure**
 ```bash
@@ -37,31 +42,31 @@ cd SearchMind-API
 cp backend/.env.example backend/.env
 ```
 
-2. **Edit `backend/.env`**
-You must provide a PostgreSQL connection URL (e.g., from Neon.tech).
+2. **Environment Variables**
+Configure `backend/.env` with your PostgreSQL connection string and required secrets.
 ```env
 DATABASE_URL=postgresql+asyncpg://user:pass@ep-xxx.region.aws.neon.tech/neondb?ssl=require
 SECRET_KEY=your-secure-jwt-secret
-BRAVE_API_KEY=your-brave-search-key  # Highly recommended
+BRAVE_API_KEY=your-brave-search-key  # Recommended primary provider
 ```
 
-3. **Launch the Platform**
+3. **Deploy Services**
 ```bash
 docker compose up --build
 ```
-*Note: The platform handles database migrations automatically on startup.*
+*Note: Alembic database migrations are executed automatically on container startup.*
 
-### Platform Access
+### Local Endpoints
 - **API Server**: `http://localhost:8000`
-- **API Documentation**: `http://localhost:8000/docs`
-- **Developer Portal**: `http://localhost:5173` (Create your account and generate an API key here)
+- **OpenAPI Docs**: `http://localhost:8000/docs`
+- **Developer Portal**: `http://localhost:5173`
 - **Admin Console**: `http://localhost:3001`
 
 ---
 
-## 🐍 Python SDK & LangGraph Integration
+## Python SDK & LangGraph Integration
 
-SearchMind was built to empower autonomous agents. The included Python SDK makes it trivial to drop SearchMind into a LangGraph or LangChain project.
+SearchMind is engineered for autonomous agents. The included Python SDK provides native bindings that map directly to LangGraph and LangChain architectures.
 
 ### Installation (Local SDK)
 ```bash
@@ -69,8 +74,8 @@ cd sdk
 pip install -e .
 ```
 
-### LangGraph Agent Example
-The SDK includes pre-configured `StructuredTool` objects that map directly to LangGraph.
+### LangGraph Agent Implementation
+The SDK exposes `create_searchmind_tools()`, which generates strongly-typed `StructuredTool` objects configured with Pydantic schemas, matching LangGraph's exact requirements for tool calling.
 
 ```python
 import os
@@ -85,11 +90,11 @@ client = SearchMindClient(api_key=os.environ.get("SEARCHMIND_API_KEY"))
 # 2. Generate LangGraph-compatible tools automatically
 tools = create_searchmind_tools(client)
 
-# 3. Pass tools directly to the LangGraph Agent
+# 3. Inject tools into the LangGraph Agent
 llm = ChatOpenAI(model="gpt-4o-mini", temperature=0)
 agent = create_react_agent(llm, tools)
 
-# Run autonomous research
+# Execute autonomous research task
 inputs = {"messages": [("user", "Compare modern vector databases in 2026")]}
 for chunk in agent.stream(inputs, stream_mode="values"):
     print(chunk["messages"][-1].content)
@@ -97,24 +102,24 @@ for chunk in agent.stream(inputs, stream_mode="values"):
 
 ---
 
-## 🔐 Authentication & Rate Limiting
+## Authentication & Security
 
-SearchMind is multi-tenant and secure. All API endpoints require an API key generated from the Developer Portal.
+SearchMind is a multi-tenant platform. All protected API endpoints require an API key generated from the Developer Portal.
 
 ```http
 X-API-Key: sm_live_...
 ```
 
-- **Security**: API keys are hashed via SHA-256 in the database. The secret is only shown once at creation time.
-- **Quotas**: Rate limiting operates via a sliding window in Redis (requests/min) and durable monthly quotas enforced via Postgres `usage_records`.
+- **Credential Security**: API keys are hashed via SHA-256 before database insertion. The plaintext secret is only accessible once during generation.
+- **Session Security**: Frontend portals utilize short-lived JWT tokens signed with RS256/HS256 for session management.
 
 ---
 
-## 💻 Manual Setup (Local Development)
+## Local Development (Without Docker)
 
-If you prefer to run services natively without Docker:
+To run the services natively for development:
 
-**1. Start the API & Worker**
+**1. API & Celery Workers**
 ```bash
 cd backend
 python -m venv .venv
@@ -126,14 +131,14 @@ uvicorn app.main:app --reload
 celery -A app.workers.celery_app worker --loglevel=info
 ```
 
-**2. Start Developer Portal**
+**2. Developer Portal**
 ```bash
 cd frontend/developer-portal
 npm install
 npm run dev
 ```
 
-**3. Start Admin Console**
+**3. Admin Console**
 ```bash
 cd frontend/admin
 npm install
@@ -142,6 +147,6 @@ npm run dev
 
 ---
 
-## 📄 License & Rights
+## License
 
-Proprietary — All rights reserved. See repository owner for terms of use and distribution.
+Proprietary — All rights reserved. Refer to the repository owner for licensing terms and distribution rights.
