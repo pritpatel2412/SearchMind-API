@@ -600,7 +600,7 @@ result = client._client.post(
                   <span className="text-hairline-strong">|</span>
                   <span className="flex items-center gap-1 text-charcoal">
                     <Database size={11} fill="none" /> 
-                    {results.cached ? '↯ CACHED' : 'LIVE FETCH'}
+                    {results.cached ? 'CACHED' : 'LIVE FETCH'}
                   </span>
                 </>
               )}
@@ -665,7 +665,7 @@ result = client._client.post(
               <div className="flex flex-col items-center justify-center text-center p-12 flex-grow gap-3">
                 <Terminal className="text-mute" size={24} />
                 <div className="space-y-1">
-                  <h4 className="font-mono text-xs text-mute uppercase font-bold tracking-wider">Console Console Ready</h4>
+                  <h4 className="font-mono text-xs text-mute uppercase font-bold tracking-wider">Console Ready</h4>
                   <p className="text-xs text-charcoal max-w-xs">Submit a request parameters profile to print live API outputs.</p>
                 </div>
               </div>

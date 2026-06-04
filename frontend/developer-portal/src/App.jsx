@@ -5,6 +5,8 @@ import Home from './pages/Home.jsx'
 import Dashboard from './pages/Dashboard.jsx'
 import Playground from './pages/Playground.jsx'
 import Docs from './pages/Docs.jsx'
+import Terms from './pages/Terms.jsx'
+import Privacy from './pages/Privacy.jsx'
 
 export default function App() {
   const [token, setToken] = useState(localStorage.getItem('sm_token') || '')
@@ -45,7 +47,7 @@ export default function App() {
   }
 
   return (
-    <Router>
+    <Router future={{ v7_relativeSplatPath: true }}>
       <div className="flex flex-col min-h-screen">
         <Navbar token={token} user={user} onLogout={handleLogout} />
         <main className="flex-grow">
@@ -60,18 +62,20 @@ export default function App() {
               element={token ? <Playground token={token} apiKey={apiKey} /> : <Navigate to="/" />} 
             />
             <Route path="/docs" element={<Docs />} />
+            <Route path="/terms" element={<Terms />} />
+            <Route path="/privacy" element={<Privacy />} />
             <Route path="*" element={<Navigate to="/" />} />
           </Routes>
         </main>
         
         {/* Footer */}
-        <footer className="border-t border-brand-border py-6 bg-brand-dark/40 text-center text-sm text-gray-500">
+        <footer className="border-t border-hairline py-6 bg-surface-card/40 text-center text-sm text-mute">
           <div className="max-w-7xl mx-auto px-4 flex flex-col md:flex-row justify-between items-center gap-4">
-            <p>&copy; {new Date().getFullYear()} SearchMind API. All rights reserved.</p>
+            <p className="text-xs font-mono">&copy; {new Date().getFullYear()} SearchMind API. All rights reserved.</p>
             <div className="flex gap-4">
-              <a href="#/docs" className="hover:text-indigo-400 transition-colors">Docs</a>
-              <a href="#" className="hover:text-indigo-400 transition-colors">Terms</a>
-              <a href="#" className="hover:text-indigo-400 transition-colors">Privacy</a>
+              <a href="#/docs" className="text-mute hover:text-ink transition-colors">Docs</a>
+              <a href="#/terms" className="text-mute hover:text-ink transition-colors">Terms</a>
+              <a href="#/privacy" className="text-mute hover:text-ink transition-colors">Privacy</a>
             </div>
           </div>
         </footer>
