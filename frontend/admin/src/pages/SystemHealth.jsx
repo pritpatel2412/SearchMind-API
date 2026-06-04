@@ -101,14 +101,14 @@ export default function SystemHealthPage() {
           <h1 className="text-4xl font-display font-medium text-ink flex items-center gap-2">
             System Health
           </h1>
-          <p className="text-xs font-mono text-mute mt-1">
+          <p className="text-xs font-sans text-mute mt-1">
             Real-time infrastructure health node checkpoints and active connector checks.
           </p>
         </div>
         <button
           onClick={fetchHealth}
           disabled={loading}
-          className="button-ghost text-xs font-mono h-[34px]"
+          className="button-ghost text-xs font-sans font-medium h-[34px]"
         >
           <RefreshCw size={11} className={`mr-1.5 ${loading ? 'animate-spin' : ''}`} />
           Force Diagnostic
@@ -117,11 +117,13 @@ export default function SystemHealthPage() {
 
       {/* Alert Banner */}
       {error && (
-        <div className="p-4 bg-accent-red/10 border border-accent-red/25 text-accent-red rounded-lg flex gap-3 text-xs leading-relaxed font-mono relative z-10">
-          <AlertTriangle size={16} className="shrink-0 mt-0.5" />
-          <div>
-            <span className="font-bold block uppercase mb-0.5">Heartbeat Connection Alert</span>
-            Heartbeat ping degraded ({error}). Verify that your local FastAPI server is running on port 8000. PostgreSQL & Redis components temporarily reporting offline mode.
+        <div className="p-4 bg-accent-red/5 border border-accent-red/20 rounded-lg flex items-start gap-3 text-accent-red font-sans text-xs z-10 relative">
+          <AlertTriangle size={15} className="shrink-0 mt-0.5" />
+          <div className="space-y-1">
+            <span className="font-semibold block uppercase tracking-wider text-[10px]">Heartbeat Connection Degraded</span>
+            <p className="text-ink/80 leading-relaxed">
+              Heartbeat check failed: <span className="font-mono text-accent-red bg-accent-red/10 px-1 rounded">{error}</span>. Please verify that your local FastAPI server is running on port 8000. PostgreSQL & Redis component monitors are temporarily reporting offline mode.
+            </p>
           </div>
         </div>
       )}

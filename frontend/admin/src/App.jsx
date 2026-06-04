@@ -16,9 +16,10 @@ function AdminLayout({ children }) {
       try {
         const res = await fetch('http://localhost:8000/health')
         if (res.ok) {
-          setSystemStatus('healthy')
+          const data = await res.json()
+          setSystemStatus(data.status === 'ok' ? 'healthy' : 'degraded')
         } else {
-          setSystemStatus('degraded')
+          setSystemStatus('down')
         }
       } catch (e) {
         setSystemStatus('down')
@@ -50,10 +51,10 @@ function AdminLayout({ children }) {
               <ShieldCheck size={14} />
             </div>
             <div className="flex flex-col">
-              <span className="font-extrabold text-sm tracking-tight font-display text-ink leading-none">
+              <span className="font-bold text-sm tracking-tight font-sans text-ink leading-none">
                 SearchMind
               </span>
-              <span className="text-[8px] font-mono font-bold tracking-widest text-mute uppercase mt-1">
+              <span className="text-[9px] font-sans font-bold tracking-widest text-mute uppercase mt-1">
                 Admin Console
               </span>
             </div>
@@ -69,9 +70,9 @@ function AdminLayout({ children }) {
               <Link
                 key={item.label}
                 to={item.path}
-                className={`flex items-center justify-between px-3 py-2.5 rounded-md text-xs font-mono font-medium transition-all group ${
+                className={`flex items-center justify-between px-3 py-2 rounded-md text-xs font-sans font-medium transition-all group ${
                   isActive
-                    ? 'bg-surface-elevated text-ink border border-hairline-strong'
+                    ? 'bg-surface-elevated text-ink border border-hairline-strong shadow-sm'
                     : 'text-charcoal hover:text-ink hover:bg-surface-card'
                 }`}
               >
@@ -81,12 +82,12 @@ function AdminLayout({ children }) {
                 </div>
                 {item.badge && (
                   <span className="flex items-center">
-                    <span className={`w-2 h-2 rounded-full relative flex`}>
+                    <span className={`w-1.5 h-1.5 rounded-full relative flex`}>
                       <span className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 ${
                         item.badge === 'healthy' ? 'bg-accent-green' :
                         item.badge === 'degraded' ? 'bg-accent-yellow' : 'bg-accent-red'
                       }`}></span>
-                      <span className={`relative inline-flex rounded-full h-2 w-2 ${
+                      <span className={`relative inline-flex rounded-full h-1.5 w-1.5 ${
                         item.badge === 'healthy' ? 'bg-accent-green' :
                         item.badge === 'degraded' ? 'bg-accent-yellow' : 'bg-accent-red'
                       }`}></span>
@@ -100,7 +101,7 @@ function AdminLayout({ children }) {
 
         {/* System Uptime status widget */}
         <div className="p-4 mx-4 mb-2 bg-surface-deep border border-hairline rounded-lg">
-          <div className="flex items-center gap-2 mb-1.5 font-mono">
+          <div className="flex items-center gap-2 mb-1.5 font-sans">
             <span className={`w-1.5 h-1.5 rounded-full ${
               systemStatus === 'healthy' ? 'bg-accent-green animate-pulse' :
               systemStatus === 'degraded' ? 'bg-accent-yellow' : 'bg-accent-red'
@@ -110,14 +111,14 @@ function AdminLayout({ children }) {
                systemStatus === 'degraded' ? 'DEGRADED SERVICE' : 'SYSTEM OFFLINE'}
             </span>
           </div>
-          <p className="text-[9px] font-mono text-mute">
+          <p className="text-[9px] font-sans text-mute">
             Heartbeat check: <span className="text-ink">{lastCheck}</span>
           </p>
         </div>
 
         {/* Sidebar Footer / Profile */}
         <div className="p-4 border-t border-hairline-strong bg-canvas/30 flex flex-col gap-3">
-          <div className="flex items-center justify-between font-mono">
+          <div className="flex items-center justify-between font-sans">
             <div className="flex flex-col">
               <span className="text-[10px] font-bold text-ink">root_admin</span>
               <span className="text-[9px] text-mute">system-level ops</span>
@@ -132,7 +133,7 @@ function AdminLayout({ children }) {
               <ExternalLink size={11} />
             </a>
           </div>
-          <button className="button-ghost text-[10px] font-mono h-[30px] font-semibold flex items-center justify-center">
+          <button className="button-ghost text-[10px] font-sans h-[30px] font-semibold flex items-center justify-center">
             <LogOut size={11} className="mr-1.5 text-accent-red" />
             Logout Session
           </button>

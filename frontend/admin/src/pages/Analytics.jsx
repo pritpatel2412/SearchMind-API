@@ -85,20 +85,20 @@ export default function AnalyticsPage() {
           <h1 className="text-4xl font-display font-medium text-ink flex items-center gap-2">
             Platform Analytics
           </h1>
-          <p className="text-xs font-mono text-mute mt-1">
+          <p className="text-xs font-sans text-mute mt-1">
             Real-time analytics engine tracking query distributions, latencies, and service fallbacks.
           </p>
         </div>
 
         {/* Date Selector */}
-        <div className="flex gap-1 bg-surface-deep border border-hairline-strong rounded-md p-1 text-xs font-mono">
+        <div className="flex gap-1 bg-surface-deep border border-hairline-strong rounded-md p-1 text-xs font-sans font-medium">
           {['1h', '12h', '24h', '7d'].map((range) => (
             <button
               key={range}
               onClick={() => setTimeRange(range)}
               className={`px-3 py-1 rounded transition-all ${
                 timeRange === range
-                  ? 'bg-surface-elevated text-ink border border-hairline-strong'
+                  ? 'bg-surface-elevated text-ink border border-hairline-strong shadow-sm'
                   : 'text-mute hover:text-ink'
               }`}
             >
@@ -109,11 +109,13 @@ export default function AnalyticsPage() {
       </div>
 
       {error && (
-        <div className="p-4 bg-accent-red/10 border border-accent-red/20 rounded flex gap-2.5 text-accent-red font-mono text-xs z-10 relative">
-          <AlertTriangle size={14} className="shrink-0 mt-0.5" />
-          <div>
-            <span className="font-bold block uppercase">Telemetry Offline</span>
-            {error} (Verify SearchMind backend server is running on port 8000)
+        <div className="p-4 bg-accent-red/5 border border-accent-red/20 rounded-lg flex items-start gap-3 text-accent-red font-sans text-xs z-10 relative">
+          <AlertTriangle size={15} className="shrink-0 mt-0.5" />
+          <div className="space-y-1">
+            <span className="font-semibold block uppercase tracking-wider text-[10px]">Telemetry Connection Degraded</span>
+            <p className="text-ink/80 leading-relaxed">
+              Failed to query telemetry logs: <span className="font-mono text-accent-red bg-accent-red/10 px-1 rounded">{error}</span>. Please verify that the SearchMind API server is running on port 8000.
+            </p>
           </div>
         </div>
       )}
@@ -135,9 +137,9 @@ export default function AnalyticsPage() {
           return (
             <div key={m.title} className="bg-surface-card border border-hairline-strong p-5 rounded-lg flex items-center justify-between hover:bg-surface-elevated transition-colors">
               <div className="space-y-1">
-                <span className="text-[10px] font-mono font-bold tracking-widest text-mute uppercase">{m.title}</span>
-                <p className="text-2xl font-bold font-mono text-ink mt-1">{m.value}</p>
-                <div className="flex items-center gap-1.5 text-[10px] font-mono mt-1">
+                <span className="text-[9px] font-mono font-medium tracking-[0.8px] text-mute uppercase">{m.title}</span>
+                <p className="text-2xl font-bold font-sans tracking-tight text-ink mt-1">{m.value}</p>
+                <div className="flex items-center gap-1.5 text-[10px] font-sans mt-1">
                   <span className={`inline-flex items-center gap-0.5 font-semibold ${
                     isLatency 
                       ? 'text-accent-green' 

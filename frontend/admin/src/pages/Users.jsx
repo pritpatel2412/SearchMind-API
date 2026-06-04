@@ -121,11 +121,13 @@ export default function UsersPage() {
       </div>
 
       {error && (
-        <div className="p-4 bg-accent-red/10 border border-accent-red/20 rounded flex gap-2.5 text-accent-red font-mono text-xs z-10 relative">
-          <AlertTriangle size={14} className="shrink-0 mt-0.5" />
-          <div>
-            <span className="font-bold block uppercase">Database Offline</span>
-            {error} (Verify SearchMind backend server is running on port 8000)
+        <div className="p-4 bg-accent-red/5 border border-accent-red/20 rounded-lg flex items-start gap-3 text-accent-red font-sans text-xs z-10 relative">
+          <AlertTriangle size={15} className="shrink-0 mt-0.5" />
+          <div className="space-y-1">
+            <span className="font-semibold block uppercase tracking-wider text-[10px]">Database Connection Degraded</span>
+            <p className="text-ink/80 leading-relaxed">
+              Failed to query telemetry logs: <span className="font-mono text-accent-red bg-accent-red/10 px-1 rounded">{error}</span>. Please verify that the SearchMind API server is running on port 8000.
+            </p>
           </div>
         </div>
       )}
@@ -133,35 +135,35 @@ export default function UsersPage() {
       {/* STATS METRIC ROW */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 relative z-10">
         
-        <div className="bg-surface-card border border-hairline-strong p-5 rounded-lg flex flex-col justify-between h-28">
-          <span className="text-[10px] font-mono font-bold tracking-widest text-mute uppercase">Total Accounts</span>
+        <div className="bg-surface-card border border-hairline-strong p-5 rounded-lg flex flex-col justify-between h-28 hover:border-hairline-strong/80 transition-colors">
+          <span className="text-[9px] font-mono font-medium tracking-[0.8px] text-mute uppercase">Total Accounts</span>
           <div className="flex items-baseline gap-2 mt-2">
-            <span className="text-3xl font-extrabold font-mono text-ink">{totalUsers}</span>
-            <span className="text-[10px] font-mono text-accent-green">100% enabling</span>
+            <span className="text-3xl font-bold font-sans tracking-tight text-ink">{totalUsers}</span>
+            <span className="text-[10px] font-sans font-medium text-accent-green">100% enabling</span>
           </div>
         </div>
 
-        <div className="bg-surface-card border border-hairline-strong p-5 rounded-lg flex flex-col justify-between h-28">
-          <span className="text-[10px] font-mono font-bold tracking-widest text-mute uppercase">Active Keys</span>
+        <div className="bg-surface-card border border-hairline-strong p-5 rounded-lg flex flex-col justify-between h-28 hover:border-hairline-strong/80 transition-colors">
+          <span className="text-[9px] font-mono font-medium tracking-[0.8px] text-mute uppercase">Active Keys</span>
           <div className="flex items-baseline gap-2 mt-2">
-            <span className="text-3xl font-extrabold font-mono text-ink">{activeCount}</span>
-            <span className="text-[10px] font-mono text-mute">users online</span>
+            <span className="text-3xl font-bold font-sans tracking-tight text-ink">{activeCount}</span>
+            <span className="text-[10px] font-sans font-medium text-mute">users online</span>
           </div>
         </div>
 
-        <div className="bg-surface-card border border-hairline-strong p-5 rounded-lg flex flex-col justify-between h-28">
-          <span className="text-[10px] font-mono font-bold tracking-widest text-mute uppercase">Premium Clients</span>
+        <div className="bg-surface-card border border-hairline-strong p-5 rounded-lg flex flex-col justify-between h-28 hover:border-hairline-strong/80 transition-colors">
+          <span className="text-[9px] font-mono font-medium tracking-[0.8px] text-mute uppercase">Premium Clients</span>
           <div className="flex items-baseline gap-2 mt-2">
-            <span className="text-3xl font-extrabold font-mono text-ink">{premiumCount}</span>
-            <span className="text-[10px] font-mono text-accent-blue">Pro / Enterprise</span>
+            <span className="text-3xl font-bold font-sans tracking-tight text-ink">{premiumCount}</span>
+            <span className="text-[10px] font-sans font-medium text-accent-blue">Pro / Enterprise</span>
           </div>
         </div>
 
-        <div className="bg-surface-card border border-hairline-strong p-5 rounded-lg flex flex-col justify-between h-28">
-          <span className="text-[10px] font-mono font-bold tracking-widest text-mute uppercase">Cumulative Vol</span>
+        <div className="bg-surface-card border border-hairline-strong p-5 rounded-lg flex flex-col justify-between h-28 hover:border-hairline-strong/80 transition-colors">
+          <span className="text-[9px] font-mono font-medium tracking-[0.8px] text-mute uppercase">Cumulative Vol</span>
           <div className="flex items-baseline gap-2 mt-2">
-            <span className="text-3xl font-extrabold font-mono text-ink">{totalRequestsUsed.toLocaleString()}</span>
-            <span className="text-[10px] font-mono text-accent-orange">requests</span>
+            <span className="text-3xl font-bold font-sans tracking-tight text-ink">{totalRequestsUsed.toLocaleString()}</span>
+            <span className="text-[10px] font-sans font-medium text-accent-orange">requests</span>
           </div>
         </div>
 
@@ -176,7 +178,7 @@ export default function UsersPage() {
           <input
             type="text"
             placeholder="Filter accounts by email, user name..."
-            className="bg-transparent outline-none text-xs text-ink w-full font-mono placeholder:text-mute"
+            className="bg-transparent outline-none text-xs text-ink w-full font-sans placeholder:text-mute"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
@@ -189,32 +191,42 @@ export default function UsersPage() {
 
         {/* Filters */}
         <div className="flex flex-wrap gap-2.5 items-center">
-          <div className="flex items-center gap-1.5 text-xs text-mute font-mono">
-            <Filter size={11} />
-            <span>Filter:</span>
+          <div className="flex items-center gap-1.5 text-xs text-mute font-sans">
+            <Filter size={11} className="text-mute" />
+            <span className="font-medium">Filter:</span>
           </div>
 
-          <select
-            value={planFilter}
-            onChange={(e) => setPlanFilter(e.target.value)}
-            className="bg-surface-deep text-xs text-ink px-2.5 py-1.5 rounded border border-hairline-strong font-mono outline-none focus:border-ink"
-          >
-            <option value="all">All Plans</option>
-            <option value="free">Free</option>
-            <option value="starter">Starter</option>
-            <option value="pro">Pro</option>
-            <option value="enterprise">Enterprise</option>
-          </select>
+          <div className="relative">
+            <select
+              value={planFilter}
+              onChange={(e) => setPlanFilter(e.target.value)}
+              className="bg-surface-deep text-xs text-ink pl-3 pr-8 py-1.5 rounded border border-hairline-strong font-sans font-medium outline-none focus:border-ink cursor-pointer hover:bg-surface-elevated transition-colors appearance-none"
+            >
+              <option value="all">All Plans</option>
+              <option value="free">Free</option>
+              <option value="starter">Starter</option>
+              <option value="pro">Pro</option>
+              <option value="enterprise">Enterprise</option>
+            </select>
+            <div className="absolute inset-y-0 right-0 flex items-center pr-2.5 pointer-events-none text-mute">
+              <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" /></svg>
+            </div>
+          </div>
 
-          <select
-            value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value)}
-            className="bg-surface-deep text-xs text-ink px-2.5 py-1.5 rounded border border-hairline-strong font-mono outline-none focus:border-ink"
-          >
-            <option value="all">All Statuses</option>
-            <option value="active">Active</option>
-            <option value="inactive">Deactivated</option>
-          </select>
+          <div className="relative">
+            <select
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+              className="bg-surface-deep text-xs text-ink pl-3 pr-8 py-1.5 rounded border border-hairline-strong font-sans font-medium outline-none focus:border-ink cursor-pointer hover:bg-surface-elevated transition-colors appearance-none"
+            >
+              <option value="all">All Statuses</option>
+              <option value="active">Active</option>
+              <option value="inactive">Deactivated</option>
+            </select>
+            <div className="absolute inset-y-0 right-0 flex items-center pr-2.5 pointer-events-none text-mute">
+              <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" /></svg>
+            </div>
+          </div>
         </div>
       </div>
 
