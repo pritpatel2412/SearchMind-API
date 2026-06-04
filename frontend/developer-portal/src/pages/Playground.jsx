@@ -69,8 +69,8 @@ export default function Playground({ token, apiKey }) {
       }
       if (timeRange) payload.time_range = timeRange
       
-      addLog("⚡ Initializing SearchMind query resolver...")
-      addLog(`📡 Routing search to primary Brave Index...`)
+      addLog("Initializing SearchMind query resolver...")
+      addLog(`Routing search to primary Brave Index...`)
     } else if (endpoint === '/v1/extract') {
       if (!extractUrls.trim()) {
         setLoading(false)
@@ -82,9 +82,9 @@ export default function Playground({ token, apiKey }) {
         use_js_rendering: useJsRendering,
         max_content_length: parseInt(maxContentLength)
       }
-      addLog(`🌐 Launching extraction pipeline for ${urlsArray.length} nodes...`)
+      addLog(`Launching extraction pipeline for ${urlsArray.length} nodes...`)
       if (useJsRendering) {
-        addLog("🕷️ Headless Playwright instances spawned for JS rendering...")
+        addLog("Headless Playwright instances spawned for JS rendering...")
       }
     } else if (endpoint === '/v1/research') {
       if (!researchQuery.trim()) {
@@ -97,8 +97,8 @@ export default function Playground({ token, apiKey }) {
         search_depth: 'advanced',
         include_summary: true
       }
-      addLog("🔬 Deep Research Mode enabled: spawning parallel sub-queries...")
-      addLog("🚀 Fetching and cross-referencing nodes concurrently...")
+      addLog("Deep Research Mode enabled: spawning parallel sub-queries...")
+      addLog("Fetching and cross-referencing nodes concurrently...")
     } else if (endpoint === '/v1/crawl') {
       if (!crawlUrl.trim()) {
         setLoading(false)
@@ -109,7 +109,7 @@ export default function Playground({ token, apiKey }) {
         max_depth: parseInt(maxDepth),
         max_pages: parseInt(maxPages)
       }
-      addLog("⚙️ Queueing asynchronous crawl task to Celery...")
+      addLog("Queueing asynchronous crawl task to Celery...")
     }
 
     try {
@@ -133,10 +133,10 @@ export default function Playground({ token, apiKey }) {
         throw new Error(data.detail || 'API request failed')
       }
 
-      addLog("🟢 Response payload received. Parsing JSON...")
+      addLog("Response payload received. Parsing JSON...")
       setResults(data)
     } catch (err) {
-      addLog("🔴 Pipeline returned exception.")
+      addLog("Pipeline returned exception.")
       setError(err.message)
     } finally {
       setLoading(false)
