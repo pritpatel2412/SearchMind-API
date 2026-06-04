@@ -4,47 +4,78 @@
 
 @layer base {
   body {
-    @apply font-sans bg-[#0b0f19] text-[#f8fafc] selection:bg-violet-500/30 overflow-x-hidden;
-    background-image: 
-      radial-gradient(circle at 10% 20%, rgba(139, 92, 246, 0.05) 0%, transparent 40%),
-      radial-gradient(circle at 90% 80%, rgba(139, 92, 246, 0.02) 0%, transparent 40%);
-    background-attachment: fixed;
+    @apply bg-canvas text-ink font-sans selection:bg-accent-blue/20 overflow-x-hidden min-h-screen;
+    background-color: #000000;
+  }
+  
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-display tracking-tight text-ink;
+    font-feature-settings: "ss01", "ss04", "ss11", "liga";
   }
 }
 
-.glass-panel {
-  background: rgba(30, 41, 59, 0.5);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.06);
+@layer utilities {
+  .border-hairline {
+    border: 1px solid rgba(255, 255, 255, 0.06);
+  }
+  .border-hairline-strong {
+    border: 1px solid rgba(255, 255, 255, 0.14);
+  }
+  
+  /* Resend Components */
+  .button-primary {
+    @apply bg-ink text-canvas hover:bg-surface-light transition-colors font-medium text-sm px-4 py-2 rounded-md h-[36px] flex items-center justify-center shrink-0 font-sans cursor-pointer select-none;
+  }
+  
+  .button-ghost {
+    @apply bg-surface-elevated text-ink hover:bg-surface-card border border-hairline-strong transition-all font-medium text-sm px-4 py-2 rounded-md h-[36px] flex items-center justify-center shrink-0 font-sans cursor-pointer select-none;
+  }
+  
+  .button-outline {
+    @apply bg-canvas text-ink hover:bg-surface-card border border-hairline-strong transition-all font-medium text-sm px-4 py-2 rounded-md h-[36px] flex items-center justify-center shrink-0 font-sans cursor-pointer select-none;
+  }
+
+  .glass-panel {
+    @apply bg-surface-card border border-hairline-strong rounded-lg;
+  }
+
+  .glass-input {
+    @apply bg-surface-card text-ink border border-hairline-strong focus:border-ink outline-none transition-all rounded-md px-3 py-2 font-mono text-xs;
+  }
+  
+  /* Atmospheric glows */
+  .glow-orange {
+    background: radial-gradient(circle at top center, rgba(255, 89, 0, 0.15) 0%, transparent 600px);
+  }
+  .glow-blue {
+    background: radial-gradient(circle at top center, rgba(0, 117, 255, 0.20) 0%, transparent 600px);
+  }
+  .glow-green {
+    background: radial-gradient(circle at top center, rgba(34, 255, 153, 0.12) 0%, transparent 600px);
+  }
+  .glow-red {
+    background: radial-gradient(circle at top center, rgba(255, 32, 71, 0.20) 0%, transparent 600px);
+  }
+  .glow-yellow {
+    background: radial-gradient(circle at top center, rgba(255, 197, 61, 0.15) 0%, transparent 600px);
+  }
 }
 
-.glass-panel-hover:hover {
-  background: rgba(30, 41, 59, 0.65);
-  border-color: rgba(139, 92, 246, 0.25);
-  box-shadow: 0 0 25px rgba(139, 92, 246, 0.1);
-}
-
-.glass-input {
-  background: rgba(15, 23, 42, 0.4);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  @apply focus:border-violet-500/60 focus:ring-1 focus:ring-violet-500/60 outline-none transition-all rounded-lg text-gray-200 px-3 py-2;
-}
-
+/* Custom scrollbars */
 ::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+  width: 6px;
+  height: 6px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #0b0f19;
+  background: #000000;
 }
 
 ::-webkit-scrollbar-thumb {
   background: rgba(255, 255, 255, 0.08);
-  border-radius: 4px;
+  border-radius: 3px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(139, 92, 246, 0.4);
+  background: rgba(255, 255, 255, 0.2);
 }

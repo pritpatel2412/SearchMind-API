@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import ApiKeyCard from '../components/ApiKeyCard.jsx'
 import UsageChart from '../components/UsageChart.jsx'
-import { Key, Plus, RefreshCw, BarChart3, AlertCircle } from 'lucide-react'
+import { Key, Plus, RefreshCw, BarChart3, AlertCircle, X, Terminal, HelpCircle } from 'lucide-react'
 
 export default function Dashboard({ token, user, apiKey, setApiKey }) {
   const [keys, setKeys] = useState([])
@@ -71,14 +71,9 @@ export default function Dashboard({ token, user, apiKey, setApiKey }) {
       const data = await response.json()
       if (!response.ok) throw new Error(data.detail || 'Failed to create API key')
 
-      // Save full key to show once to user
       setSuccessKey(data.full_key)
-      
-      // Update key list
       setKeys(prev => [data, ...prev])
       setNewKeyName('')
-      
-      // Set as active API key for Playground
       if (data.full_key) {
         setApiKey(data.full_key)
       }
@@ -95,7 +90,6 @@ export default function Dashboard({ token, user, apiKey, setApiKey }) {
       })
       if (!response.ok) throw new Error('Failed to revoke API key')
       
-      // If the user revoked the active key they are logged in with, alert them
       if (keyId === apiKey) {
         alert('You revoked your active credentials key! Please log back in to generate a new key.')
         window.location.reload()
@@ -113,27 +107,28 @@ export default function Dashboard({ token, user, apiKey, setApiKey }) {
   }
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 space-y-12">
-      {/* Header */}
+    <div className="max-w-7xl mx-auto px-6 md:px-8 py-12 space-y-12 text-left">
+      
+      {/* Header section */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h1 className="text-3xl font-extrabold text-white">Developer Dashboard</h1>
-          <p className="text-sm text-gray-400">Manage your credentials, limits, and view live endpoints statistics.</p>
+          <h1 className="text-4xl font-display font-medium text-ink">Developer Dashboard</h1>
+          <p className="text-xs font-mono text-mute mt-1">Manage search API credentials, monthly limits, and trace query analytics.</p>
         </div>
         <div className="flex gap-3">
           <button
             onClick={triggerRefresh}
             disabled={loading || keysLoading}
-            className="flex items-center gap-1.5 px-4 py-2 text-xs bg-gray-800 hover:bg-gray-700 disabled:text-gray-600 transition-all border border-brand-border rounded-lg text-gray-300 font-semibold"
+            className="button-ghost text-xs font-mono"
           >
-            <RefreshCw size={12} className={loading || keysLoading ? 'animate-spin' : ''} />
-            Refresh Data
+            <RefreshCw size={12} className={`mr-1.5 ${loading || keysLoading ? 'animate-spin' : ''}`} />
+            Refresh
           </button>
           <button
             onClick={() => { setShowCreateModal(true); setSuccessKey(null); setError(''); }}
-            className="flex items-center gap-1.5 px-4 py-2 text-xs bg-indigo-600 hover:bg-indigo-500 transition-all rounded-lg text-white font-bold shadow-glow"
+            className="button-primary text-xs"
           >
-            <Plus size={14} />
+            <Plus size={13} className="mr-1" />
             Create API Key
           </button>
         </div>
@@ -142,38 +137,40 @@ export default function Dashboard({ token, user, apiKey, setApiKey }) {
       {/* Quota overview panel */}
       {usage && (
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="glass-panel p-6 rounded-xl text-left border border-brand-border flex items-center justify-between">
+          
+          <div className="bg-surface-card border border-hairline-strong p-6 rounded-lg flex items-center justify-between">
             <div className="space-y-1">
-              <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Remaining Quota</span>
-              <p className="text-3xl font-extrabold text-white">{usage.remaining_requests.toLocaleString()}</p>
-              <span className="text-xs text-gray-400">out of {usage.monthly_limit.toLocaleString()} monthly</span>
+              <span className="text-[10px] font-mono font-bold tracking-widest text-mute uppercase">Remaining Quota</span>
+              <p className="text-3xl font-extrabold font-mono text-ink mt-1">{usage.remaining_requests.toLocaleString()}</p>
+              <span className="text-[11px] text-mute font-mono">of {usage.monthly_limit.toLocaleString()} monthly</span>
             </div>
-            <div className="p-3 rounded-full bg-indigo-500/10 text-indigo-400">
-              <Key size={24} />
+            <div className="p-3 rounded bg-surface-deep border border-hairline text-accent-blue">
+              <Key size={16} />
             </div>
           </div>
 
-          <div className="glass-panel p-6 rounded-xl text-left border border-brand-border flex items-center justify-between">
+          <div className="bg-surface-card border border-hairline-strong p-6 rounded-lg flex items-center justify-between">
             <div className="space-y-1">
-              <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Requests this period</span>
-              <p className="text-3xl font-extrabold text-white">{usage.total_requests.toLocaleString()}</p>
-              <span className="text-xs text-gray-400">Billing cycle: {usage.period}</span>
+              <span className="text-[10px] font-mono font-bold tracking-widest text-mute uppercase">Requests usage</span>
+              <p className="text-3xl font-extrabold font-mono text-ink mt-1">{usage.total_requests.toLocaleString()}</p>
+              <span className="text-[11px] text-mute font-mono">Period: {usage.period}</span>
             </div>
-            <div className="p-3 rounded-full bg-purple-500/10 text-purple-400">
-              <BarChart3 size={24} />
+            <div className="p-3 rounded bg-surface-deep border border-hairline text-accent-orange">
+              <BarChart3 size={16} />
             </div>
           </div>
 
-          <div className="glass-panel p-6 rounded-xl text-left border border-brand-border flex items-center justify-between">
+          <div className="bg-surface-card border border-hairline-strong p-6 rounded-lg flex items-center justify-between">
             <div className="space-y-1">
-              <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Active Credentials</span>
-              <p className="text-3xl font-extrabold text-white">{keys.length}</p>
-              <span className="text-xs text-gray-400">SHA-256 encrypted storage</span>
+              <span className="text-[10px] font-mono font-bold tracking-widest text-mute uppercase">Active Keys</span>
+              <p className="text-3xl font-extrabold font-mono text-ink mt-1">{keys.length}</p>
+              <span className="text-[11px] text-mute font-mono">Secure SHA-256 tokens</span>
             </div>
-            <div className="p-3 rounded-full bg-emerald-500/10 text-emerald-400">
-              <Plus size={24} />
+            <div className="p-3 rounded bg-surface-deep border border-hairline text-accent-green">
+              <Plus size={16} />
             </div>
           </div>
+
         </div>
       )}
 
@@ -182,13 +179,13 @@ export default function Dashboard({ token, user, apiKey, setApiKey }) {
 
       {/* API Key management */}
       <div className="space-y-4">
-        <h2 className="text-xl font-bold text-white text-left">API Credentials</h2>
-        <div className="space-y-4 text-left">
+        <h2 className="text-lg font-display font-semibold text-ink">API Credentials</h2>
+        <div className="space-y-4">
           {keysLoading ? (
-            <div className="text-center py-12 text-sm text-gray-500">Loading API keys...</div>
+            <div className="text-center py-12 text-xs font-mono text-mute">Loading credentials...</div>
           ) : keys.length === 0 ? (
-            <div className="text-center py-12 glass-panel rounded-xl text-sm text-gray-500">
-              No API keys configured. Click "Create API Key" to provision one.
+            <div className="text-center py-12 bg-surface-card border border-hairline-strong rounded-lg text-xs font-mono text-mute">
+              No API keys configured. Click "Create API Key" to provision credentials.
             </div>
           ) : (
             keys.map(key => (
@@ -203,45 +200,54 @@ export default function Dashboard({ token, user, apiKey, setApiKey }) {
         </div>
       </div>
 
-      {/* Create Key Modal */}
+      {/* Create Key Modal (Translucent overlay) */}
       {showCreateModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-          <div className="glass-panel p-6 rounded-2xl max-w-md w-full border border-brand-border space-y-6 text-left relative">
-            <h3 className="text-xl font-bold text-white">Generate API Credential</h3>
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-canvas/85 backdrop-blur-md">
+          <div className="bg-surface-card border border-hairline-strong p-6 rounded-lg max-w-md w-full space-y-6 relative shadow-2xl">
+            
+            <div className="flex justify-between items-center pb-2 border-b border-hairline">
+              <h3 className="font-display font-semibold text-ink">Generate API Key</h3>
+              <button 
+                onClick={() => { setShowCreateModal(false); setSuccessKey(null); }}
+                className="text-mute hover:text-ink transition-colors"
+              >
+                <X size={16} />
+              </button>
+            </div>
             
             {error && (
-              <div className="p-3 bg-red-500/10 border border-red-500/20 text-red-400 text-xs rounded-lg text-center font-semibold">
+              <div className="p-3 bg-accent-red/10 border border-accent-red/20 text-accent-red text-xs rounded font-mono text-center">
                 {error}
               </div>
             )}
 
             {successKey ? (
               <div className="space-y-4">
-                <div className="p-3 bg-indigo-500/5 border border-indigo-500/15 rounded-lg flex items-start gap-2.5">
-                  <AlertCircle className="text-indigo-400 flex-shrink-0 mt-0.5" size={16} />
-                  <p className="text-xs text-gray-400">
-                    Copy and save this key immediately. For safety, this credentials secret **cannot be displayed again** after closing this dialog.
+                <div className="p-3.5 bg-surface-deep border border-hairline-strong rounded-lg flex items-start gap-2.5">
+                  <AlertCircle className="text-accent-orange shrink-0 mt-0.5" size={14} />
+                  <p className="text-xs text-mute font-sans leading-relaxed">
+                    Copy and save this key secret immediately. For security, this secret **cannot be displayed again** once closed.
                   </p>
                 </div>
                 
-                <div className="flex flex-col gap-1">
-                  <label className="text-xs font-semibold text-gray-400">API Key Secret</label>
-                  <div className="flex items-center gap-2 bg-black/40 px-3 py-2 rounded-lg border border-brand-border/60">
-                    <code className="text-sm font-mono text-indigo-300 break-all select-all flex-grow">{successKey}</code>
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-[10px] font-mono text-mute font-bold uppercase">API Key Secret</label>
+                  <div className="flex items-center gap-2 bg-surface-deep px-3 py-2.5 rounded-md border border-hairline-strong">
+                    <code className="text-xs font-mono text-accent-orange break-all select-all flex-grow">{successKey}</code>
                   </div>
                 </div>
 
                 <button
                   onClick={() => { setShowCreateModal(false); setSuccessKey(null); }}
-                  className="w-full py-2 bg-indigo-600 hover:bg-indigo-500 transition-colors text-white font-bold rounded-lg text-sm text-center shadow-glow"
+                  className="button-primary w-full"
                 >
                   I Have Copied the Key
                 </button>
               </div>
             ) : (
               <form onSubmit={handleCreateKey} className="space-y-4">
-                <div className="flex flex-col gap-1">
-                  <label className="text-xs font-semibold text-gray-400">Label / Name</label>
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-[10px] font-mono text-mute font-bold uppercase">Key label / Description</label>
                   <input
                     type="text"
                     required
@@ -256,13 +262,13 @@ export default function Dashboard({ token, user, apiKey, setApiKey }) {
                   <button
                     type="button"
                     onClick={() => setShowCreateModal(false)}
-                    className="px-4 py-2 border border-brand-border hover:bg-gray-800 text-gray-400 hover:text-gray-200 transition-colors text-xs font-semibold rounded-lg"
+                    className="button-ghost text-xs px-3 py-1"
                   >
                     Cancel
                   </button>
                   <button
                     type="submit"
-                    className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs rounded-lg transition-all shadow-glow"
+                    className="button-primary text-xs px-4 py-1"
                   >
                     Generate Key
                   </button>
@@ -272,6 +278,7 @@ export default function Dashboard({ token, user, apiKey, setApiKey }) {
           </div>
         </div>
       )}
+
     </div>
   )
 }

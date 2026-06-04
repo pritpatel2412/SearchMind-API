@@ -1,6 +1,6 @@
 import React from 'react'
 import { Link, useLocation } from 'react-router-dom'
-import { Terminal, Key, Play, BookOpen, LogOut, ShieldAlert } from 'lucide-react'
+import { Terminal, Key, Play, BookOpen, LogOut } from 'lucide-react'
 
 export default function Navbar({ token, user, onLogout }) {
   const location = useLocation()
@@ -16,23 +16,27 @@ export default function Navbar({ token, user, onLogout }) {
   ]
 
   return (
-    <nav className="sticky top-0 z-40 w-full border-b border-brand-border bg-[#030712]/80 backdrop-blur-md">
+    <nav className="sticky top-0 z-40 w-full border-b border-hairline bg-canvas/80 backdrop-blur-md">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-16">
-          <div className="flex items-center">
+        <div className="flex items-center justify-between h-[64px]">
+          
+          <div className="flex items-center gap-8">
             {/* Logo */}
-            <Link to="/" className="flex items-center gap-2 text-glow group">
-              <div className="p-1.5 rounded-lg bg-gradient-to-tr from-indigo-500 to-purple-600 shadow-glow text-white group-hover:scale-105 transition-transform duration-300">
-                <Terminal size={20} />
+            <Link to="/" className="flex items-center gap-2 group">
+              <div className="p-1.5 rounded bg-ink text-canvas group-hover:scale-105 transition-transform duration-300">
+                <Terminal size={14} />
               </div>
-              <span className="font-extrabold text-xl tracking-tight bg-gradient-to-r from-indigo-400 to-purple-400 bg-clip-text text-transparent">
-                SearchMind <span className="text-xs font-semibold px-2 py-0.5 rounded-full border border-indigo-500/20 text-indigo-400 bg-indigo-500/5">API</span>
+              <span className="font-extrabold text-sm font-display tracking-tight text-ink flex items-center gap-1.5">
+                SearchMind
+                <span className="text-[9px] font-mono tracking-widest text-mute border border-hairline px-1 rounded bg-surface-card uppercase">
+                  API
+                </span>
               </span>
             </Link>
 
             {/* Nav Links */}
-            <div className="hidden md:block ml-10">
-              <div className="flex items-baseline space-x-4">
+            <div className="hidden md:block">
+              <div className="flex items-center space-x-1.5">
                 {navItems.map((item) => {
                   const Icon = item.icon
                   const isActive = currentPath === item.path
@@ -40,13 +44,13 @@ export default function Navbar({ token, user, onLogout }) {
                     <Link
                       key={item.label}
                       to={item.path}
-                      className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium transition-all ${
+                      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-sans font-medium transition-all ${
                         isActive
-                          ? 'bg-indigo-500/10 text-indigo-400 border border-indigo-500/20'
-                          : 'text-gray-400 hover:text-gray-200 hover:bg-gray-800/40'
+                          ? 'bg-surface-elevated text-ink border border-hairline-strong'
+                          : 'text-charcoal hover:text-ink hover:bg-surface-card'
                       }`}
                     >
-                      <Icon size={14} />
+                      <Icon size={12} className={isActive ? 'text-accent-blue' : 'text-mute'} />
                       {item.label}
                     </Link>
                   )
@@ -59,32 +63,33 @@ export default function Navbar({ token, user, onLogout }) {
           <div className="flex items-center gap-4">
             {token ? (
               <div className="flex items-center gap-4">
-                <div className="hidden sm:flex flex-col items-end text-xs">
-                  <span className="font-medium text-gray-300">{user?.email}</span>
-                  <span className="text-indigo-400 capitalize font-semibold">{user?.plan} plan</span>
+                <div className="hidden sm:flex flex-col items-end text-right">
+                  <span className="text-[10px] font-mono text-ink font-medium">{user?.email}</span>
+                  <span className="text-[9px] font-mono text-accent-blue font-bold capitalize">{user?.plan} plan</span>
                 </div>
                 <button
                   onClick={onLogout}
-                  className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold bg-gray-800 hover:bg-red-500/10 hover:text-red-400 hover:border-red-500/20 border border-brand-border text-gray-300 rounded-lg transition-all"
+                  className="button-ghost text-xs px-2.5 h-[30px]"
                 >
-                  <LogOut size={12} />
+                  <LogOut size={11} className="mr-1 text-accent-red" />
                   Logout
                 </button>
               </div>
             ) : (
               <a
-                href="#login-section"
-                className="px-4 py-1.5 text-xs font-semibold bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg transition-all shadow-glow"
+                href="#auth-section"
+                className="button-primary text-xs px-4 h-[32px] rounded-md font-semibold"
               >
-                Get API Key
+                Start Free
               </a>
             )}
           </div>
+
         </div>
       </div>
 
       {/* Mobile nav indicator */}
-      <div className="md:hidden flex justify-around py-2 border-t border-brand-border/40 bg-brand-dark/20 text-xs text-gray-400">
+      <div className="md:hidden flex justify-around py-2 border-t border-hairline bg-surface-card text-[9px] font-mono text-mute">
         {navItems.map((item) => {
           const isActive = currentPath === item.path
           return (
@@ -92,10 +97,10 @@ export default function Navbar({ token, user, onLogout }) {
               key={item.label}
               to={item.path}
               className={`flex flex-col items-center gap-1 py-1 transition-all ${
-                isActive ? 'text-indigo-400 font-semibold' : 'hover:text-gray-300'
+                isActive ? 'text-ink font-semibold' : 'hover:text-ink'
               }`}
             >
-              <item.icon size={16} />
+              <item.icon size={13} className={isActive ? 'text-accent-blue' : 'text-mute'} />
               {item.label}
             </Link>
           )
