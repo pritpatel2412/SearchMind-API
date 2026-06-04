@@ -1,0 +1,109 @@
+import asyncio
+import logging
+from contextlib import asynccontextmanager
+
+from fastapi import Depends, FastAPI
+from sqlalchemy import text
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from app.config import settings
+from app.database import SessionLocal, engine, get_db
+from app.db_migrate import run_migrations
+from app.middleware.cors import setup_cors
+from app.redis_client import close_redis, get_redis
+from app.routers import search, extract, crawl, research, usage, api_keys
+from app.routers.auth import router as auth_router
+from app.services.cache_service import purge_expired_cached_results
+
+# Import models so Alembic and metadata stay in sync
+from app.models import User, APIKey, SearchLog, UsageRecord, CachedResult  # noqa: F401
+
+logging.basicConfig(
+    level=logging.DEBUG if settings.DEBUG else logging.INFO,
+    format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
+)
+logger = logging.getLogger("searchmind")
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """Startup: migrations + cache purge. Shutdown: close pools."""
+    logger.info("Starting SearchMind API v%s", settings.APP_VERSION)
+
+    if settings.RUN_MIGRATIONS_ON_STARTUP:
+        try:
+            await asyncio.to_thread(run_migrations)
+        except Exception as e:
+            logger.exception("Database migration failed: %s", e)
+            raise
+
+    if settings.PURGE_EXPIRED_CACHE_ON_STARTUP:
+        try:
+            async with SessionLocal() as db:
+                removed = await purge_expired_cached_results(db)
+                if removed:
+                    logger.info("Purged %d expired cached_results rows", removed)
+        except Exception as e:
+            logger.warning("Cache purge on startup failed (non-fatal): %s", e)
+
+    yield
+
+    await close_redis()
+    await engine.dispose()
+    logger.info("SearchMind API shut down.")
+
+
+app = FastAPI(
+    title=settings.APP_NAME,
+    version=settings.APP_VERSION,
+    description="AI-native web search API for LangGraph, LangChain, RAG, and autonomous agents",
+    docs_url="/docs",
+    redoc_url="/redoc",
+    lifespan=lifespan,
+)
+
+setup_cors(app)
+
+app.include_router(auth_router, prefix="/v1")
+app.include_router(search.router, prefix="/v1")
+app.include_router(extract.router, prefix="/v1")
+app.include_router(crawl.router, prefix="/v1")
+app.include_router(research.router, prefix="/v1")
+app.include_router(usage.router, prefix="/v1")
+app.include_router(api_keys.router, prefix="/v1")
+
+
+@app.get("/health", tags=["System"])
+async def health(db: AsyncSession = Depends(get_db)):
+    """Liveness probe with dependency checks (Postgres + Redis)."""
+    checks: dict[str, str] = {"api": "ok", "database": "error", "redis": "error"}
+
+    try:
+        await db.execute(text("SELECT 1"))
+        checks["database"] = "ok"
+    except Exception as e:
+        logger.warning("Health check database failed: %s", e)
+
+    try:
+        redis = await get_redis()
+        await redis.ping()
+        checks["redis"] = "ok"
+    except Exception as e:
+        logger.warning("Health check redis failed: %s", e)
+
+    all_ok = all(v == "ok" for v in checks.values())
+    return {
+        "status": "ok" if all_ok else "degraded",
+        "version": settings.APP_VERSION,
+        "checks": checks,
+    }
+
+
+@app.get("/", tags=["System"])
+async def root():
+    return {
+        "name": "SearchMind API",
+        "version": settings.APP_VERSION,
+        "docs": "/docs",
+        "status": "operational",
+    }

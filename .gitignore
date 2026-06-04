@@ -1,0 +1,57 @@
+# Environment and secrets
+backend/.env
+.env
+*.pem
+*.db
+*.sqlite
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+ENV/
+env/
+build/
+develop-eggs/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Node / JS / CSS (React App build outputs)
+node_modules/
+dist/
+.eslintcache
+.parcel-cache
+.cache/
+
+# IDEs and Editors
+.idea/
+.vscode/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Extra files to be ignored
+project_analysis.md
+antigravity_ai_search_platform_prompt.md
+
+    

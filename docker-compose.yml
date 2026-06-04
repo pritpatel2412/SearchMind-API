@@ -1,0 +1,62 @@
+version: "3.9"
+
+services:
+  redis:
+    image: redis:7-alpine
+    command: redis-server --maxmemory 512mb --maxmemory-policy allkeys-lru
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+
+  api:
+    build: ./backend
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --workers 4
+    ports:
+      - "8000:8000"
+    env_file:
+      - ./backend/.env
+    environment:
+      REDIS_URL: redis://redis:6379/0
+      RUN_MIGRATIONS_ON_STARTUP: "false"
+      REQUIRE_REDIS_FOR_RATE_LIMIT: "true"
+    depends_on:
+      redis:
+        condition: service_started
+    volumes:
+      - ./backend:/app
+
+  celery_worker:
+    build: ./backend
+    command: celery -A app.workers.celery_app worker --loglevel=info --concurrency=4
+    env_file:
+      - ./backend/.env
+    environment:
+      REDIS_URL: redis://redis:6379/0
+    depends_on:
+      redis:
+        condition: service_started
+    volumes:
+      - ./backend:/app
+
+  # Optional local Postgres (not used when DATABASE_URL points to Neon)
+  postgres:
+    profiles: ["local-db"]
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: searchmind
+      POSTGRES_USER: searchmind
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-searchmindpass}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -d searchmind -U searchmind"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  postgres_data:
+  redis_data:

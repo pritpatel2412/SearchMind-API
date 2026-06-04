@@ -1,0 +1,16 @@
+version: "3.9"
+
+services:
+  api:
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+    environment:
+      DEBUG: "true"
+    volumes:
+      - ./backend:/app
+
+  celery_worker:
+    command: watchfiles "celery -A app.workers.celery_app worker --loglevel=info --concurrency=1" app
+    environment:
+      DEBUG: "true"
+    volumes:
+      - ./backend:/app
