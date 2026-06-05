@@ -39,22 +39,22 @@ function AdminLayout({ children }) {
   ]
 
   return (
-    <div className="flex flex-col md:flex-row min-h-screen bg-canvas text-ink font-sans selection:bg-accent-blue/20">
+    <div className="flex flex-col md:flex-row min-h-screen bg-canvas text-ink font-sans selection:bg-primary/20">
       
       {/* LEFT SIDEBAR (Desktop) */}
-      <aside className="hidden md:flex flex-col w-64 bg-surface-card border-r border-hairline-strong h-screen sticky top-0">
+      <aside className="hidden md:flex flex-col w-64 bg-cream border-r border-beige-deep h-screen sticky top-0">
         
         {/* Branding header */}
-        <div className="p-6 border-b border-hairline-strong bg-canvas/30">
+        <div className="p-6 border-b border-beige-deep bg-cream/40">
           <Link to="/" className="flex items-center gap-2.5 group">
-            <div className="p-1.5 rounded bg-ink text-canvas group-hover:scale-105 transition-transform duration-300">
+            <div className="p-1.5 rounded bg-primary text-white group-hover:scale-105 transition-transform duration-300">
               <ShieldCheck size={14} />
             </div>
             <div className="flex flex-col">
               <span className="font-bold text-sm tracking-tight font-sans text-ink leading-none">
                 SearchMind
               </span>
-              <span className="text-[9px] font-sans font-bold tracking-widest text-mute uppercase mt-1">
+              <span className="text-micro-uppercase text-slate mt-0.5">
                 Admin Console
               </span>
             </div>
@@ -70,14 +70,14 @@ function AdminLayout({ children }) {
               <Link
                 key={item.label}
                 to={item.path}
-                className={`flex items-center justify-between px-3 py-2 rounded-md text-xs font-sans font-medium transition-all group ${
+                className={`flex items-center justify-between px-3 py-2 border rounded-md text-body-sm-medium transition-all group ${
                   isActive
-                    ? 'bg-surface-elevated text-ink border border-hairline-strong shadow-sm'
-                    : 'text-charcoal hover:text-ink hover:bg-surface-card'
+                    ? 'bg-cream-deeper text-ink border-beige-deep shadow-sm'
+                    : 'text-charcoal border-transparent hover:text-ink hover:bg-cream-deeper/50'
                 }`}
               >
                 <div className="flex items-center gap-2">
-                  <Icon size={12} className={isActive ? 'text-accent-blue' : 'text-mute group-hover:text-ink'} />
+                  <Icon size={12} className={isActive ? 'text-primary' : 'text-slate group-hover:text-ink'} />
                   <span>{item.label}</span>
                 </div>
                 {item.badge && (
@@ -100,40 +100,40 @@ function AdminLayout({ children }) {
         </nav>
 
         {/* System Uptime status widget */}
-        <div className="p-4 mx-4 mb-2 bg-surface-deep border border-hairline rounded-lg">
+        <div className="p-4 mx-4 mb-2 bg-cream-soft border border-beige-deep rounded-lg">
           <div className="flex items-center gap-2 mb-1.5 font-sans">
             <span className={`w-1.5 h-1.5 rounded-full ${
               systemStatus === 'healthy' ? 'bg-accent-green animate-pulse' :
               systemStatus === 'degraded' ? 'bg-accent-yellow' : 'bg-accent-red'
             }`}></span>
-            <span className="text-[9px] font-bold uppercase tracking-wider text-ink">
+            <span className="text-micro-uppercase text-ink">
               {systemStatus === 'healthy' ? 'ALL SYSTEMS OK' :
                systemStatus === 'degraded' ? 'DEGRADED SERVICE' : 'SYSTEM OFFLINE'}
             </span>
           </div>
-          <p className="text-[9px] font-sans text-mute">
+          <p className="text-micro text-slate">
             Heartbeat check: <span className="text-ink">{lastCheck}</span>
           </p>
         </div>
 
         {/* Sidebar Footer / Profile */}
-        <div className="p-4 border-t border-hairline-strong bg-canvas/30 flex flex-col gap-3">
+        <div className="p-4 border-t border-beige-deep bg-cream/40 flex flex-col gap-3">
           <div className="flex items-center justify-between font-sans">
             <div className="flex flex-col">
-              <span className="text-[10px] font-bold text-ink">root_admin</span>
-              <span className="text-[9px] text-mute">system-level ops</span>
+              <span className="text-micro text-ink font-bold">root_admin</span>
+              <span className="text-micro text-slate">system-level ops</span>
             </div>
             <a 
               href="http://localhost:5173" 
               target="_blank" 
               rel="noreferrer"
-              className="p-1.5 rounded bg-surface-deep border border-hairline hover:bg-surface-elevated text-accent-blue transition-colors"
+              className="p-1.5 rounded bg-cream-soft border border-beige-deep hover:bg-cream-deeper text-primary transition-colors"
               title="Developer Portal"
             >
               <ExternalLink size={11} />
             </a>
           </div>
-          <button className="button-ghost text-[10px] font-sans h-[30px] font-semibold flex items-center justify-center">
+          <button className="button-ghost text-micro font-sans h-[30px] font-semibold flex items-center justify-center">
             <LogOut size={11} className="mr-1.5 text-accent-red" />
             Logout Session
           </button>
@@ -141,13 +141,13 @@ function AdminLayout({ children }) {
       </aside>
 
       {/* MOBILE HEADER */}
-      <header className="md:hidden sticky top-0 z-40 bg-surface-card/95 backdrop-blur border-b border-hairline-strong px-4 py-3 flex items-center justify-between">
+      <header className="md:hidden sticky top-0 z-40 bg-cream/95 backdrop-blur border-b border-beige-deep px-4 py-3 flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <div className="p-1 rounded bg-ink text-canvas">
+          <div className="p-1 rounded bg-primary text-white">
             <ShieldCheck size={14} />
           </div>
           <span className="font-extrabold text-sm tracking-tight font-display text-ink">
-            SearchMind <span className="text-[9px] font-mono text-accent-blue">ADMIN</span>
+            SearchMind <span className="text-[9px] font-mono text-primary">ADMIN</span>
           </span>
         </div>
         <div className="flex items-center gap-2">
@@ -155,7 +155,7 @@ function AdminLayout({ children }) {
             systemStatus === 'healthy' ? 'bg-accent-green' :
             systemStatus === 'degraded' ? 'bg-accent-yellow' : 'bg-accent-red'
           }`}></span>
-          <span className="text-[9px] font-mono text-mute">{lastCheck}</span>
+          <span className="text-[9px] font-mono text-slate">{lastCheck}</span>
         </div>
       </header>
 
@@ -165,7 +165,7 @@ function AdminLayout({ children }) {
       </main>
 
       {/* MOBILE BOTTOM NAVIGATION */}
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-40 border-t border-hairline bg-surface-card/95 backdrop-blur flex justify-around py-2.5 text-[9px] font-mono text-mute">
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-40 border-t border-beige-deep bg-cream/95 backdrop-blur flex justify-around py-2.5 text-[9px] font-mono text-slate">
         {navItems.map((item) => {
           const Icon = item.icon
           const isActive = currentPath === item.path
@@ -177,7 +177,7 @@ function AdminLayout({ children }) {
                 isActive ? 'text-ink font-bold scale-105' : 'hover:text-ink'
               }`}
             >
-              <Icon size={13} className={isActive ? 'text-accent-blue' : 'text-mute'} />
+              <Icon size={13} className={isActive ? 'text-primary' : 'text-slate'} />
               <span>{item.label}</span>
             </Link>
           )

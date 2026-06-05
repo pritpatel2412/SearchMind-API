@@ -1,4 +1,5 @@
 import asyncio
+import datetime
 import logging
 from contextlib import asynccontextmanager
 
@@ -28,6 +29,7 @@ logger = logging.getLogger("searchmind")
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Startup: migrations + cache purge. Shutdown: close pools."""
+    app.state.start_time = datetime.datetime.utcnow()
     logger.info("Starting SearchMind API v%s", settings.APP_VERSION)
 
     if settings.RUN_MIGRATIONS_ON_STARTUP:
@@ -36,6 +38,13 @@ async def lifespan(app: FastAPI):
         except Exception as e:
             logger.exception("Database migration failed: %s", e)
             raise
+
+    try:
+        async with SessionLocal() as db:
+            from app.utils.seeder import seed_search_logs
+            await seed_search_logs(db)
+    except Exception as e:
+        logger.warning("Telemetry log seeding failed: %s", e)
 
     if settings.PURGE_EXPIRED_CACHE_ON_STARTUP:
         try:

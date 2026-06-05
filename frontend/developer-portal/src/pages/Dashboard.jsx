@@ -112,21 +112,21 @@ export default function Dashboard({ token, user, apiKey, setApiKey }) {
       {/* Header section */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h1 className="text-4xl font-display font-medium text-ink">Developer Dashboard</h1>
-          <p className="text-xs font-mono text-mute mt-1">Manage search API credentials, monthly limits, and trace query analytics.</p>
+          <h1 className="text-heading-1 text-ink">Developer Dashboard</h1>
+          <p className="text-caption text-slate mt-1">Manage search API credentials, monthly limits, and trace query analytics.</p>
         </div>
         <div className="flex gap-3">
           <button
             onClick={triggerRefresh}
             disabled={loading || keysLoading}
-            className="button-ghost text-xs font-mono"
+            className="button-cream text-xs font-mono flex items-center h-[38px]"
           >
             <RefreshCw size={12} className={`mr-1.5 ${loading || keysLoading ? 'animate-spin' : ''}`} />
             Refresh
           </button>
           <button
             onClick={() => { setShowCreateModal(true); setSuccessKey(null); setError(''); }}
-            className="button-primary text-xs"
+            className="button-primary text-xs flex items-center h-[38px] font-bold"
           >
             <Plus size={13} className="mr-1" />
             Create API Key
@@ -138,35 +138,35 @@ export default function Dashboard({ token, user, apiKey, setApiKey }) {
       {usage && (
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           
-          <div className="bg-surface-card border border-hairline-strong p-6 rounded-lg flex items-center justify-between">
+          <div className="card-base flex items-center justify-between hover:bg-cream-soft transition-all duration-300">
             <div className="space-y-1">
-              <span className="text-[10px] font-mono font-bold tracking-widest text-mute uppercase">Remaining Quota</span>
-              <p className="text-3xl font-extrabold font-mono text-ink mt-1">{usage.remaining_requests.toLocaleString()}</p>
-              <span className="text-[11px] text-mute font-mono">of {usage.monthly_limit.toLocaleString()} monthly</span>
+              <span className="text-micro-uppercase text-slate">Remaining Quota</span>
+              <p className="text-stat-display text-ink mt-1">{usage.remaining_requests.toLocaleString()}</p>
+              <span className="text-caption text-slate font-mono">of {usage.monthly_limit.toLocaleString()} monthly</span>
             </div>
-            <div className="p-3 rounded bg-surface-deep border border-hairline text-accent-blue">
+            <div className="p-3 rounded bg-cream border border-beige-deep text-primary">
               <Key size={16} />
             </div>
           </div>
 
-          <div className="bg-surface-card border border-hairline-strong p-6 rounded-lg flex items-center justify-between">
+          <div className="card-base flex items-center justify-between hover:bg-cream-soft transition-all duration-300">
             <div className="space-y-1">
-              <span className="text-[10px] font-mono font-bold tracking-widest text-mute uppercase">Requests usage</span>
-              <p className="text-3xl font-extrabold font-mono text-ink mt-1">{usage.total_requests.toLocaleString()}</p>
-              <span className="text-[11px] text-mute font-mono">Period: {usage.period}</span>
+              <span className="text-micro-uppercase text-slate">Requests usage</span>
+              <p className="text-stat-display text-ink mt-1">{usage.total_requests.toLocaleString()}</p>
+              <span className="text-caption text-slate font-mono">Period: {usage.period}</span>
             </div>
-            <div className="p-3 rounded bg-surface-deep border border-hairline text-accent-orange">
+            <div className="p-3 rounded bg-cream border border-beige-deep text-primary">
               <BarChart3 size={16} />
             </div>
           </div>
 
-          <div className="bg-surface-card border border-hairline-strong p-6 rounded-lg flex items-center justify-between">
+          <div className="card-base flex items-center justify-between hover:bg-cream-soft transition-all duration-300">
             <div className="space-y-1">
-              <span className="text-[10px] font-mono font-bold tracking-widest text-mute uppercase">Active Keys</span>
-              <p className="text-3xl font-extrabold font-mono text-ink mt-1">{keys.length}</p>
-              <span className="text-[11px] text-mute font-mono">Secure SHA-256 tokens</span>
+              <span className="text-micro-uppercase text-slate">Active Keys</span>
+              <p className="text-stat-display text-ink mt-1">{keys.length}</p>
+              <span className="text-caption text-slate font-mono">Secure SHA-256 tokens</span>
             </div>
-            <div className="p-3 rounded bg-surface-deep border border-hairline text-accent-green">
+            <div className="p-3 rounded bg-cream border border-beige-deep text-primary">
               <Plus size={16} />
             </div>
           </div>
@@ -175,16 +175,18 @@ export default function Dashboard({ token, user, apiKey, setApiKey }) {
       )}
 
       {/* Usage breakdown charts */}
-      <UsageChart usage={usage} />
+      <div className="card-base">
+        <UsageChart usage={usage} />
+      </div>
 
       {/* API Key management */}
       <div className="space-y-4">
-        <h2 className="text-lg font-display font-semibold text-ink">API Credentials</h2>
+        <h2 className="text-heading-3 text-ink">API Credentials</h2>
         <div className="space-y-4">
           {keysLoading ? (
-            <div className="text-center py-12 text-xs font-mono text-mute">Loading credentials...</div>
+            <div className="text-center py-12 text-xs font-mono text-slate">Loading credentials...</div>
           ) : keys.length === 0 ? (
-            <div className="text-center py-12 bg-surface-card border border-hairline-strong rounded-lg text-xs font-mono text-mute">
+            <div className="text-center py-12 card-base text-xs font-mono text-slate bg-cream-soft border border-beige-deep">
               No API keys configured. Click "Create API Key" to provision credentials.
             </div>
           ) : (
@@ -202,14 +204,14 @@ export default function Dashboard({ token, user, apiKey, setApiKey }) {
 
       {/* Create Key Modal (Translucent overlay) */}
       {showCreateModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-canvas/85 backdrop-blur-md">
-          <div className="bg-surface-card border border-hairline-strong p-6 rounded-lg max-w-md w-full space-y-6 relative shadow-2xl">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-canvas/80 backdrop-blur-md">
+          <div className="card-cream border border-beige-deep max-w-md w-full p-8 space-y-6 relative shadow-2xl">
             
-            <div className="flex justify-between items-center pb-2 border-b border-hairline">
-              <h3 className="font-display font-semibold text-ink">Generate API Key</h3>
+            <div className="flex justify-between items-center pb-2 border-b border-beige-deep">
+              <h3 className="text-heading-4 text-ink font-semibold">Generate API Key</h3>
               <button 
                 onClick={() => { setShowCreateModal(false); setSuccessKey(null); }}
-                className="text-mute hover:text-ink transition-colors"
+                className="text-slate hover:text-primary transition-colors"
               >
                 <X size={16} />
               </button>
@@ -223,23 +225,23 @@ export default function Dashboard({ token, user, apiKey, setApiKey }) {
 
             {successKey ? (
               <div className="space-y-4">
-                <div className="p-3.5 bg-surface-deep border border-hairline-strong rounded-lg flex items-start gap-2.5">
-                  <AlertCircle className="text-accent-orange shrink-0 mt-0.5" size={14} />
-                  <p className="text-xs text-mute font-sans leading-relaxed">
+                <div className="p-3.5 bg-cream border border-beige-deep rounded-lg flex items-start gap-2.5">
+                  <AlertCircle className="text-primary shrink-0 mt-0.5" size={14} />
+                  <p className="text-xs text-slate font-sans leading-relaxed">
                     Copy and save this key secret immediately. For security, this secret **cannot be displayed again** once closed.
                   </p>
                 </div>
                 
                 <div className="flex flex-col gap-1.5">
-                  <label className="text-[10px] font-mono text-mute font-bold uppercase">API Key Secret</label>
-                  <div className="flex items-center gap-2 bg-surface-deep px-3 py-2.5 rounded-md border border-hairline-strong">
-                    <code className="text-xs font-mono text-accent-orange break-all select-all flex-grow">{successKey}</code>
+                  <label className="text-micro-uppercase text-slate">API Key Secret</label>
+                  <div className="flex items-center gap-2 bg-surface-code px-3 py-2.5 rounded-md border border-beige-deep">
+                    <code className="text-xs font-mono text-primary break-all select-all flex-grow font-semibold">{successKey}</code>
                   </div>
                 </div>
 
                 <button
                   onClick={() => { setShowCreateModal(false); setSuccessKey(null); }}
-                  className="button-primary w-full"
+                  className="button-dark w-full font-bold"
                 >
                   I Have Copied the Key
                 </button>
@@ -247,12 +249,12 @@ export default function Dashboard({ token, user, apiKey, setApiKey }) {
             ) : (
               <form onSubmit={handleCreateKey} className="space-y-4">
                 <div className="flex flex-col gap-1.5">
-                  <label className="text-[10px] font-mono text-mute font-bold uppercase">Key label / Description</label>
+                  <label className="text-micro-uppercase text-slate">Key label / Description</label>
                   <input
                     type="text"
                     required
                     placeholder="Production application server"
-                    className="glass-input"
+                    className="glass-input border border-beige-deep focus:border-primary focus:ring-1 focus:ring-primary rounded-md px-3 py-2 text-xs"
                     value={newKeyName}
                     onChange={(e) => setNewKeyName(e.target.value)}
                   />
@@ -262,13 +264,13 @@ export default function Dashboard({ token, user, apiKey, setApiKey }) {
                   <button
                     type="button"
                     onClick={() => setShowCreateModal(false)}
-                    className="button-ghost text-xs px-3 py-1"
+                    className="button-cream text-xs h-[36px] px-4 py-1"
                   >
                     Cancel
                   </button>
                   <button
                     type="submit"
-                    className="button-primary text-xs px-4 py-1"
+                    className="button-dark text-xs h-[36px] px-5 py-1 font-bold"
                   >
                     Generate Key
                   </button>

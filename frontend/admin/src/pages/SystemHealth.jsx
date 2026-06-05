@@ -5,31 +5,50 @@ export default function SystemHealthPage() {
   const [health, setHealth] = useState(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
-  const [logs, setLogs] = useState([
-    { id: 1, type: 'info', text: 'Initializing SearchMind system monitor node...', time: new Date(Date.now() - 30000).toLocaleTimeString() },
-    { id: 2, type: 'info', text: 'Establishing secure connector handshake to PostgreSQL cluster...', time: new Date(Date.now() - 25000).toLocaleTimeString() },
-    { id: 3, type: 'success', text: 'Neon database pool: connection verified (12ms latency).', time: new Date(Date.now() - 20000).toLocaleTimeString() },
-    { id: 4, type: 'info', text: 'Syncing hot cached rate-limit tables in Redis cache store...', time: new Date(Date.now() - 15000).toLocaleTimeString() },
-    { id: 5, type: 'success', text: 'Heartbeat ping: Brave Search upstream API status: 200 OK.', time: new Date(Date.now() - 10000).toLocaleTimeString() }
-  ])
+  const [logs, setLogs] = useState([])
   
   const terminalEndRef = useRef(null)
+
+  const formatUptime = (seconds) => {
+    if (!seconds) return '0s'
+    const d = Math.floor(seconds / (3600 * 24))
+    const h = Math.floor((seconds % (3600 * 24)) / 3600)
+    const m = Math.floor((seconds % 3600) / 60)
+    const s = Math.floor(seconds % 60)
+    
+    const parts = []
+    if (d > 0) parts.push(`${d}d`)
+    if (h > 0) parts.push(`${h}h`)
+    if (m > 0) parts.push(`${m}m`)
+    if (s > 0 || parts.length === 0) parts.push(`${s}s`)
+    return parts.join(' ')
+  }
+
+  const formatBytes = (bytes) => {
+    if (!bytes) return '0B'
+    const k = 1024
+    const sizes = ['B', 'KB', 'MB', 'GB']
+    const i = Math.floor(Math.log(bytes) / Math.log(k))
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + sizes[i]
+  }
 
   const fetchHealth = async () => {
     setLoading(true)
     setError('')
     addLog('info', 'Executing platform-wide heartbeat liveness probe...')
     try {
-      const res = await fetch('http://localhost:8000/health')
+      const res = await fetch('http://localhost:8000/v1/admin/health')
       if (!res.ok) throw new Error('Health check endpoint returned status ' + res.status)
       const data = await res.json()
       setHealth(data)
-      addLog('success', `Heartbeat check passed. status=${data.status || 'healthy'} checks=[api:ok db:ok redis:ok]`)
+      addLog('success', `Heartbeat check passed. status=${data.status || 'healthy'} database=[latency:${data?.database?.details?.latency_ms || 0}ms conns:${data?.database?.details?.active_connections || 0}] redis=[keys:${data?.redis?.details?.keys_stored || 0} mem:${formatBytes(data?.redis?.details?.memory_used_bytes)}]`)
     } catch (e) {
       setError(e.message)
       setHealth({
         status: 'degraded',
-        checks: { api: 'ok', database: 'error', redis: 'error' }
+        api: { status: 'ok', details: { host: 'Uvicorn FastAPI Worker', uptime_seconds: 0, workers: 4, version: '1.0.0' } },
+        database: { status: 'error', details: { error: e.message } },
+        redis: { status: 'error', details: { error: e.message } }
       })
       addLog('error', `Heartbeat probe degraded. Error: ${e.message}. Failover mode enabled.`)
     } finally {
@@ -93,22 +112,22 @@ export default function SystemHealthPage() {
   }
 
   return (
-    <div className="space-y-8 text-left max-w-7xl mx-auto relative glow-green">
+    <div className="space-y-8 text-left max-w-7xl mx-auto relative glow-orange">
       
       {/* Page Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 relative z-10">
         <div>
-          <h1 className="text-4xl font-display font-medium text-ink flex items-center gap-2">
+          <h1 className="text-heading-1 text-ink flex items-center gap-2">
             System Health
           </h1>
-          <p className="text-xs font-sans text-mute mt-1">
+          <p className="text-caption text-slate mt-1">
             Real-time infrastructure health node checkpoints and active connector checks.
           </p>
         </div>
         <button
           onClick={fetchHealth}
           disabled={loading}
-          className="button-ghost text-xs font-sans font-medium h-[34px]"
+          className="button-cream text-xs font-sans font-medium h-[38px] px-4"
         >
           <RefreshCw size={11} className={`mr-1.5 ${loading ? 'animate-spin' : ''}`} />
           Force Diagnostic
@@ -132,98 +151,98 @@ export default function SystemHealthPage() {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 relative z-10">
         
         {/* Card: API Server */}
-        <div className="bg-surface-card border border-hairline-strong p-6 rounded-lg flex flex-col justify-between h-48">
+        <div className="card-base p-6 rounded-lg flex flex-col justify-between h-48 hover:border-beige-deep transition-all shadow-sm border border-hairline-soft">
           <div className="flex justify-between items-start">
             <div className="flex items-center gap-2 text-ink font-bold text-xs font-mono">
               <Server size={14} className="text-accent-blue" />
               API Server
             </div>
-            <div className="flex items-center gap-1 px-2 py-0.5 bg-surface-deep rounded-full border border-hairline font-mono text-[9px] text-accent-green font-bold uppercase">
+            <div className="flex items-center gap-1 px-2.5 py-0.5 bg-cream rounded-full border border-beige-deep font-mono text-[9px] text-accent-green font-bold uppercase">
               <span className="w-1.5 h-1.5 rounded-full bg-accent-green animate-pulse mr-1"></span>
               LIVE
             </div>
           </div>
 
           <div className="space-y-1 mt-4">
-            <span className="text-[9px] font-mono text-mute uppercase block">Application Host</span>
-            <p className="text-md font-bold text-ink font-display">Uvicorn FastAPI Worker</p>
-            <p className="text-[10px] font-mono text-mute">Endpoint: http://localhost:8000/health</p>
+            <span className="text-micro-uppercase text-slate block">Application Host</span>
+            <p className="text-heading-5 font-bold text-ink">{health?.api?.details?.host || 'Uvicorn FastAPI Worker'}</p>
+            <p className="text-[10px] font-mono text-slate">Version: v{health?.api?.details?.version || '1.0.0'}</p>
           </div>
           
-          <div className="border-t border-hairline pt-2.5 mt-2 flex justify-between font-mono text-[9px] text-mute">
-            <span>Uptime: 24d 11h</span>
-            <span>Workers: 4 active</span>
+          <div className="border-t border-beige-deep/50 pt-2.5 mt-2 flex justify-between font-mono text-[9px] text-slate">
+            <span>Uptime: {health ? formatUptime(health?.api?.details?.uptime_seconds) : 'Loading...'}</span>
+            <span>Workers: {health?.api?.details?.workers || 4} active</span>
           </div>
         </div>
 
         {/* Card: PostgreSQL Database */}
-        <div className="bg-surface-card border border-hairline-strong p-6 rounded-lg flex flex-col justify-between h-48">
+        <div className="card-base p-6 rounded-lg flex flex-col justify-between h-48 hover:border-beige-deep transition-all shadow-sm border border-hairline-soft">
           <div className="flex justify-between items-start">
             <div className="flex items-center gap-2 text-ink font-bold text-xs font-mono">
-              <Database size={14} className="text-purple-400" />
+              <Database size={14} className="text-purple-500" />
               PostgreSQL
             </div>
-            <div className="flex items-center gap-1 px-2 py-0.5 bg-surface-deep rounded-full border border-hairline font-mono text-[9px] font-bold uppercase">
+            <div className="flex items-center gap-1 px-2.5 py-0.5 bg-cream rounded-full border border-beige-deep font-mono text-[9px] font-bold uppercase">
               <span className={`w-1.5 h-1.5 rounded-full mr-1 ${
-                health?.checks?.database === 'ok' ? 'bg-accent-green animate-pulse' : 'bg-accent-red'
+                health?.database?.status === 'ok' ? 'bg-accent-green animate-pulse' : 'bg-accent-red'
               }`}></span>
-              <span className={health?.checks?.database === 'ok' ? 'text-accent-green' : 'text-accent-red'}>
-                {health?.checks?.database === 'ok' ? 'Connected' : 'Offline'}
+              <span className={health?.database?.status === 'ok' ? 'text-accent-green' : 'text-accent-red'}>
+                {health?.database?.status === 'ok' ? 'Connected' : health ? 'Offline' : 'Checking...'}
               </span>
             </div>
           </div>
 
           <div className="space-y-1 mt-4">
-            <span className="text-[9px] font-mono text-mute uppercase block">Database Engine</span>
-            <p className="text-md font-bold text-ink font-display">Neon Serverless Cluster</p>
-            <p className="text-[10px] font-mono text-mute">Pool Status: 8 active/20 max</p>
+            <span className="text-micro-uppercase text-slate block">Database Engine</span>
+            <p className="text-heading-5 font-bold text-ink">{health?.database?.details?.engine || 'Neon Serverless Cluster'}</p>
+            <p className="text-[10px] font-mono text-slate">Pool Status: {health?.database?.details?.active_connections || 0} active/{health?.database?.details?.max_connections || 20} max</p>
           </div>
 
-          <div className="border-t border-hairline pt-2.5 mt-2 flex justify-between font-mono text-[9px] text-mute">
-            <span>Schema: v1.2_migrations</span>
-            <span>Avg Latency: 12ms</span>
+          <div className="border-t border-beige-deep/50 pt-2.5 mt-2 flex justify-between font-mono text-[9px] text-slate">
+            <span>Schema: {health?.database?.details?.schema_version || 'v1.2_migrations'}</span>
+            <span>Avg Latency: {health?.database?.details?.latency_ms !== undefined ? `${health.database.details.latency_ms}ms` : 'Loading...'}</span>
           </div>
         </div>
 
         {/* Card: Redis Cache */}
-        <div className="bg-surface-card border border-hairline-strong p-6 rounded-lg flex flex-col justify-between h-48">
+        <div className="card-base p-6 rounded-lg flex flex-col justify-between h-48 hover:border-beige-deep transition-all shadow-sm border border-hairline-soft">
           <div className="flex justify-between items-start">
             <div className="flex items-center gap-2 text-ink font-bold text-xs font-mono">
-              <Cpu size={14} className="text-accent-orange" />
+              <Cpu size={14} className="text-primary" />
               Redis Cache
             </div>
-            <div className="flex items-center gap-1 px-2 py-0.5 bg-surface-deep rounded-full border border-hairline font-mono text-[9px] font-bold uppercase">
+            <div className="flex items-center gap-1 px-2.5 py-0.5 bg-cream rounded-full border border-beige-deep font-mono text-[9px] font-bold uppercase">
               <span className={`w-1.5 h-1.5 rounded-full mr-1 ${
-                health?.checks?.redis === 'ok' ? 'bg-accent-green animate-pulse' : 'bg-accent-red'
+                health?.redis?.status === 'ok' ? 'bg-accent-green animate-pulse' : 'bg-accent-red'
               }`}></span>
-              <span className={health?.checks?.redis === 'ok' ? 'text-accent-green' : 'text-accent-red'}>
-                {health?.checks?.redis === 'ok' ? 'Active' : 'Offline'}
+              <span className={health?.redis?.status === 'ok' ? 'text-accent-green' : 'text-accent-red'}>
+                {health?.redis?.status === 'ok' ? 'Active' : health ? 'Offline' : 'Checking...'}
               </span>
             </div>
           </div>
 
           <div className="space-y-1 mt-4">
-            <span className="text-[9px] font-mono text-mute uppercase block">Caching & Rate limits</span>
-            <p className="text-md font-bold text-ink font-display">Redis Hot Store</p>
-            <p className="text-[10px] font-mono text-mute">Memory: 142MB / 512MB limit</p>
+            <span className="text-micro-uppercase text-slate block">Caching & Rate limits</span>
+            <p className="text-heading-5 font-bold text-ink">{health?.redis?.details?.engine || 'Redis Hot Store'}</p>
+            <p className="text-[10px] font-mono text-slate">Memory: {health?.redis?.details ? `${formatBytes(health.redis.details.memory_used_bytes)} / ${formatBytes(health.redis.details.memory_limit_bytes)} limit` : 'Loading...'}</p>
           </div>
 
-          <div className="border-t border-hairline pt-2.5 mt-2 flex justify-between font-mono text-[9px] text-mute">
-            <span>Throttle count: 124/min</span>
-            <span>Keys stored: 48,291</span>
+          <div className="border-t border-beige-deep/50 pt-2.5 mt-2 flex justify-between font-mono text-[9px] text-slate">
+            <span>Throttle count: {health?.redis?.details?.throttle_count_per_min || 0}/min</span>
+            <span>Keys stored: {health?.redis?.details?.keys_stored !== undefined ? health.redis.details.keys_stored.toLocaleString() : 'Loading...'}</span>
           </div>
         </div>
 
       </div>
 
       {/* INTERACTIVE RUNBOOK SIMULATOR BUTTONS */}
-      <div className="bg-surface-card border border-hairline-strong p-4 rounded-lg relative z-10">
-        <span className="text-[10px] font-mono font-bold tracking-widest text-mute uppercase block mb-3">Diagnostic Runbook Simulator</span>
+      <div className="bg-cream border border-beige-deep p-4 rounded-lg relative z-10 shadow-sm">
+        <span className="text-[10px] font-mono font-bold tracking-widest text-slate uppercase block mb-3">Diagnostic Runbook Simulator</span>
         <div className="flex flex-wrap gap-2.5">
           
           <button
             onClick={() => simulateAction('ping_db')}
-            className="button-ghost text-xs h-[30px] font-mono"
+            className="bg-surface border border-beige-deep text-slate hover:text-ink hover:bg-cream-soft px-3 py-1.5 rounded-md h-[34px] transition-all flex items-center justify-center font-mono text-xs"
           >
             <Play size={10} className="mr-1.5 text-accent-blue" />
             Ping PostgreSQL
@@ -231,15 +250,15 @@ export default function SystemHealthPage() {
 
           <button
             onClick={() => simulateAction('flush_redis')}
-            className="button-ghost text-xs h-[30px] font-mono"
+            className="bg-surface border border-beige-deep text-slate hover:text-ink hover:bg-cream-soft px-3 py-1.5 rounded-md h-[34px] transition-all flex items-center justify-center font-mono text-xs"
           >
-            <Trash2 size={10} className="mr-1.5 text-accent-orange" />
+            <Trash2 size={10} className="mr-1.5 text-primary" />
             Flush Redis Cache
           </button>
 
           <button
             onClick={() => simulateAction('query_test')}
-            className="button-ghost text-xs h-[30px] font-mono"
+            className="bg-surface border border-beige-deep text-slate hover:text-ink hover:bg-cream-soft px-3 py-1.5 rounded-md h-[34px] transition-all flex items-center justify-center font-mono text-xs"
           >
             <Send size={10} className="mr-1.5 text-accent-green" />
             Simulate Search Routing
@@ -247,7 +266,7 @@ export default function SystemHealthPage() {
 
           <button
             onClick={() => simulateAction('error_event')}
-            className="button-ghost text-xs h-[30px] font-mono"
+            className="bg-surface border border-beige-deep text-slate hover:text-ink hover:bg-cream-soft px-3 py-1.5 rounded-md h-[34px] transition-all flex items-center justify-center font-mono text-xs"
           >
             <AlertTriangle size={10} className="mr-1.5 text-accent-red" />
             Simulate Provider Timeout
@@ -255,7 +274,7 @@ export default function SystemHealthPage() {
 
           <button
             onClick={() => simulateAction('clear_logs')}
-            className="ml-auto button-ghost text-[10px] h-[30px] font-mono text-mute hover:text-ink"
+            className="ml-auto bg-surface border border-beige-deep hover:bg-cream-deeper text-[10px] text-slate hover:text-ink px-3 py-1.5 rounded-md h-[34px] transition-all flex items-center justify-center font-mono"
           >
             Clear Console
           </button>
@@ -264,26 +283,26 @@ export default function SystemHealthPage() {
       </div>
 
       {/* OPERATIONAL LOG STREAM TERMINAL */}
-      <div className="bg-surface-deep border border-hairline-strong rounded-lg overflow-hidden flex flex-col relative z-10">
+      <div className="bg-surface-code border border-white/10 rounded-lg overflow-hidden flex flex-col relative z-10 shadow-lg">
         
         {/* Terminal Header */}
-        <div className="px-4 py-2.5 bg-surface-card border-b border-hairline-strong flex items-center justify-between">
+        <div className="px-4 py-2.5 bg-surface-code/80 border-b border-white/5 flex items-center justify-between">
           <div className="flex items-center gap-2 font-mono text-xs">
             <Terminal size={13} className="text-accent-blue" />
-            <span className="font-bold text-ink">logs_watcher_node01.log</span>
+            <span className="font-bold text-white">logs_watcher_node01.log</span>
           </div>
           <div className="flex gap-1.5">
-            <span className="w-1.5 h-1.5 rounded-full bg-accent-red"></span>
-            <span className="w-1.5 h-1.5 rounded-full bg-accent-yellow"></span>
-            <span className="w-1.5 h-1.5 rounded-full bg-accent-green"></span>
+            <span className="w-1.5 h-1.5 rounded-full bg-accent-red opacity-80"></span>
+            <span className="w-1.5 h-1.5 rounded-full bg-accent-yellow opacity-80"></span>
+            <span className="w-1.5 h-1.5 rounded-full bg-accent-green opacity-80"></span>
           </div>
         </div>
 
         {/* Terminal Body */}
-        <div className="bg-surface-deep p-4 h-64 overflow-y-auto font-mono text-[11px] leading-relaxed space-y-2 text-left border-t border-hairline/25 text-body">
+        <div className="bg-surface-code p-4 h-64 overflow-y-auto font-mono text-[11px] leading-relaxed space-y-2 text-left border-t border-white/5 text-on-dark-muted">
           {logs.map((log) => (
-            <div key={log.id} className="flex gap-2 items-start hover:bg-surface-card/30 py-0.5 px-1 rounded transition-colors">
-              <span className="text-mute shrink-0 select-none">[{log.time}]</span>
+            <div key={log.id} className="flex gap-2 items-start hover:bg-white/5 py-0.5 px-1 rounded transition-colors">
+              <span className="text-on-dark-muted shrink-0 select-none">[{log.time}]</span>
               <span className={`shrink-0 font-bold ${
                 log.type === 'error' ? 'text-accent-red' :
                 log.type === 'warning' ? 'text-accent-orange' :
@@ -294,9 +313,9 @@ export default function SystemHealthPage() {
                  log.type === 'success' ? '[SUCCESS]' : '[INFO]'}
               </span>
               <span className={
-                log.type === 'error' ? 'text-accent-red' :
-                log.type === 'warning' ? 'text-accent-orange' :
-                log.type === 'success' ? 'text-ink font-semibold' : 'text-mute'
+                log.type === 'error' ? 'text-accent-red font-medium' :
+                log.type === 'warning' ? 'text-accent-orange font-medium' :
+                log.type === 'success' ? 'text-white font-semibold' : 'text-on-dark-muted'
               }>
                 {log.text}
               </span>
@@ -305,7 +324,6 @@ export default function SystemHealthPage() {
           <div ref={terminalEndRef} />
         </div>
       </div>
-
     </div>
   )
 }

@@ -147,237 +147,245 @@ graph.add_node("search_agent", tool_node)
 `
 
   return (
-    <div className="w-full bg-canvas text-ink min-h-screen relative overflow-hidden flex flex-col items-center">
+    <div className="w-full bg-canvas text-ink min-h-screen relative flex flex-col items-center">
       
-      {/* 1. HERO STRIPE SECTION */}
-      <section className="w-full max-w-7xl px-6 md:px-8 py-[128px] grid grid-cols-1 lg:grid-cols-12 gap-16 items-center text-left relative z-10">
-        
-        {/* Left narrative content */}
-        <div className="lg:col-span-7 space-y-8">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-hairline-strong bg-surface-elevated text-charcoal text-[11px] font-mono tracking-[0.35px]">
-            <Sparkles size={11} className="text-accent-orange" />
-            <span>AI-NATIVE SEARCH LAYER</span>
-          </div>
-
-          <h1 className="text-5xl sm:text-7xl lg:text-[84px] font-display font-medium leading-[1.0] -tracking-[1.5px] text-ink">
-            Search for <br />
-            developers. <br />
-            Reimagined.
-          </h1>
-
-          <p className="text-base sm:text-lg text-body font-sans max-w-xl leading-relaxed">
-            Clean, ranked, LLM-ready web search results for LangChain pipelines, LangGraph workflows, and RAG systems. Brave, SerpAPI, and DuckDuckGo fallback orchestration. Built on true developer ergonomics.
-          </p>
-
-          <div className="flex flex-wrap items-center gap-4 pt-2">
-            {token ? (
-              <Link to="/dashboard" className="button-primary font-semibold">
-                Open Dashboard
-                <ArrowRight size={14} className="ml-2" />
-              </Link>
-            ) : (
-              <a href="#auth-section" className="button-primary font-semibold">
-                Start for Free
-                <ArrowRight size={14} className="ml-2" />
-              </a>
-            )}
-            <Link to="/docs" className="button-ghost font-semibold">
-              Explore API Docs
-            </Link>
-          </div>
-
-          {/* Core Latency specs */}
-          <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-xs font-mono text-mute pt-4 border-t border-hairline">
-            <span className="flex items-center gap-1.5">
-              <span className="w-1.5 h-1.5 rounded-full bg-accent-green"></span>
-              99.9% Uptime
-            </span>
-            <span className="text-hairline-strong">|</span>
-            <span>LangChain & LangGraph ready</span>
-            <span className="text-hairline-strong">|</span>
-            <span className="text-accent-blue font-semibold">
-              &lt; 200ms avg latency
-            </span>
-          </div>
+      {/* 1. HERO STRIPE SECTION (Sunset Band Background) */}
+      <section className="w-full hero-band-sunset relative py-20 md:py-32 flex justify-center border-b border-hairline">
+        {/* Abstract mountain silhouette SVG overlay */}
+        <div className="absolute inset-0 z-0 opacity-20 pointer-events-none select-none">
+          <svg className="w-full h-full object-cover" viewBox="0 0 1440 320" fill="none" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none">
+            <path d="M0,224L120,208C240,192,480,160,720,176C960,192,1200,256,1320,288L1440,320L1440,320L1320,320C1200,320,960,320,720,320C480,320,240,320,120,320L0,320Z" fill="#962A06"></path>
+            <path d="M0,160L120,176C240,192,480,224,720,208C960,192,1200,128,1320,96L1440,64L1440,320L1320,320C1200,320,960,320,720,320C480,320,240,320,120,320L0,320Z" fill="#111317" opacity="0.3"></path>
+          </svg>
         </div>
 
-        {/* Right Typewriter Code Window */}
-        <div className="lg:col-span-5 w-full">
-          <div className="bg-surface-deep border border-hairline-strong rounded-lg overflow-hidden shadow-2xl">
-            {/* Chrome Header */}
-            <div className="flex items-center justify-between px-4 py-3 bg-surface-card border-b border-hairline-strong">
-              <div className="flex gap-1.5">
-                <span className="w-2.5 h-2.5 rounded-full bg-accent-red"></span>
-                <span className="w-2.5 h-2.5 rounded-full bg-accent-yellow"></span>
-                <span className="w-2.5 h-2.5 rounded-full bg-accent-green"></span>
-              </div>
-              <span className="text-[11px] font-mono text-mute">curl_terminal.sh</span>
-              <div className="w-8"></div>
+        <div className="w-full max-w-7xl px-6 md:px-8 grid grid-cols-1 lg:grid-cols-12 gap-16 items-center text-left relative z-10">
+          {/* Left narrative content */}
+          <div className="lg:col-span-7 space-y-8 text-white">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-white/20 bg-black/20 text-white/95 text-[11px] font-mono tracking-[0.35px]">
+              <Sparkles size={11} className="text-sunshine-300" />
+              <span>AI-NATIVE SEARCH LAYER</span>
             </div>
-            
-            {/* Console Output */}
-            <div className="p-6 font-mono text-[11px] sm:text-xs text-left min-h-[340px] max-h-[400px] overflow-y-auto space-y-2.5 bg-surface-deep text-body">
-              {terminalLines.map((line, i) => (
-                <div key={i} className="transition-all duration-300">
-                  {line.type === 'cmd' && (
-                    <div className="text-accent-blue font-medium">
-                      <span className="text-mute select-none">$ </span>
-                      {line.text}
-                    </div>
-                  )}
-                  {line.type === 'status' && (
-                    <div className="text-mute pl-4 italic">
-                      {line.text}
-                    </div>
-                  )}
-                  {line.type === 'res' && (
-                    <pre className="text-accent-green pl-4 bg-surface-card/45 py-1 rounded overflow-x-auto border border-hairline">
-                      <code>{line.text}</code>
-                    </pre>
-                  )}
-                </div>
-              ))}
-              {terminalLineIndex < terminalSequence.length && (
-                <div className="flex items-center gap-1 text-accent-blue">
-                  <span className="text-mute select-none">$ </span>
-                  <span className="w-1.5 h-3.5 bg-accent-blue animate-pulse"></span>
-                </div>
+
+            <h1 className="text-hero-display text-white">
+              Search for <br />
+              developers. <br />
+              Reimagined.
+            </h1>
+
+            <p className="text-subtitle text-white/85 max-w-xl">
+              Clean, ranked, LLM-ready web search results for LangChain pipelines, LangGraph workflows, and RAG systems. Brave, SerpAPI, and DuckDuckGo fallback orchestration. Built on true developer ergonomics.
+            </p>
+
+            <div className="flex flex-wrap items-center gap-4 pt-2">
+              {token ? (
+                <Link to="/dashboard" className="button-dark font-semibold px-6">
+                  Open Dashboard
+                  <ArrowRight size={14} className="ml-2" />
+                </Link>
+              ) : (
+                <a href="#auth-section" className="button-dark font-semibold px-6">
+                  Start for Free
+                  <ArrowRight size={14} className="ml-2" />
+                </a>
               )}
+              <Link to="/docs" className="button-secondary border-white/30 text-white hover:bg-white/10 font-semibold px-6">
+                Explore API Docs
+              </Link>
+            </div>
+
+            {/* Core Latency specs */}
+            <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-xs font-mono text-white/70 pt-4 border-t border-white/10">
+              <span className="flex items-center gap-1.5">
+                <span className="w-1.5 h-1.5 rounded-full bg-accent-green"></span>
+                99.9% Uptime
+              </span>
+              <span className="text-white/20">|</span>
+              <span>LangChain & LangGraph ready</span>
+              <span className="text-white/20">|</span>
+              <span className="text-sunshine-300 font-semibold">
+                &lt; 200ms avg latency
+              </span>
+            </div>
+          </div>
+
+          {/* Right Typewriter Code Window */}
+          <div className="lg:col-span-5 w-full">
+            <div className="bg-surface-code border border-white/10 rounded-lg overflow-hidden shadow-2xl">
+              {/* Chrome Header */}
+              <div className="flex items-center justify-between px-4 py-3 bg-surface-code/80 border-b border-white/5">
+                <div className="flex gap-1.5">
+                  <span className="w-2.5 h-2.5 rounded-full bg-accent-red opacity-80"></span>
+                  <span className="w-2.5 h-2.5 rounded-full bg-accent-yellow opacity-80"></span>
+                  <span className="w-2.5 h-2.5 rounded-full bg-accent-green opacity-80"></span>
+                </div>
+                <span className="text-[11px] font-mono text-on-dark-muted">curl_terminal.sh</span>
+                <div className="w-8"></div>
+              </div>
+              
+              {/* Console Output */}
+              <div className="p-6 font-mono text-[11px] sm:text-xs text-left min-h-[340px] max-h-[400px] overflow-y-auto space-y-2.5 bg-surface-code text-on-dark">
+                {terminalLines.map((line, i) => (
+                  <div key={i} className="transition-all duration-300">
+                    {line.type === 'cmd' && (
+                      <div className="text-sunshine-300 font-medium">
+                        <span className="text-on-dark-muted select-none">$ </span>
+                        {line.text}
+                      </div>
+                    )}
+                    {line.type === 'status' && (
+                      <div className="text-on-dark-muted pl-4 italic">
+                        {line.text}
+                      </div>
+                    )}
+                    {line.type === 'res' && (
+                      <pre className="text-accent-green pl-4 bg-white/5 py-1 rounded overflow-x-auto border border-white/5">
+                        <code>{line.text}</code>
+                      </pre>
+                    )}
+                  </div>
+                ))}
+                {terminalLineIndex < terminalSequence.length && (
+                  <div className="flex items-center gap-1 text-primary">
+                    <span className="text-on-dark-muted select-none">$ </span>
+                    <span className="w-1.5 h-3.5 bg-primary animate-pulse"></span>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         </div>
-
       </section>
 
       {/* 2. ATMOSPHERIC SECTION METRICS (GLOW ORANGE BACKDROP) */}
-      <section className="w-full py-[96px] bg-canvas border-t border-hairline relative glow-orange">
+      <section className="w-full py-24 bg-canvas border-t border-hairline relative glow-orange">
         <div className="max-w-7xl mx-auto px-6 md:px-8 space-y-20 relative z-10">
           
           {/* Metrics strip */}
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-8 divide-y lg:divide-y-0 lg:divide-x divide-hairline-strong/40 text-center">
-            <div className="flex flex-col items-center justify-center p-2">
-              <span className="text-[10px] font-mono font-bold tracking-widest text-mute mb-2 uppercase">Core Latency</span>
-              <span className="text-3xl sm:text-4xl font-extrabold font-display text-ink">&lt; 142ms</span>
-              <span className="text-[11px] text-mute font-mono mt-1">average request runtime</span>
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-8 divide-y lg:divide-y-0 lg:divide-x divide-hairline-strong text-center">
+            <div id="latency-section" className="flex flex-col items-center justify-center p-2">
+              <span className="text-micro-uppercase text-slate mb-2">Core Latency</span>
+              <span className="text-stat-display text-ink">&lt; 142ms</span>
+              <span className="text-caption text-steel font-mono mt-1">average request runtime</span>
+            </div>
+            <div id="reliability-section" className="flex flex-col items-center justify-center p-2 pt-6 lg:pt-2">
+              <span className="text-micro-uppercase text-slate mb-2">Liveness Probe</span>
+              <span className="text-stat-display text-ink">99.98%</span>
+              <span className="text-caption text-steel font-mono mt-1">uptime SLA guarantee</span>
             </div>
             <div className="flex flex-col items-center justify-center p-2 pt-6 lg:pt-2">
-              <span className="text-[10px] font-mono font-bold tracking-widest text-mute mb-2 uppercase">Liveness Probe</span>
-              <span className="text-3xl sm:text-4xl font-extrabold font-display text-ink">99.98%</span>
-              <span className="text-[11px] text-mute font-mono mt-1">uptime SLA guarantee</span>
+              <span className="text-micro-uppercase text-slate mb-2">Failover Chain</span>
+              <span className="text-stat-display text-ink">3 Layers</span>
+              <span className="text-caption text-steel font-mono mt-1">Brave &rarr; Serp &rarr; DDG</span>
             </div>
-            <div className="flex flex-col items-center justify-center p-2 pt-6 lg:pt-2">
-              <span className="text-[10px] font-mono font-bold tracking-widest text-mute mb-2 uppercase">Failover Chain</span>
-              <span className="text-3xl sm:text-4xl font-extrabold font-display text-ink">3 API Layers</span>
-              <span className="text-[11px] text-mute font-mono mt-1">Brave &rarr; Serp &rarr; DDG</span>
-            </div>
-            <div className="flex flex-col items-center justify-center p-2 pt-6 lg:pt-2">
-              <span className="text-[10px] font-mono font-bold tracking-widest text-mute mb-2 uppercase">Hot Store Cache</span>
-              <span className="text-3xl sm:text-4xl font-extrabold font-display text-ink">Dual-Tier</span>
-              <span className="text-[11px] text-mute font-mono mt-1">Redis + Postgres indexes</span>
+            <div id="caching-section" className="flex flex-col items-center justify-center p-2 pt-6 lg:pt-2">
+              <span className="text-micro-uppercase text-slate mb-2">Hot Store Cache</span>
+              <span className="text-stat-display text-ink">Dual-Tier</span>
+              <span className="text-caption text-steel font-mono mt-1">Redis + Postgres indexes</span>
             </div>
           </div>
 
           {/* Feature Grid */}
-          <div className="space-y-12">
+          <div id="features-section" className="space-y-12">
             <div className="text-center max-w-xl mx-auto space-y-3">
-              <h2 className="text-3xl sm:text-4xl font-display font-medium text-ink -tracking-[0.8px]">Everything Your Pipeline Needs</h2>
-              <p className="text-sm text-mute font-mono">High-throughput search engine endpoints engineered for structured LLM agents.</p>
+              <h2 className="text-heading-2 text-ink">Everything Your Pipeline Needs</h2>
+              <p className="text-body-md text-slate">High-throughput search engine endpoints engineered for structured LLM agents.</p>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               
               {/* Feature 1 */}
-              <div className="bg-surface-card border border-hairline-strong p-8 rounded-lg flex flex-col justify-between min-h-[240px] hover:bg-surface-elevated transition-colors">
+              <div className="card-base flex flex-col justify-between min-h-[240px] hover:bg-cream-soft transition-colors">
                 <div className="space-y-3">
-                  <div className="p-2 rounded bg-surface-deep border border-hairline w-fit text-accent-orange">
+                  <div className="p-2 rounded bg-cream border border-beige-deep w-fit text-primary">
                     <Terminal size={16} />
                   </div>
-                  <h3 className="font-semibold text-lg text-ink font-display">Web Search API</h3>
-                  <p className="text-xs text-charcoal leading-relaxed">
+                  <h3 className="text-heading-5 text-ink">Web Search API</h3>
+                  <p className="text-body-sm text-slate">
                     Brave, SerpAPI, and DuckDuckGo fallback orchestration. Request basic snippets or full-page HTML extractions.
                   </p>
                 </div>
-                <div className="font-mono text-[10px] text-accent-blue bg-surface-deep border border-hairline px-2 py-0.5 rounded w-fit mt-4">
+                <div className="font-mono text-[10px] text-primary bg-cream border border-beige-deep px-2.5 py-0.5 rounded w-fit mt-4 font-bold">
                   POST /v1/search
                 </div>
               </div>
 
               {/* Feature 2 */}
-              <div className="bg-surface-card border border-hairline-strong p-8 rounded-lg flex flex-col justify-between min-h-[240px] hover:bg-surface-elevated transition-colors">
+              <div className="card-base flex flex-col justify-between min-h-[240px] hover:bg-cream-soft transition-colors">
                 <div className="space-y-3">
-                  <div className="p-2 rounded bg-surface-deep border border-hairline w-fit text-accent-orange">
+                  <div className="p-2 rounded bg-cream border border-beige-deep w-fit text-primary">
                     <Cpu size={16} />
                   </div>
-                  <h3 className="font-semibold text-lg text-ink font-display">Content Extraction</h3>
-                  <p className="text-xs text-charcoal leading-relaxed">
+                  <h3 className="text-heading-5 text-ink">Content Extraction</h3>
+                  <p className="text-body-sm text-slate">
                     Extract readable text content from URLs with Trafilatura and headless Playwright rendering for dynamic JS-heavy websites.
                   </p>
                 </div>
-                <div className="font-mono text-[10px] text-accent-blue bg-surface-deep border border-hairline px-2 py-0.5 rounded w-fit mt-4">
+                <div className="font-mono text-[10px] text-primary bg-cream border border-beige-deep px-2.5 py-0.5 rounded w-fit mt-4 font-bold">
                   POST /v1/extract
                 </div>
               </div>
 
               {/* Feature 3 */}
-              <div className="bg-surface-card border border-hairline-strong p-8 rounded-lg flex flex-col justify-between min-h-[240px] hover:bg-surface-elevated transition-colors">
+              <div className="card-base flex flex-col justify-between min-h-[240px] hover:bg-cream-soft transition-colors">
                 <div className="space-y-3">
-                  <div className="p-2 rounded bg-surface-deep border border-hairline w-fit text-accent-orange">
+                  <div className="p-2 rounded bg-cream border border-beige-deep w-fit text-primary">
                     <Sparkles size={16} />
                   </div>
-                  <h3 className="font-semibold text-lg text-ink font-display">Deep Research</h3>
-                  <p className="text-xs text-charcoal leading-relaxed">
+                  <h3 className="text-heading-5 text-ink">Deep Research</h3>
+                  <p className="text-body-sm text-slate">
                     Execute multiple parallel search queries, normalize results, extract body text, score relevance, and synthesize comprehensive cited summaries.
                   </p>
                 </div>
-                <div className="font-mono text-[10px] text-accent-blue bg-surface-deep border border-hairline px-2 py-0.5 rounded w-fit mt-4">
+                <div className="font-mono text-[10px] text-primary bg-cream border border-beige-deep px-2.5 py-0.5 rounded w-fit mt-4 font-bold">
                   POST /v1/research
                 </div>
               </div>
 
               {/* Feature 4 */}
-              <div className="bg-surface-card border border-hairline-strong p-8 rounded-lg flex flex-col justify-between min-h-[240px] hover:bg-surface-elevated transition-colors">
+              <div className="card-base flex flex-col justify-between min-h-[240px] hover:bg-cream-soft transition-colors">
                 <div className="space-y-3">
-                  <div className="p-2 rounded bg-surface-deep border border-hairline w-fit text-accent-orange">
+                  <div className="p-2 rounded bg-cream border border-beige-deep w-fit text-primary">
                     <Zap size={16} />
                   </div>
-                  <h3 className="font-semibold text-lg text-ink font-display">Asynchronous Crawler</h3>
-                  <p className="text-xs text-charcoal leading-relaxed">
+                  <h3 className="text-heading-5 text-ink">Asynchronous Crawler</h3>
+                  <p className="text-body-sm text-slate">
                     Queue domain-restricted, recursive crawling jobs in background Celery workers. Retrieve full-text structures via task monitoring.
                   </p>
                 </div>
-                <div className="font-mono text-[10px] text-accent-blue bg-surface-deep border border-hairline px-2 py-0.5 rounded w-fit mt-4">
+                <div className="font-mono text-[10px] text-primary bg-cream border border-beige-deep px-2.5 py-0.5 rounded w-fit mt-4 font-bold">
                   POST /v1/crawl
                 </div>
               </div>
 
               {/* Feature 5 */}
-              <div className="bg-surface-card border border-hairline-strong p-8 rounded-lg flex flex-col justify-between min-h-[240px] hover:bg-surface-elevated transition-colors">
+              <div className="card-base flex flex-col justify-between min-h-[240px] hover:bg-cream-soft transition-colors">
                 <div className="space-y-3">
-                  <div className="p-2 rounded bg-surface-deep border border-hairline w-fit text-accent-orange">
+                  <div className="p-2 rounded bg-cream border border-beige-deep w-fit text-primary">
                     <Code size={16} />
                   </div>
-                  <h3 className="font-semibold text-lg text-ink font-display">LangChain & LangGraph</h3>
-                  <p className="text-xs text-charcoal leading-relaxed">
+                  <h3 className="text-heading-5 text-ink">LangChain & LangGraph</h3>
+                  <p className="text-body-sm text-slate">
                     Drop-in SDK integrations for AI agents. Ready-to-use search and extract tools compatible with reactive agent graph nodes.
                   </p>
                 </div>
-                <div className="font-mono text-[10px] text-accent-blue bg-surface-deep border border-hairline px-2 py-0.5 rounded w-fit mt-4">
+                <div className="font-mono text-[10px] text-primary bg-cream border border-beige-deep px-2.5 py-0.5 rounded w-fit mt-4 font-bold">
                   searchmind.langchain_tool
                 </div>
               </div>
 
               {/* Feature 6 */}
-              <div className="bg-surface-card border border-hairline-strong p-8 rounded-lg flex flex-col justify-between min-h-[240px] hover:bg-surface-elevated transition-colors">
+              <div className="card-base flex flex-col justify-between min-h-[240px] hover:bg-cream-soft transition-colors">
                 <div className="space-y-3">
-                  <div className="p-2 rounded bg-surface-deep border border-hairline w-fit text-accent-orange">
+                  <div className="p-2 rounded bg-cream border border-beige-deep w-fit text-primary">
                     <Database size={16} />
                   </div>
-                  <h3 className="font-semibold text-lg text-ink font-display">2-Tier Caching</h3>
-                  <p className="text-xs text-charcoal leading-relaxed">
+                  <h3 className="text-heading-5 text-ink">2-Tier Caching</h3>
+                  <p className="text-body-sm text-slate">
                     Leverages an ultra-fast Redis memory cache backed up by a durable Postgres cache table. Auto cache warming ensures sub-10ms response times.
                   </p>
                 </div>
-                <div className="font-mono text-[10px] text-accent-blue bg-surface-deep border border-hairline px-2 py-0.5 rounded w-fit mt-4">
+                <div className="font-mono text-[10px] text-primary bg-cream border border-beige-deep px-2.5 py-0.5 rounded w-fit mt-4 font-bold">
                   Redis + PostgreSQL
                 </div>
               </div>
@@ -389,27 +397,27 @@ graph.add_node("search_agent", tool_node)
       </section>
 
       {/* 3. CODE STORY SPLIT SECTION (GLOW BLUE BACKDROP) */}
-      <section className="w-full py-[96px] bg-canvas border-t border-hairline relative glow-blue">
+      <section id="sdk-section" className="w-full py-24 bg-canvas border-t border-hairline relative glow-blue">
         <div className="max-w-4xl mx-auto px-6 md:px-8 space-y-8 relative z-10">
           
           <div className="text-center space-y-2">
-            <h2 className="text-3xl sm:text-4xl font-display font-medium text-ink -tracking-[0.8px]">Developer Ergonomics First</h2>
-            <p className="text-sm text-mute font-mono">Import SearchMind tools into your agent pipelines in 3 lines of code.</p>
+            <h2 className="text-heading-2 text-ink">Developer Ergonomics First</h2>
+            <p className="text-body-md text-slate">Import SearchMind tools into your agent pipelines in 3 lines of code.</p>
           </div>
 
           {/* CODE WINDOW */}
-          <div className="bg-surface-deep border border-hairline-strong rounded-lg overflow-hidden">
+          <div className="bg-surface-code border border-white/10 rounded-lg overflow-hidden shadow-xl">
             {/* Top Toolbar */}
-            <div className="flex items-center justify-between bg-surface-card px-6 py-3 border-b border-hairline-strong">
+            <div className="flex items-center justify-between bg-surface-code px-6 py-3 border-b border-white/5">
               <div className="flex gap-4">
                 {['python', 'langchain', 'langgraph'].map((tab) => (
                   <button
                     key={tab}
                     onClick={() => setCodeTab(tab)}
-                    className={`flex items-center gap-1.5 text-xs font-mono font-semibold transition-all pb-1 border-b-2 capitalize ${
+                    className={`flex items-center gap-1.5 text-xs font-mono font-bold transition-all pb-1.5 border-b-2 capitalize ${
                       codeTab === tab 
-                        ? 'text-ink border-ink' 
-                        : 'text-mute border-transparent hover:text-ink'
+                        ? 'text-white border-primary' 
+                        : 'text-on-dark-muted border-transparent hover:text-white'
                     }`}
                   >
                     {tab === 'python' ? 'Python SDK' : tab}
@@ -419,14 +427,14 @@ graph.add_node("search_agent", tool_node)
               
               {/* Traffic light chrome dots */}
               <div className="flex gap-1.5">
-                <span className="w-2 h-2 rounded-full bg-accent-red"></span>
-                <span className="w-2 h-2 rounded-full bg-accent-yellow"></span>
-                <span className="w-2 h-2 rounded-full bg-accent-green"></span>
+                <span className="w-2 h-2 rounded-full bg-accent-red opacity-80"></span>
+                <span className="w-2 h-2 rounded-full bg-accent-yellow opacity-80"></span>
+                <span className="w-2 h-2 rounded-full bg-accent-green opacity-80"></span>
               </div>
             </div>
 
             {/* Code Content */}
-            <div className="p-6 text-left overflow-x-auto font-mono text-[13px] text-body leading-relaxed border-t border-hairline/25">
+            <div className="p-6 text-left overflow-x-auto font-mono text-[13px] text-white/90 leading-relaxed bg-surface-code">
               <pre>
                 <code>
                   {codeTab === 'python' && pythonCode}
@@ -441,37 +449,37 @@ graph.add_node("search_agent", tool_node)
       </section>
 
       {/* 4. AUTH SECTION - COMPACT FORM INPUT INSET */}
-      <section id="auth-section" className="w-full py-[96px] bg-canvas border-t border-hairline">
+      <section id="auth-section" className="w-full py-24 bg-canvas border-t border-hairline">
         <div className="max-w-md mx-auto px-6 relative z-10">
           
           {token ? (
-            <div className="bg-surface-card border border-hairline-strong p-8 rounded-lg space-y-6 text-center shadow-lg">
-              <div className="p-4 bg-accent-green/5 border border-accent-green/20 rounded-full w-fit mx-auto text-accent-green">
+            <div className="card-cream space-y-6 text-center shadow-md border border-beige-deep">
+              <div className="p-4 bg-accent-green/10 border border-accent-green/20 rounded-full w-fit mx-auto text-accent-green">
                 <CheckCircle size={32} />
               </div>
-              <h2 className="text-2xl font-bold font-display text-ink">Access Authorized</h2>
-              <p className="text-charcoal text-xs font-mono leading-relaxed">
-                You are authenticated as <span className="text-ink font-semibold">{user?.email}</span> on the <strong className="text-accent-blue capitalize font-bold">{user?.plan}</strong> plan.
+              <h2 className="text-heading-3 text-ink">Access Authorized</h2>
+              <p className="text-slate text-xs font-mono leading-relaxed">
+                You are authenticated as <span className="text-ink font-semibold">{user?.email}</span> on the <strong className="text-primary capitalize font-bold">{user?.plan}</strong> plan.
               </p>
-              <Link to="/dashboard" className="button-primary w-full text-center">
+              <Link to="/dashboard" className="button-dark w-full text-center">
                 Go to Dashboard
               </Link>
             </div>
           ) : (
-            <div className="bg-surface-card border border-hairline-strong p-8 rounded-lg space-y-6 shadow-lg">
-              <div className="flex justify-center border-b border-hairline-strong pb-3">
+            <div className="card-cream space-y-6 shadow-md border border-beige-deep">
+              <div className="flex justify-center border-b border-beige-deep pb-3">
                 <button
                   onClick={() => { setIsRegister(true); setError(''); }}
-                  className={`flex-1 pb-2 font-mono font-semibold text-sm transition-colors ${
-                    isRegister ? 'text-ink border-b-2 border-ink' : 'text-mute hover:text-ink'
+                  className={`flex-1 pb-2 font-sans font-semibold text-sm transition-colors ${
+                    isRegister ? 'text-primary border-b-2 border-primary' : 'text-slate hover:text-ink'
                   }`}
                 >
                   Register
                 </button>
                 <button
                   onClick={() => { setIsRegister(false); setError(''); }}
-                  className={`flex-1 pb-2 font-mono font-semibold text-sm transition-colors ${
-                    !isRegister ? 'text-ink border-b-2 border-ink' : 'text-mute hover:text-ink'
+                  className={`flex-1 pb-2 font-sans font-semibold text-sm transition-colors ${
+                    !isRegister ? 'text-primary border-b-2 border-primary' : 'text-slate hover:text-ink'
                   }`}
                 >
                   Sign In
@@ -487,12 +495,12 @@ graph.add_node("search_agent", tool_node)
               <form onSubmit={handleAuthSubmit} className="space-y-4 text-left">
                 {isRegister && (
                   <div className="flex flex-col gap-1.5">
-                    <label className="text-[11px] font-mono text-mute font-bold uppercase">Full Name</label>
+                    <label className="text-micro-uppercase text-slate">Full Name</label>
                     <input
                       type="text"
                       required
                       placeholder="Jane Doe"
-                      className="glass-input text-xs"
+                      className="glass-input text-xs border border-beige-deep focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all rounded-md px-3 py-2"
                       value={fullName}
                       onChange={(e) => setFullName(e.target.value)}
                     />
@@ -500,24 +508,24 @@ graph.add_node("search_agent", tool_node)
                 )}
 
                 <div className="flex flex-col gap-1.5">
-                  <label className="text-[11px] font-mono text-mute font-bold uppercase">Email Address</label>
+                  <label className="text-micro-uppercase text-slate">Email Address</label>
                   <input
                     type="email"
                     required
                     placeholder="jane@example.com"
-                    className="glass-input text-xs"
+                    className="glass-input text-xs border border-beige-deep focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all rounded-md px-3 py-2"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                   />
                 </div>
 
                 <div className="flex flex-col gap-1.5">
-                  <label className="text-[11px] font-mono text-mute font-bold uppercase">Password</label>
+                  <label className="text-micro-uppercase text-slate">Password</label>
                   <input
                     type="password"
                     required
                     placeholder="••••••••"
-                    className="glass-input text-xs"
+                    className="glass-input text-xs border border-beige-deep focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all rounded-md px-3 py-2"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                   />
@@ -526,7 +534,7 @@ graph.add_node("search_agent", tool_node)
                 <button
                   type="submit"
                   disabled={loading}
-                  className="button-primary w-full mt-4 font-semibold"
+                  className="button-dark w-full mt-4 font-semibold font-sans"
                 >
                   {loading ? 'Processing...' : isRegister ? 'Create Account' : 'Sign In'}
                 </button>
@@ -538,27 +546,27 @@ graph.add_node("search_agent", tool_node)
       </section>
 
       {/* 5. PRICING SECTION (GLOW RED BACKDROP) */}
-      <section className="w-full py-[96px] bg-canvas border-t border-hairline relative glow-red">
+      <section id="pricing-section" className="w-full py-24 bg-canvas border-t border-hairline relative glow-red">
         <div className="max-w-5xl mx-auto px-6 md:px-8 space-y-12 relative z-10">
           
           <div className="text-center max-w-xl mx-auto space-y-3">
-            <h2 className="text-3xl sm:text-4xl font-display font-medium text-ink -tracking-[0.8px]">Simple, Transparent Pricing</h2>
-            <p className="text-sm text-mute font-mono">Start completely free. Upgrade as your platforms and agent requests scale.</p>
+            <h2 className="text-heading-2 text-ink">Simple, Transparent Pricing</h2>
+            <p className="text-body-md text-slate">Start completely free. Upgrade as your platforms and agent requests scale.</p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             
             {/* Free Tier */}
-            <div className="bg-surface-card border border-hairline-strong p-8 rounded-lg text-left flex flex-col justify-between space-y-6 hover:bg-surface-elevated transition-colors">
+            <div className="card-base text-left flex flex-col justify-between space-y-6 hover:bg-cream-soft transition-all">
               <div className="space-y-3">
-                <span className="px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold bg-surface-deep text-mute border border-hairline uppercase">FREE</span>
+                <span className="text-micro-uppercase bg-cream text-slate border border-beige-deep px-2.5 py-0.5 rounded-full">FREE</span>
                 <div className="flex items-baseline mt-2">
-                  <span className="text-[44px] font-extrabold font-mono text-ink">$0</span>
-                  <span className="text-xs text-mute font-mono ml-1">/mo</span>
+                  <span className="text-stat-display text-ink">$0</span>
+                  <span className="text-caption text-steel font-mono ml-1">/mo</span>
                 </div>
-                <p className="text-xs text-charcoal font-sans">Ideal for testing search queries and initial sandbox designs.</p>
+                <p className="text-body-sm text-slate">Ideal for testing search queries and initial sandbox designs.</p>
               </div>
-              <ul className="space-y-2 text-xs text-body font-mono py-4 border-t border-hairline">
+              <ul className="space-y-2 text-xs text-slate font-mono p-4 border border-hairline rounded-lg bg-surface-code/40">
                 <li className="flex items-center gap-2">✓ 1,000 requests / month</li>
                 <li className="flex items-center gap-2">✓ 5 requests / minute limit</li>
                 <li className="flex items-center gap-2">✓ Basic search snippets</li>
@@ -570,41 +578,41 @@ graph.add_node("search_agent", tool_node)
             </div>
 
             {/* Starter Tier (Featured) */}
-            <div className="bg-surface-elevated border-2 border-hairline-strong p-8 rounded-lg text-left flex flex-col justify-between space-y-6 relative hover:brightness-110 transition-all shadow-glow">
-              <div className="absolute top-0 right-6 -translate-y-1/2 px-2.5 py-0.5 rounded-full text-[9px] font-mono font-bold uppercase tracking-wider bg-ink text-canvas">
+            <div className="card-cream border-2 border-primary text-left flex flex-col justify-between space-y-6 relative hover:brightness-105 transition-all shadow-md">
+              <div className="absolute top-0 right-6 -translate-y-1/2 px-2.5 py-0.5 rounded-full text-[9px] font-mono font-bold uppercase tracking-wider bg-primary text-white">
                 Popular
               </div>
               <div className="space-y-3">
-                <span className="px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold bg-accent-blue/15 text-accent-blue border border-accent-blue/20 uppercase">STARTER</span>
+                <span className="text-micro-uppercase bg-primary/10 text-primary border border-primary/20 px-2.5 py-0.5 rounded-full">STARTER</span>
                 <div className="flex items-baseline mt-2">
-                  <span className="text-[44px] font-extrabold font-mono text-ink">$29</span>
-                  <span className="text-xs text-mute font-mono ml-1">/mo</span>
+                  <span className="text-stat-display text-ink">$29</span>
+                  <span className="text-caption text-steel font-mono ml-1">/mo</span>
                 </div>
-                <p className="text-xs text-charcoal font-sans">Perfect for running autonomous agents and lightweight workflows.</p>
+                <p className="text-body-sm text-charcoal">Perfect for running autonomous agents and lightweight workflows.</p>
               </div>
-              <ul className="space-y-2 text-xs text-body font-mono py-4 border-t border-hairline">
+              <ul className="space-y-2 text-xs text-slate font-mono p-4 border border-beige-deep rounded-lg bg-surface-code/40">
                 <li className="flex items-center gap-2">✓ 10,000 requests / month</li>
                 <li className="flex items-center gap-2">✓ 30 requests / minute limit</li>
                 <li className="flex items-center gap-2">✓ Advanced deep full-page search</li>
                 <li className="flex items-center gap-2">✓ Celery async background crawl</li>
                 <li className="flex items-center gap-2">✓ LLM summary synthesis</li>
               </ul>
-              <a href="#auth-section" className="button-primary w-full text-center">
+              <a href="#auth-section" className="button-primary w-full text-center font-bold">
                 Subscribe Now
               </a>
             </div>
 
             {/* Pro Tier */}
-            <div className="bg-surface-card border border-hairline-strong p-8 rounded-lg text-left flex flex-col justify-between space-y-6 hover:bg-surface-elevated transition-colors">
+            <div className="card-base text-left flex flex-col justify-between space-y-6 hover:bg-cream-soft transition-all">
               <div className="space-y-3">
-                <span className="px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold bg-surface-deep text-mute border border-hairline uppercase">PRO</span>
+                <span className="text-micro-uppercase bg-cream text-slate border border-beige-deep px-2.5 py-0.5 rounded-full">PRO</span>
                 <div className="flex items-baseline mt-2">
-                  <span className="text-[44px] font-extrabold font-mono text-ink">$99</span>
-                  <span className="text-xs text-mute font-mono ml-1">/mo</span>
+                  <span className="text-stat-display text-ink">$99</span>
+                  <span className="text-caption text-steel font-mono ml-1">/mo</span>
                 </div>
-                <p className="text-xs text-charcoal font-sans">For scaling production pipelines, large databases, and team workflows.</p>
+                <p className="text-body-sm text-slate">For scaling production pipelines, large databases, and team workflows.</p>
               </div>
-              <ul className="space-y-2 text-xs text-body font-mono py-4 border-t border-hairline">
+              <ul className="space-y-2 text-xs text-slate font-mono p-4 border border-hairline rounded-lg bg-surface-code/40">
                 <li className="flex items-center gap-2">✓ 100,000 requests / month</li>
                 <li className="flex items-center gap-2">✓ 100 requests / minute limit</li>
                 <li className="flex items-center gap-2">✓ Advanced deep search & crawl</li>
@@ -621,15 +629,15 @@ graph.add_node("search_agent", tool_node)
       </section>
 
       {/* 6. ECOSYSTEM INTEGRATION */}
-      <section className="w-full py-[96px] bg-canvas border-t border-hairline">
+      <section className="w-full py-24 bg-canvas border-t border-hairline">
         <div className="max-w-4xl mx-auto px-6 text-center space-y-12 relative z-10">
           <div className="space-y-3">
-            <h2 className="text-3xl sm:text-4xl font-display font-medium text-ink -tracking-[0.8px]">Ecosystem Integration</h2>
-            <p className="text-sm text-mute font-mono">SearchMind works natively with your entire development stack.</p>
+            <h2 className="text-heading-2 text-ink">Ecosystem Integration</h2>
+            <p className="text-body-md text-slate">SearchMind works natively with your entire development stack.</p>
           </div>
-          <div className="flex flex-wrap justify-center gap-6 items-center max-w-4xl mx-auto filter grayscale opacity-60 hover:filter-none hover:opacity-100 transition-all font-mono text-xs text-mute">
+          <div className="flex flex-wrap justify-center gap-6 items-center max-w-4xl mx-auto">
             {['LangChain', 'LangGraph', 'OpenAI SDK', 'NVIDIA NIM', 'Groq API', 'FastAPI', 'Neon DB', 'Redis'].map((eco) => (
-              <span key={eco} className="border border-hairline bg-surface-card px-4 py-2 rounded-md">
+              <span key={eco} className="text-body-sm-medium text-slate border border-hairline-strong bg-cream/45 px-4 py-2.5 rounded-md">
                 {eco}
               </span>
             ))}
@@ -637,19 +645,19 @@ graph.add_node("search_agent", tool_node)
         </div>
       </section>
 
-      {/* 7. DOCKER UP BAND */}
-      <section className="w-full py-[96px] bg-canvas border-t border-hairline">
+      {/* 7. DOCKER UP BAND (cta-banner-cream) */}
+      <section className="w-full py-24 bg-canvas border-t border-hairline">
         <div className="max-w-4xl mx-auto px-6 relative z-10">
           
-          <div className="bg-surface-card border border-hairline-strong p-10 rounded-lg text-center space-y-6 relative overflow-hidden">
-            <h2 className="text-3xl sm:text-4xl font-display font-medium text-ink -tracking-[0.8px]">Build your first agent search in &lt; 5 minutes.</h2>
-            <p className="text-xs text-charcoal max-w-lg mx-auto font-mono">No credit card required. Free tier available. Start a local server with Docker in one command:</p>
+          <div className="bg-cream border border-beige-deep p-12 rounded-lg text-center space-y-6 relative overflow-hidden">
+            <h2 className="text-heading-1 text-ink">Build your first agent search in &lt; 5 minutes.</h2>
+            <p className="text-body-sm text-slate max-w-lg mx-auto">No credit card required. Free tier available. Start a local server with Docker in one command:</p>
             
-            <div className="flex items-center justify-between bg-surface-deep max-w-sm mx-auto px-4 py-2.5 rounded border border-hairline-strong font-mono text-xs sm:text-sm text-accent-blue">
+            <div className="flex items-center justify-between bg-surface-code max-w-sm mx-auto px-4 py-3 rounded-md border border-beige-deep font-mono text-xs sm:text-sm text-primary font-bold">
               <span>docker compose up --build</span>
               <button 
                 onClick={handleCopyCommand}
-                className="text-mute hover:text-ink transition-colors"
+                className="text-steel hover:text-primary transition-colors"
                 title="Copy Command"
               >
                 {copiedText ? <span className="text-[10px] text-accent-green font-bold">Copied!</span> : <Copy size={13} />}

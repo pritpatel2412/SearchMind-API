@@ -22,13 +22,13 @@ export default function Navbar({ token, user, onLogout }) {
           
           <div className="flex items-center gap-8">
             {/* Logo */}
-            <Link to="/" className="flex items-center gap-2 group">
-              <div className="p-1.5 rounded bg-ink text-canvas group-hover:scale-105 transition-transform duration-300">
+            <Link to="/" className="flex items-center gap-2 group font-sans">
+              <div className="p-1.5 rounded bg-primary text-white group-hover:scale-105 transition-transform duration-300">
                 <Terminal size={14} />
               </div>
               <span className="font-extrabold text-sm font-display tracking-tight text-ink flex items-center gap-1.5">
                 SearchMind
-                <span className="text-[9px] font-mono tracking-widest text-mute border border-hairline px-1 rounded bg-surface-card uppercase">
+                <span className="text-[9px] font-mono tracking-widest text-primary border border-primary/20 px-1.5 py-0.5 rounded bg-cream uppercase font-bold">
                   API
                 </span>
               </span>
@@ -44,13 +44,13 @@ export default function Navbar({ token, user, onLogout }) {
                     <Link
                       key={item.label}
                       to={item.path}
-                      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-sans font-medium transition-all ${
+                      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-body-sm-medium transition-all ${
                         isActive
-                          ? 'bg-surface-elevated text-ink border border-hairline-strong'
-                          : 'text-charcoal hover:text-ink hover:bg-surface-card'
+                          ? 'bg-cream text-ink border border-beige-deep shadow-sm font-semibold'
+                          : 'text-slate hover:text-ink hover:bg-cream/40'
                       }`}
                     >
-                      <Icon size={12} className={isActive ? 'text-accent-blue' : 'text-mute'} />
+                      <Icon size={12} className={isActive ? 'text-primary' : 'text-steel'} />
                       {item.label}
                     </Link>
                   )
@@ -64,21 +64,21 @@ export default function Navbar({ token, user, onLogout }) {
             {token ? (
               <div className="flex items-center gap-4">
                 <div className="hidden sm:flex flex-col items-end text-right">
-                  <span className="text-[10px] font-mono text-ink font-medium">{user?.email}</span>
-                  <span className="text-[9px] font-mono text-accent-blue font-bold capitalize">{user?.plan} plan</span>
+                  <span className="text-micro text-ink font-semibold">{user?.email}</span>
+                  <span className="text-micro text-primary font-bold capitalize">{user?.plan} plan</span>
                 </div>
                 <button
                   onClick={onLogout}
-                  className="button-ghost text-xs px-2.5 h-[30px]"
+                  className="button-ghost text-xs px-2.5 h-[30px] border border-hairline-strong bg-cream/30 text-ink hover:bg-cream/50"
                 >
-                  <LogOut size={11} className="mr-1 text-accent-red" />
+                  <LogOut size={11} className="mr-1 text-primary" />
                   Logout
                 </button>
               </div>
             ) : (
               <a
                 href="#auth-section"
-                className="button-primary text-xs px-4 h-[32px] rounded-md font-semibold"
+                className="button-primary text-xs px-5 h-[38px] rounded-md font-semibold font-sans"
               >
                 Start Free
               </a>
@@ -89,7 +89,7 @@ export default function Navbar({ token, user, onLogout }) {
       </div>
 
       {/* Mobile nav indicator */}
-      <div className="md:hidden flex justify-around py-2 border-t border-hairline bg-surface-card text-[9px] font-mono text-mute">
+      <div className="md:hidden flex justify-around py-2 border-t border-hairline bg-cream/30 text-[9px] font-mono text-slate">
         {navItems.map((item) => {
           const isActive = currentPath === item.path
           return (
@@ -100,7 +100,7 @@ export default function Navbar({ token, user, onLogout }) {
                 isActive ? 'text-ink font-semibold' : 'hover:text-ink'
               }`}
             >
-              <item.icon size={13} className={isActive ? 'text-accent-blue' : 'text-mute'} />
+              <item.icon size={13} className={isActive ? 'text-primary' : 'text-steel'} />
               {item.label}
             </Link>
           )

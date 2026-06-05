@@ -110,12 +110,12 @@ export default function Docs() {
   const activeDoc = docsContent[activeSec]
 
   return (
-    <div className="max-w-7xl mx-auto px-6 md:px-8 py-12 text-left relative glow-blue">
+    <div className="max-w-7xl mx-auto px-6 md:px-8 py-12 text-left relative glow-orange">
       <div className="grid grid-cols-1 md:grid-cols-12 gap-8 items-start relative z-10">
         
         {/* Sidebar Navigation */}
         <div className="md:col-span-3 space-y-2">
-          <h3 className="font-mono text-[10px] font-bold tracking-widest text-mute uppercase px-3 mb-4">API References</h3>
+          <h3 className="text-micro-uppercase text-slate px-3 mb-4">API References</h3>
           
           <div className="flex flex-col gap-1">
             {sections.map((sec) => {
@@ -125,17 +125,17 @@ export default function Docs() {
                 <button
                   key={sec.id}
                   onClick={() => setActiveSec(sec.id)}
-                  className={`flex items-center justify-between px-3 py-2 text-xs font-mono font-medium rounded-md transition-all ${
+                  className={`flex items-center justify-between px-3 py-2.5 text-body-sm-medium rounded-md transition-all border ${
                     isSelected 
-                      ? 'bg-surface-elevated text-ink border border-hairline-strong' 
-                      : 'text-charcoal hover:text-ink hover:bg-surface-card'
+                      ? 'bg-cream-deeper text-ink border-beige-deep shadow-sm' 
+                      : 'text-charcoal border-transparent hover:text-ink hover:bg-cream/40'
                   }`}
                 >
                   <span className="flex items-center gap-2">
-                    <Icon size={12} className={isSelected ? 'text-accent-blue' : 'text-mute'} />
+                    <Icon size={12} className={isSelected ? 'text-primary' : 'text-slate'} />
                     {sec.label}
                   </span>
-                  <ChevronRight size={12} className={isSelected ? 'opacity-100 text-accent-blue' : 'opacity-0'} />
+                  <ChevronRight size={12} className={isSelected ? 'opacity-100 text-primary' : 'opacity-0'} />
                 </button>
               )
             })}
@@ -143,31 +143,31 @@ export default function Docs() {
         </div>
 
         {/* Documentation Content */}
-        <div className="md:col-span-9 space-y-8 bg-surface-card border border-hairline-strong p-8 rounded-lg">
+        <div className="md:col-span-9 space-y-8 card-base p-8 rounded-lg shadow-sm">
           <div className="space-y-3">
-            <h2 className="text-3xl font-display font-medium text-ink">{activeDoc.title}</h2>
-            <p className="text-xs text-charcoal leading-relaxed">{activeDoc.desc}</p>
+            <h2 className="text-heading-2 text-ink">{activeDoc.title}</h2>
+            <p className="text-body-md text-charcoal leading-relaxed">{activeDoc.desc}</p>
           </div>
 
           {/* Endpoint badge */}
-          <div className="flex items-center gap-3 bg-surface-deep px-4 py-2.5 rounded border border-hairline-strong max-w-fit font-mono text-xs">
-            <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase ${
-              activeDoc.endpoint === 'POST' ? 'bg-accent-green/10 text-accent-green border border-accent-green/20' : 
-              activeDoc.endpoint === 'GET' ? 'bg-accent-blue/10 text-accent-blue border border-accent-blue/20' : 
-              'bg-surface-elevated text-mute border border-hairline'
+          <div className="flex items-center gap-3 bg-cream px-4 py-2.5 rounded-md border border-beige-deep max-w-fit font-mono text-xs">
+            <span className={`px-2.5 py-0.5 rounded text-[10px] font-bold uppercase border ${
+              activeDoc.endpoint === 'POST' ? 'bg-accent-green/10 text-accent-green border-accent-green/20' : 
+              activeDoc.endpoint === 'GET' ? 'bg-accent-blue/10 text-accent-blue border-accent-blue/20' : 
+              'bg-cream-deeper text-slate border-beige-deep'
             }`}>
               {activeDoc.endpoint}
             </span>
-            <span className="text-body font-semibold">{activeDoc.path}</span>
+            <span className="text-ink font-semibold">{activeDoc.path}</span>
           </div>
 
           {/* Parameters Table */}
           {activeDoc.params.length > 0 && (
             <div className="space-y-3">
-              <h3 className="font-mono text-[10px] font-bold tracking-widest text-mute uppercase">Request Parameters</h3>
-              <div className="overflow-x-auto border border-hairline-strong rounded-md">
-                <table className="min-w-full divide-y divide-hairline-strong/60 text-xs font-mono">
-                  <thead className="bg-surface-deep text-mute">
+              <h3 className="text-micro-uppercase text-slate">Request Parameters</h3>
+              <div className="overflow-x-auto border border-beige-deep rounded-lg">
+                <table className="min-w-full divide-y divide-beige-deep text-xs font-mono">
+                  <thead className="bg-cream text-charcoal border-b border-beige-deep">
                     <tr>
                       <th className="px-4 py-3 text-left font-bold">Field</th>
                       <th className="px-4 py-3 text-left font-bold">Type</th>
@@ -175,13 +175,17 @@ export default function Docs() {
                       <th className="px-4 py-3 text-left font-bold">Description</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-hairline bg-surface-deep/20 text-body">
+                  <tbody className="divide-y divide-beige-deep/50 bg-cream-soft text-ink">
                     {activeDoc.params.map((p) => (
-                      <tr key={p.name} className="hover:bg-surface-card transition-colors">
-                        <td className="px-4 py-3 font-semibold text-accent-blue">{p.name}</td>
-                        <td className="px-4 py-3 text-mute">{p.type}</td>
-                        <td className="px-4 py-3 font-semibold text-charcoal">{p.required}</td>
-                        <td className="px-4 py-3 text-mute font-sans">{p.desc}</td>
+                      <tr key={p.name} className="hover:bg-cream-deeper/30 transition-colors">
+                        <td className="px-4 py-3 font-semibold text-primary">{p.name}</td>
+                        <td className="px-4 py-3 text-slate">{p.type}</td>
+                        <td className="px-4 py-3 font-semibold text-ink">
+                          <span className={p.required === 'Yes' ? 'text-primary' : 'text-slate'}>
+                            {p.required}
+                          </span>
+                        </td>
+                        <td className="px-4 py-3 text-slate font-sans">{p.desc}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -191,11 +195,11 @@ export default function Docs() {
           )}
 
           {/* Code Examples */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 pt-4 border-t border-hairline">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 pt-6 border-t border-hairline">
             
             {/* cURL Example */}
-            <div className="space-y-2 text-left">
-              <div className="flex justify-between items-center text-[10px] font-mono text-mute uppercase font-bold">
+            <div className="space-y-2.5 text-left">
+              <div className="flex justify-between items-center text-micro-uppercase text-slate">
                 <span>cURL Request</span>
                 <button
                   onClick={() => handleCopy(`${activeSec}_curl`, activeDoc.curl)}
@@ -205,21 +209,21 @@ export default function Docs() {
                   Copy
                 </button>
               </div>
-              <div className="bg-surface-deep border border-hairline-strong rounded-lg overflow-hidden relative">
-                <div className="flex gap-1.5 px-3 py-2 bg-surface-card border-b border-hairline-strong">
-                  <span className="w-1.5 h-1.5 rounded-full bg-accent-red"></span>
-                  <span className="w-1.5 h-1.5 rounded-full bg-accent-yellow"></span>
-                  <span className="w-1.5 h-1.5 rounded-full bg-accent-green"></span>
+              <div className="bg-surface-code border border-white/10 rounded-lg overflow-hidden relative shadow-md">
+                <div className="flex gap-1.5 px-3 py-2 bg-surface-code/80 border-b border-white/5">
+                  <span className="w-1.5 h-1.5 rounded-full bg-accent-red opacity-80"></span>
+                  <span className="w-1.5 h-1.5 rounded-full bg-accent-yellow opacity-80"></span>
+                  <span className="w-1.5 h-1.5 rounded-full bg-accent-green opacity-80"></span>
                 </div>
-                <pre className="p-4 font-mono text-[11px] text-body overflow-x-auto leading-relaxed h-56">
+                <pre className="p-4 font-mono text-[11px] text-on-dark overflow-x-auto leading-relaxed h-56">
                   <code>{activeDoc.curl}</code>
                 </pre>
               </div>
             </div>
 
             {/* Python SDK Example */}
-            <div className="space-y-2 text-left">
-              <div className="flex justify-between items-center text-[10px] font-mono text-mute uppercase font-bold">
+            <div className="space-y-2.5 text-left">
+              <div className="flex justify-between items-center text-micro-uppercase text-slate">
                 <span>Python SDK Code</span>
                 <button
                   onClick={() => handleCopy(`${activeSec}_py`, activeDoc.python)}
@@ -229,13 +233,13 @@ export default function Docs() {
                   Copy
                 </button>
               </div>
-              <div className="bg-surface-deep border border-hairline-strong rounded-lg overflow-hidden relative">
-                <div className="flex gap-1.5 px-3 py-2 bg-surface-card border-b border-hairline-strong">
-                  <span className="w-1.5 h-1.5 rounded-full bg-accent-red"></span>
-                  <span className="w-1.5 h-1.5 rounded-full bg-accent-yellow"></span>
-                  <span className="w-1.5 h-1.5 rounded-full bg-accent-green"></span>
+              <div className="bg-surface-code border border-white/10 rounded-lg overflow-hidden relative shadow-md">
+                <div className="flex gap-1.5 px-3 py-2 bg-surface-code/80 border-b border-white/5">
+                  <span className="w-1.5 h-1.5 rounded-full bg-accent-red opacity-80"></span>
+                  <span className="w-1.5 h-1.5 rounded-full bg-accent-yellow opacity-80"></span>
+                  <span className="w-1.5 h-1.5 rounded-full bg-accent-green opacity-80"></span>
                 </div>
-                <pre className="p-4 font-mono text-[11px] text-body overflow-x-auto leading-relaxed h-56">
+                <pre className="p-4 font-mono text-[11px] text-on-dark overflow-x-auto leading-relaxed h-56">
                   <code>{activeDoc.python}</code>
                 </pre>
               </div>
