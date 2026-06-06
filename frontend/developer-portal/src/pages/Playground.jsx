@@ -166,7 +166,12 @@ export default function Playground({ token, apiKey }) {
       } else if (codeLangTab === 'python') {
         return `from searchmind import SearchMindClient
 
-client = SearchMindClient(api_key="${keyString}")
+# If running externally, set SEARCHMIND_API_KEY & SEARCHMIND_BASE_URL environment variables,
+# or initialize direct parameters as shown below:
+client = SearchMindClient(
+    api_key="${keyString}",
+    base_url="http://localhost:8000/v1"
+)
 result = client.search(
     query="${query || 'search query'}",
     num_results=${numResults},
@@ -203,7 +208,10 @@ result = client.search(
       } else if (codeLangTab === 'python') {
         return `from searchmind import SearchMindClient
 
-client = SearchMindClient(api_key="${keyString}")
+client = SearchMindClient(
+    api_key="${keyString}",
+    base_url="http://localhost:8000/v1"
+)
 result = client.extract(
     urls=${urlsJson.replace(/"/g, "'")},
     use_js_rendering=${useJsRendering ? 'True' : 'False'},
@@ -234,7 +242,10 @@ result = client.extract(
       } else if (codeLangTab === 'python') {
         return `from searchmind import SearchMindClient
 
-client = SearchMindClient(api_key="${keyString}")
+client = SearchMindClient(
+    api_key="${keyString}",
+    base_url="http://localhost:8000/v1"
+)
 result = client.research(
     query="${researchQuery || 'research query'}",
     max_sources=${maxSources}
@@ -266,9 +277,12 @@ result = client.research(
         return `from searchmind import SearchMindClient
 
 # Background crawl - returns a Celery Task ID
-client = SearchMindClient(api_key="${keyString}")
+client = SearchMindClient(
+    api_key="${keyString}",
+    base_url="http://localhost:8000/v1"
+)
 result = client._client.post(
-    "http://localhost:8000/v1/crawl",
+    f"{client.base_url}/crawl",
     json={
         "url": "${crawlUrl || 'https://example.com'}",
         "max_depth": ${maxDepth},

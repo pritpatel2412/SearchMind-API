@@ -16,15 +16,22 @@ class SearchMindClient:
 
     def __init__(
         self,
-        api_key: str,
-        base_url: str = "http://localhost:8000/v1",
+        api_key: Optional[str] = None,
+        base_url: Optional[str] = None,
         timeout: float = 60.0
     ):
-        self.api_key = api_key
-        self.base_url = base_url.rstrip("/")
+        import os
+        self.api_key = api_key or os.environ.get("SEARCHMIND_API_KEY")
+        if not self.api_key:
+            raise ValueError(
+                "SearchMind API key must be provided or configured via the SEARCHMIND_API_KEY environment variable."
+            )
+        
+        env_base_url = os.environ.get("SEARCHMIND_BASE_URL")
+        self.base_url = (base_url or env_base_url or "http://localhost:8000/v1").rstrip("/")
         self.timeout = timeout
         self._client = httpx.Client(
-            headers={"X-API-Key": api_key, "Content-Type": "application/json"},
+            headers={"X-API-Key": self.api_key, "Content-Type": "application/json"},
             timeout=timeout
         )
         self._async_client: Optional[httpx.AsyncClient] = None

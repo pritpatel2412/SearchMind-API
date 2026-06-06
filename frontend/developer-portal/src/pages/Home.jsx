@@ -1,17 +1,47 @@
 import React, { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { Terminal, Key, ShieldCheck, Cpu, Code, CheckCircle, Sparkles, Database, Zap, Copy, ArrowRight, Play, Server, AlertCircle, HelpCircle } from 'lucide-react'
+import OrbitImages from '../components/OrbitImages.jsx'
+import PixelBlast from '../components/PixelBlast.jsx'
 
-export default function Home({ token, setToken, user, setUser, setApiKey }) {
-  const [isRegister, setIsRegister] = useState(true)
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
-  const [fullName, setFullName] = useState('')
-  const [error, setError] = useState('')
-  const [loading, setLoading] = useState(false)
+const techStack = [
+  { name: 'LangChain', url: 'https://cdn.simpleicons.org/langchain/white' },
+  { name: 'LangGraph', url: 'https://cdn.simpleicons.org/langgraph/white' },
+  { name: 'OpenAI', url: 'https://unpkg.com/@lobehub/icons-static-svg@latest/icons/openai.svg' },
+  { name: 'NVIDIA', url: 'https://cdn.simpleicons.org/nvidia/white' },
+  { name: 'Groq', url: 'https://unpkg.com/@lobehub/icons-static-svg@latest/icons/groq.svg' },
+  { name: 'FastAPI', url: 'https://cdn.simpleicons.org/fastapi/white' },
+  { name: 'Neon DB', url: 'https://cdn.simpleicons.org/neon/white' },
+  { name: 'Redis', url: 'https://cdn.simpleicons.org/redis/white' }
+]
+
+const orbitTechItems = techStack.map((tech) => {
+  const needsScale = tech.name === 'Groq' || tech.name === 'OpenAI';
+  return (
+    <div
+      key={tech.name}
+      className="w-full h-full flex items-center justify-center hover:scale-110 transition-transform duration-300 group cursor-pointer"
+      title={tech.name}
+    >
+      <img
+        src={tech.url}
+        alt={tech.name}
+        className={`w-full h-full object-contain opacity-75 group-hover:opacity-100 transition-opacity ${needsScale ? 'filter brightness-0 invert scale-[5.0]' : ''}`}
+        onError={(e) => {
+          e.target.style.display = 'none';
+          const span = document.createElement('span');
+          span.className = "text-[11px] font-bold text-slate uppercase tracking-tighter font-sans";
+          span.innerText = tech.name.substring(0, 3);
+          e.target.parentNode.appendChild(span);
+        }}
+      />
+    </div>
+  );
+})
+
+export default function Home({ token }) {
   const [codeTab, setCodeTab] = useState('python')
-  const [copiedText, setCopiedText] = useState(false)
-  
+
   // Terminal typewriter simulation state
   const [terminalLineIndex, setTerminalLineIndex] = useState(0)
   const [terminalLines, setTerminalLines] = useState([])
@@ -49,62 +79,30 @@ export default function Home({ token, setToken, user, setUser, setApiKey }) {
     return () => clearInterval(timer)
   }, [terminalLineIndex])
 
-  const handleAuthSubmit = async (e) => {
-    e.preventDefault()
-    setError('')
-    setLoading(true)
+  const [copiedTerminal, setCopiedTerminal] = useState(false)
+  const [copiedCode, setCopiedCode] = useState(false)
+  const [copiedDocker, setCopiedDocker] = useState(false)
 
-    const endpoint = isRegister ? '/v1/auth/register' : '/v1/auth/login'
-    const body = isRegister 
-      ? { email, password, full_name: fullName }
-      : { email, password }
-
-    try {
-      const response = await fetch(`http://localhost:8000${endpoint}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(body)
-      })
-
-      const data = await response.json()
-      if (!response.ok) {
-        throw new Error(data.detail || 'Authentication failed')
-      }
-
-      setToken(data.access_token)
-      setUser({ id: data.user_id, email: data.email, plan: data.plan })
-      if (data.full_key) {
-        setApiKey(data.full_key)
-      } else {
-        fetchKeys(data.access_token)
-      }
-      
-      navigate('/dashboard')
-    } catch (err) {
-      setError(err.message)
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  const fetchKeys = async (tokenStr) => {
-    try {
-      const res = await fetch('http://localhost:8000/v1/api-keys', {
-        headers: { 'Authorization': `Bearer ${tokenStr}` }
-      })
-      const data = await res.json()
-      if (res.ok && data.length > 0) {
-        setApiKey(data[0].full_key || '')
-      }
-    } catch (e) {
-      console.error(e)
-    }
-  }
-
-  const handleCopyCommand = () => {
+  const handleCopyDocker = () => {
     navigator.clipboard.writeText("docker compose up --build")
-    setCopiedText(true)
-    setTimeout(() => setCopiedText(false), 2000)
+    setCopiedDocker(true)
+    setTimeout(() => setCopiedDocker(false), 2000)
+  }
+
+  const handleCopyTerminal = () => {
+    const curlCommand = `curl -X POST https://api.searchmind.dev/v1/search \\
+  -H "X-API-Key: sm_live_d8a3...9f2a" \\
+  -d '{"query": "LangGraph multi-agent systems 2026", "depth": "advanced"}'`;
+    navigator.clipboard.writeText(curlCommand)
+    setCopiedTerminal(true)
+    setTimeout(() => setCopiedTerminal(false), 2000)
+  }
+
+  const handleCopyCode = () => {
+    const textToCopy = codeTab === 'python' ? pythonCode : codeTab === 'langchain' ? langchainCode : langgraphCode;
+    navigator.clipboard.writeText(textToCopy);
+    setCopiedCode(true);
+    setTimeout(() => setCopiedCode(false), 2000);
   }
 
   const pythonCode = `# Python SDK
@@ -148,9 +146,29 @@ graph.add_node("search_agent", tool_node)
 
   return (
     <div className="w-full bg-canvas text-ink min-h-screen relative flex flex-col items-center">
-      
+
       {/* 1. HERO STRIPE SECTION (Sunset Band Background) */}
-      <section className="w-full hero-band-sunset relative py-20 md:py-32 flex justify-center border-b border-hairline">
+      <section className="w-full hero-band-sunset relative py-20 md:py-32 flex justify-center border-b border-hairline overflow-hidden">
+        {/* PixelBlast Interactive Background */}
+        <div className="absolute inset-0 z-0">
+          <PixelBlast
+            variant="square"
+            pixelSize={4}
+            color="#F15A24"
+            patternScale={2}
+            patternDensity={1}
+            pixelSizeJitter={0}
+            enableRipples={true}
+            rippleSpeed={0.4}
+            rippleThickness={0.12}
+            rippleIntensityScale={1.5}
+            liquid={false}
+            speed={0.5}
+            edgeFade={0.25}
+            transparent={true}
+          />
+        </div>
+
         {/* Abstract mountain silhouette SVG overlay */}
         <div className="absolute inset-0 z-0 opacity-20 pointer-events-none select-none">
           <svg className="w-full h-full object-cover" viewBox="0 0 1440 320" fill="none" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none">
@@ -184,10 +202,10 @@ graph.add_node("search_agent", tool_node)
                   <ArrowRight size={14} className="ml-2" />
                 </Link>
               ) : (
-                <a href="#auth-section" className="button-dark font-semibold px-6">
+                <Link to="/auth?mode=register" className="button-dark font-semibold px-6">
                   Start for Free
                   <ArrowRight size={14} className="ml-2" />
-                </a>
+                </Link>
               )}
               <Link to="/docs" className="button-secondary border-white/30 text-white hover:bg-white/10 font-semibold px-6">
                 Explore API Docs
@@ -214,15 +232,24 @@ graph.add_node("search_agent", tool_node)
             <div className="bg-surface-code border border-white/10 rounded-lg overflow-hidden shadow-2xl">
               {/* Chrome Header */}
               <div className="flex items-center justify-between px-4 py-3 bg-surface-code/80 border-b border-white/5">
-                <div className="flex gap-1.5">
+                <div className="flex gap-1.5 w-16">
                   <span className="w-2.5 h-2.5 rounded-full bg-accent-red opacity-80"></span>
                   <span className="w-2.5 h-2.5 rounded-full bg-accent-yellow opacity-80"></span>
                   <span className="w-2.5 h-2.5 rounded-full bg-accent-green opacity-80"></span>
                 </div>
                 <span className="text-[11px] font-mono text-on-dark-muted">curl_terminal.sh</span>
-                <div className="w-8"></div>
+                <div className="w-16 flex justify-end">
+                  <button
+                    onClick={handleCopyTerminal}
+                    className="flex items-center gap-1.5 text-[10px] text-on-dark-muted hover:text-white transition-colors uppercase font-bold tracking-wider"
+                    title="Copy command"
+                  >
+                    {copiedTerminal ? <CheckCircle size={12} className="text-accent-green" /> : <Copy size={12} />}
+                    {copiedTerminal ? 'Copied' : 'Copy'}
+                  </button>
+                </div>
               </div>
-              
+
               {/* Console Output */}
               <div className="p-6 font-mono text-[11px] sm:text-xs text-left min-h-[340px] max-h-[400px] overflow-y-auto space-y-2.5 bg-surface-code text-on-dark">
                 {terminalLines.map((line, i) => (
@@ -260,7 +287,7 @@ graph.add_node("search_agent", tool_node)
       {/* 2. ATMOSPHERIC SECTION METRICS (GLOW ORANGE BACKDROP) */}
       <section className="w-full py-24 bg-canvas border-t border-hairline relative glow-orange">
         <div className="max-w-7xl mx-auto px-6 md:px-8 space-y-20 relative z-10">
-          
+
           {/* Metrics strip */}
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-8 divide-y lg:divide-y-0 lg:divide-x divide-hairline-strong text-center">
             <div id="latency-section" className="flex flex-col items-center justify-center p-2">
@@ -293,7 +320,7 @@ graph.add_node("search_agent", tool_node)
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              
+
               {/* Feature 1 */}
               <div className="card-base flex flex-col justify-between min-h-[240px] hover:bg-cream-soft transition-colors">
                 <div className="space-y-3">
@@ -399,7 +426,7 @@ graph.add_node("search_agent", tool_node)
       {/* 3. CODE STORY SPLIT SECTION (GLOW BLUE BACKDROP) */}
       <section id="sdk-section" className="w-full py-24 bg-canvas border-t border-hairline relative glow-blue">
         <div className="max-w-4xl mx-auto px-6 md:px-8 space-y-8 relative z-10">
-          
+
           <div className="text-center space-y-2">
             <h2 className="text-heading-2 text-ink">Developer Ergonomics First</h2>
             <p className="text-body-md text-slate">Import SearchMind tools into your agent pipelines in 3 lines of code.</p>
@@ -414,22 +441,30 @@ graph.add_node("search_agent", tool_node)
                   <button
                     key={tab}
                     onClick={() => setCodeTab(tab)}
-                    className={`flex items-center gap-1.5 text-xs font-mono font-bold transition-all pb-1.5 border-b-2 capitalize ${
-                      codeTab === tab 
-                        ? 'text-white border-primary' 
-                        : 'text-on-dark-muted border-transparent hover:text-white'
-                    }`}
+                    className={`flex items-center gap-1.5 text-xs font-mono font-bold transition-all pb-1.5 border-b-2 capitalize ${codeTab === tab
+                      ? 'text-white border-primary'
+                      : 'text-on-dark-muted border-transparent hover:text-white'
+                      }`}
                   >
                     {tab === 'python' ? 'Python SDK' : tab}
                   </button>
                 ))}
               </div>
-              
-              {/* Traffic light chrome dots */}
-              <div className="flex gap-1.5">
-                <span className="w-2 h-2 rounded-full bg-accent-red opacity-80"></span>
-                <span className="w-2 h-2 rounded-full bg-accent-yellow opacity-80"></span>
-                <span className="w-2 h-2 rounded-full bg-accent-green opacity-80"></span>
+
+              {/* Traffic light chrome dots and Copy button */}
+              <div className="flex items-center gap-6">
+                <button
+                  onClick={handleCopyCode}
+                  className="flex items-center gap-1.5 text-xs text-on-dark-muted hover:text-white transition-colors"
+                >
+                  {copiedCode ? <CheckCircle size={14} className="text-accent-green" /> : <Copy size={14} />}
+                  {copiedCode ? 'Copied' : 'Copy'}
+                </button>
+                <div className="flex gap-1.5">
+                  <span className="w-2 h-2 rounded-full bg-accent-red opacity-80"></span>
+                  <span className="w-2 h-2 rounded-full bg-accent-yellow opacity-80"></span>
+                  <span className="w-2 h-2 rounded-full bg-accent-green opacity-80"></span>
+                </div>
               </div>
             </div>
 
@@ -448,199 +483,40 @@ graph.add_node("search_agent", tool_node)
         </div>
       </section>
 
-      {/* 4. AUTH SECTION - COMPACT FORM INPUT INSET */}
-      <section id="auth-section" className="w-full py-24 bg-canvas border-t border-hairline">
-        <div className="max-w-md mx-auto px-6 relative z-10">
-          
-          {token ? (
-            <div className="card-cream space-y-6 text-center shadow-md border border-beige-deep">
-              <div className="p-4 bg-accent-green/10 border border-accent-green/20 rounded-full w-fit mx-auto text-accent-green">
-                <CheckCircle size={32} />
-              </div>
-              <h2 className="text-heading-3 text-ink">Access Authorized</h2>
-              <p className="text-slate text-xs font-mono leading-relaxed">
-                You are authenticated as <span className="text-ink font-semibold">{user?.email}</span> on the <strong className="text-primary capitalize font-bold">{user?.plan}</strong> plan.
-              </p>
-              <Link to="/dashboard" className="button-dark w-full text-center">
-                Go to Dashboard
-              </Link>
-            </div>
-          ) : (
-            <div className="card-cream space-y-6 shadow-md border border-beige-deep">
-              <div className="flex justify-center border-b border-beige-deep pb-3">
-                <button
-                  onClick={() => { setIsRegister(true); setError(''); }}
-                  className={`flex-1 pb-2 font-sans font-semibold text-sm transition-colors ${
-                    isRegister ? 'text-primary border-b-2 border-primary' : 'text-slate hover:text-ink'
-                  }`}
-                >
-                  Register
-                </button>
-                <button
-                  onClick={() => { setIsRegister(false); setError(''); }}
-                  className={`flex-1 pb-2 font-sans font-semibold text-sm transition-colors ${
-                    !isRegister ? 'text-primary border-b-2 border-primary' : 'text-slate hover:text-ink'
-                  }`}
-                >
-                  Sign In
-                </button>
-              </div>
 
-              {error && (
-                <div className="p-3 bg-accent-red/10 border border-accent-red/20 text-accent-red text-xs rounded font-mono text-center">
-                  {error}
-                </div>
-              )}
 
-              <form onSubmit={handleAuthSubmit} className="space-y-4 text-left">
-                {isRegister && (
-                  <div className="flex flex-col gap-1.5">
-                    <label className="text-micro-uppercase text-slate">Full Name</label>
-                    <input
-                      type="text"
-                      required
-                      placeholder="Jane Doe"
-                      className="glass-input text-xs border border-beige-deep focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all rounded-md px-3 py-2"
-                      value={fullName}
-                      onChange={(e) => setFullName(e.target.value)}
-                    />
-                  </div>
-                )}
-
-                <div className="flex flex-col gap-1.5">
-                  <label className="text-micro-uppercase text-slate">Email Address</label>
-                  <input
-                    type="email"
-                    required
-                    placeholder="jane@example.com"
-                    className="glass-input text-xs border border-beige-deep focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all rounded-md px-3 py-2"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                  />
-                </div>
-
-                <div className="flex flex-col gap-1.5">
-                  <label className="text-micro-uppercase text-slate">Password</label>
-                  <input
-                    type="password"
-                    required
-                    placeholder="••••••••"
-                    className="glass-input text-xs border border-beige-deep focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all rounded-md px-3 py-2"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                  />
-                </div>
-
-                <button
-                  type="submit"
-                  disabled={loading}
-                  className="button-dark w-full mt-4 font-semibold font-sans"
-                >
-                  {loading ? 'Processing...' : isRegister ? 'Create Account' : 'Sign In'}
-                </button>
-              </form>
-            </div>
-          )}
-
-        </div>
-      </section>
-
-      {/* 5. PRICING SECTION (GLOW RED BACKDROP) */}
-      <section id="pricing-section" className="w-full py-24 bg-canvas border-t border-hairline relative glow-red">
-        <div className="max-w-5xl mx-auto px-6 md:px-8 space-y-12 relative z-10">
-          
-          <div className="text-center max-w-xl mx-auto space-y-3">
-            <h2 className="text-heading-2 text-ink">Simple, Transparent Pricing</h2>
-            <p className="text-body-md text-slate">Start completely free. Upgrade as your platforms and agent requests scale.</p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            
-            {/* Free Tier */}
-            <div className="card-base text-left flex flex-col justify-between space-y-6 hover:bg-cream-soft transition-all">
-              <div className="space-y-3">
-                <span className="text-micro-uppercase bg-cream text-slate border border-beige-deep px-2.5 py-0.5 rounded-full">FREE</span>
-                <div className="flex items-baseline mt-2">
-                  <span className="text-stat-display text-ink">$0</span>
-                  <span className="text-caption text-steel font-mono ml-1">/mo</span>
-                </div>
-                <p className="text-body-sm text-slate">Ideal for testing search queries and initial sandbox designs.</p>
-              </div>
-              <ul className="space-y-2 text-xs text-slate font-mono p-4 border border-hairline rounded-lg bg-surface-code/40">
-                <li className="flex items-center gap-2">✓ 1,000 requests / month</li>
-                <li className="flex items-center gap-2">✓ 5 requests / minute limit</li>
-                <li className="flex items-center gap-2">✓ Basic search snippets</li>
-                <li className="flex items-center gap-2">✓ Core URL content extractor</li>
-              </ul>
-              <a href="#auth-section" className="button-outline w-full text-center">
-                Start Free
-              </a>
-            </div>
-
-            {/* Starter Tier (Featured) */}
-            <div className="card-cream border-2 border-primary text-left flex flex-col justify-between space-y-6 relative hover:brightness-105 transition-all shadow-md">
-              <div className="absolute top-0 right-6 -translate-y-1/2 px-2.5 py-0.5 rounded-full text-[9px] font-mono font-bold uppercase tracking-wider bg-primary text-white">
-                Popular
-              </div>
-              <div className="space-y-3">
-                <span className="text-micro-uppercase bg-primary/10 text-primary border border-primary/20 px-2.5 py-0.5 rounded-full">STARTER</span>
-                <div className="flex items-baseline mt-2">
-                  <span className="text-stat-display text-ink">$29</span>
-                  <span className="text-caption text-steel font-mono ml-1">/mo</span>
-                </div>
-                <p className="text-body-sm text-charcoal">Perfect for running autonomous agents and lightweight workflows.</p>
-              </div>
-              <ul className="space-y-2 text-xs text-slate font-mono p-4 border border-beige-deep rounded-lg bg-surface-code/40">
-                <li className="flex items-center gap-2">✓ 10,000 requests / month</li>
-                <li className="flex items-center gap-2">✓ 30 requests / minute limit</li>
-                <li className="flex items-center gap-2">✓ Advanced deep full-page search</li>
-                <li className="flex items-center gap-2">✓ Celery async background crawl</li>
-                <li className="flex items-center gap-2">✓ LLM summary synthesis</li>
-              </ul>
-              <a href="#auth-section" className="button-primary w-full text-center font-bold">
-                Subscribe Now
-              </a>
-            </div>
-
-            {/* Pro Tier */}
-            <div className="card-base text-left flex flex-col justify-between space-y-6 hover:bg-cream-soft transition-all">
-              <div className="space-y-3">
-                <span className="text-micro-uppercase bg-cream text-slate border border-beige-deep px-2.5 py-0.5 rounded-full">PRO</span>
-                <div className="flex items-baseline mt-2">
-                  <span className="text-stat-display text-ink">$99</span>
-                  <span className="text-caption text-steel font-mono ml-1">/mo</span>
-                </div>
-                <p className="text-body-sm text-slate">For scaling production pipelines, large databases, and team workflows.</p>
-              </div>
-              <ul className="space-y-2 text-xs text-slate font-mono p-4 border border-hairline rounded-lg bg-surface-code/40">
-                <li className="flex items-center gap-2">✓ 100,000 requests / month</li>
-                <li className="flex items-center gap-2">✓ 100 requests / minute limit</li>
-                <li className="flex items-center gap-2">✓ Advanced deep search & crawl</li>
-                <li className="flex items-center gap-2">✓ High-priority execution queues</li>
-                <li className="flex items-center gap-2">✓ Multi-node caching rules</li>
-              </ul>
-              <a href="#auth-section" className="button-outline w-full text-center">
-                Subscribe Now
-              </a>
-            </div>
-
-          </div>
-        </div>
-      </section>
 
       {/* 6. ECOSYSTEM INTEGRATION */}
-      <section className="w-full py-24 bg-canvas border-t border-hairline">
+      <section className="w-full py-24 bg-canvas border-t border-hairline overflow-hidden">
         <div className="max-w-4xl mx-auto px-6 text-center space-y-12 relative z-10">
           <div className="space-y-3">
             <h2 className="text-heading-2 text-ink">Ecosystem Integration</h2>
             <p className="text-body-md text-slate">SearchMind works natively with your entire development stack.</p>
           </div>
-          <div className="flex flex-wrap justify-center gap-6 items-center max-w-4xl mx-auto">
-            {['LangChain', 'LangGraph', 'OpenAI SDK', 'NVIDIA NIM', 'Groq API', 'FastAPI', 'Neon DB', 'Redis'].map((eco) => (
-              <span key={eco} className="text-body-sm-medium text-slate border border-hairline-strong bg-cream/45 px-4 py-2.5 rounded-md">
-                {eco}
-              </span>
-            ))}
+
+          <div className="w-full max-w-3xl mx-auto mt-6 flex justify-center items-center overflow-visible select-none">
+            <OrbitImages
+              images={orbitTechItems}
+              shape="ellipse"
+              radiusX={550}
+              radiusY={130}
+              rotation={-6}
+              duration={30}
+              itemSize={72}
+              responsive={true}
+              radius={180}
+              direction="normal"
+              fill={true}
+              showPath={true}
+              pathColor="rgba(255, 255, 255, 0.06)"
+              pathWidth={1.5}
+              height="360px"
+              centerContent={
+                <div className="w-16 h-16 sm:w-22 sm:h-22 rounded-2xl border border-primary/20 flex items-center justify-center shadow-[0_0_45px_rgba(241,90,36,0.22)] overflow-hidden">
+                  <img src="/logo-dark.png" alt="SearchMind API" className="w-full h-full object-contain" />
+                </div>
+              }
+            />
           </div>
         </div>
       </section>
@@ -648,19 +524,19 @@ graph.add_node("search_agent", tool_node)
       {/* 7. DOCKER UP BAND (cta-banner-cream) */}
       <section className="w-full py-24 bg-canvas border-t border-hairline">
         <div className="max-w-4xl mx-auto px-6 relative z-10">
-          
+
           <div className="bg-cream border border-beige-deep p-12 rounded-lg text-center space-y-6 relative overflow-hidden">
             <h2 className="text-heading-1 text-ink">Build your first agent search in &lt; 5 minutes.</h2>
             <p className="text-body-sm text-slate max-w-lg mx-auto">No credit card required. Free tier available. Start a local server with Docker in one command:</p>
-            
+
             <div className="flex items-center justify-between bg-surface-code max-w-sm mx-auto px-4 py-3 rounded-md border border-beige-deep font-mono text-xs sm:text-sm text-primary font-bold">
               <span>docker compose up --build</span>
-              <button 
-                onClick={handleCopyCommand}
+              <button
+                onClick={handleCopyDocker}
                 className="text-steel hover:text-primary transition-colors"
                 title="Copy Command"
               >
-                {copiedText ? <span className="text-[10px] text-accent-green font-bold">Copied!</span> : <Copy size={13} />}
+                {copiedDocker ? <span className="text-[10px] text-accent-green font-bold">Copied!</span> : <Copy size={13} />}
               </button>
             </div>
           </div>

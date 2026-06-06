@@ -1,6 +1,6 @@
 import React from 'react'
 import { Link, useLocation } from 'react-router-dom'
-import { Terminal, Key, Play, BookOpen, LogOut } from 'lucide-react'
+import { Terminal, Key, Play, BookOpen, LogOut, CreditCard } from 'lucide-react'
 
 export default function Navbar({ token, user, onLogout }) {
   const location = useLocation()
@@ -12,6 +12,7 @@ export default function Navbar({ token, user, onLogout }) {
       { label: 'Dashboard', path: '/dashboard', icon: Key },
       { label: 'Playground', path: '/playground', icon: Play }
     ] : []),
+    { label: 'Pricing', path: '/pricing', icon: CreditCard },
     { label: 'API Reference', path: '/docs', icon: BookOpen }
   ]
 
@@ -23,15 +24,7 @@ export default function Navbar({ token, user, onLogout }) {
           <div className="flex items-center gap-8">
             {/* Logo */}
             <Link to="/" className="flex items-center gap-2 group font-sans">
-              <div className="p-1.5 rounded bg-primary text-white group-hover:scale-105 transition-transform duration-300">
-                <Terminal size={14} />
-              </div>
-              <span className="font-extrabold text-sm font-display tracking-tight text-ink flex items-center gap-1.5">
-                SearchMind
-                <span className="text-[9px] font-mono tracking-widest text-primary border border-primary/20 px-1.5 py-0.5 rounded bg-cream uppercase font-bold">
-                  API
-                </span>
-              </span>
+              <img src="/logo-new.png" alt="SearchMind Logo" className="h-10 w-auto group-hover:scale-105 transition-transform duration-300" />
             </Link>
 
             {/* Nav Links */}
@@ -76,12 +69,12 @@ export default function Navbar({ token, user, onLogout }) {
                 </button>
               </div>
             ) : (
-              <a
-                href="#auth-section"
+              <Link
+                to="/auth?mode=register"
                 className="button-primary text-xs px-5 h-[38px] rounded-md font-semibold font-sans"
               >
                 Start Free
-              </a>
+              </Link>
             )}
           </div>
 

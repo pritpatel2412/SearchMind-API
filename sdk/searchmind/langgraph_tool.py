@@ -20,10 +20,12 @@ class ResearchInput(BaseModel):
     max_sources: int = Field(default=8, ge=1, le=15)
 
 
-def create_searchmind_tools(client: SearchMindClient) -> list:
+def create_searchmind_tools(client: Optional[SearchMindClient] = None) -> list:
     """
     Create LangGraph/LangChain compatible structured tools from a SearchMind client instance.
     """
+    if client is None:
+        client = SearchMindClient()
 
     def search_web(query: str, num_results: int = 5, search_depth: str = "basic") -> dict:
         """Search the web and return structured results with AI-synthesized answer."""

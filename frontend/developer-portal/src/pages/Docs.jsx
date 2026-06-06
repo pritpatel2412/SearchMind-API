@@ -1,9 +1,10 @@
 import React, { useState } from 'react'
 import { Terminal, Key, Play, FileText, Sparkles, BarChart, ChevronRight, Copy, Check } from 'lucide-react'
 
-export default function Docs() {
+export default function Docs({ apiKey }) {
   const [activeSec, setActiveSec] = useState('auth')
   const [copiedCode, setCopiedCode] = useState('')
+  const displayKey = apiKey || 'sm_live_YOUR_KEY'
 
   const handleCopy = (id, text) => {
     navigator.clipboard.writeText(text)
@@ -22,12 +23,12 @@ export default function Docs() {
   const docsContent = {
     auth: {
       title: 'Authentication',
-      desc: 'All endpoints except /health require API credentials. Keys are generated inside the Developer Portal. Pass your secret key in the X-API-Key header of all HTTP requests.',
+      desc: 'All endpoints except /health require API credentials. Keys are generated inside the Developer Portal. Pass your secret key in the X-API-Key header of all HTTP requests, or configure the SDK automatically by setting the SEARCHMIND_API_KEY environment variable.',
       endpoint: 'Header Format',
       method: 'X-API-Key',
       path: 'sm_live_...',
-      curl: `curl -H "X-API-Key: sm_live_YOUR_KEY" http://localhost:8000/v1/usage`,
-      python: `from searchmind import SearchMindClient\nclient = SearchMindClient(api_key="sm_live_YOUR_KEY")`,
+      curl: `curl -H "X-API-Key: ${displayKey}" http://localhost:8000/v1/usage`,
+      python: `from searchmind import SearchMindClient\nclient = SearchMindClient(api_key="${displayKey}")`,
       params: [
         { name: 'X-API-Key', type: 'String (Header)', required: 'Yes', desc: 'Secure SHA-256 hashed API key (e.g. sm_live_abc1...)' }
       ]
@@ -38,7 +39,7 @@ export default function Docs() {
       endpoint: 'POST',
       path: '/v1/search',
       curl: `curl -X POST http://localhost:8000/v1/search \\
-  -H "X-API-Key: sm_live_YOUR_KEY" \\
+  -H "X-API-Key: ${displayKey}" \\
   -H "Content-Type: application/json" \\
   -d '{
     "query": "FastAPI async best practices",
@@ -46,7 +47,7 @@ export default function Docs() {
     "search_depth": "basic",
     "include_answer": true
   }'`,
-      python: `from searchmind import SearchMindClient\n\nclient = SearchMindClient(api_key="YOUR_KEY")\nresponse = client.search(\n    query="FastAPI async best practices",\n    num_results=3,\n    search_depth="basic"\n)`,
+      python: `from searchmind import SearchMindClient\n\nclient = SearchMindClient(api_key="${displayKey}")\nresponse = client.search(\n    query="FastAPI async best practices",\n    num_results=3,\n    search_depth="basic"\n)`,
       params: [
         { name: 'query', type: 'String', required: 'Yes', desc: 'Search query to look up on the web (max 400 chars).' },
         { name: 'num_results', type: 'Integer', required: 'No (Default: 5)', desc: 'Number of results to retrieve (min 1, max 20).' },
@@ -62,14 +63,14 @@ export default function Docs() {
       endpoint: 'POST',
       path: '/v1/extract',
       curl: `curl -X POST http://localhost:8000/v1/extract \\
-  -H "X-API-Key: sm_live_YOUR_KEY" \\
+  -H "X-API-Key: ${displayKey}" \\
   -H "Content-Type: application/json" \\
   -d '{
     "urls": ["https://fastapi.tiangolo.com/"],
     "use_js_rendering": false,
     "max_content_length": 5000
   }'`,
-      python: `from searchmind import SearchMindClient\n\nclient = SearchMindClient(api_key="YOUR_KEY")\nresponse = client.extract(\n    urls=["https://fastapi.tiangolo.com/"],\n    use_js_rendering=False\n)`,
+      python: `from searchmind import SearchMindClient\n\nclient = SearchMindClient(api_key="${displayKey}")\nresponse = client.extract(\n    urls=["https://fastapi.tiangolo.com/"],\n    use_js_rendering=False\n)`,
       params: [
         { name: 'urls', type: 'Array of Strings', required: 'Yes', desc: 'List of target URLs to scrape (max 10).' },
         { name: 'use_js_rendering', type: 'Boolean', required: 'No (Default: false)', desc: 'Launches headless Chromium Playwright to render JS-heavy pages.' },
@@ -82,14 +83,14 @@ export default function Docs() {
       endpoint: 'POST',
       path: '/v1/research',
       curl: `curl -X POST http://localhost:8000/v1/research \\
-  -H "X-API-Key: sm_live_YOUR_KEY" \\
+  -H "X-API-Key: ${displayKey}" \\
   -H "Content-Type: application/json" \\
   -d '{
     "query": "vector database comparison 2025",
     "max_sources": 8,
     "include_summary": true
   }'`,
-      python: `from searchmind import SearchMindClient\n\nclient = SearchMindClient(api_key="YOUR_KEY")\nresponse = client.research(\n    query="vector database comparison 2025",\n    max_sources=8\n)`,
+      python: `from searchmind import SearchMindClient\n\nclient = SearchMindClient(api_key="${displayKey}")\nresponse = client.research(\n    query="vector database comparison 2025",\n    max_sources=8\n)`,
       params: [
         { name: 'query', type: 'String', required: 'Yes', desc: 'Research query/topic.' },
         { name: 'max_sources', type: 'Integer', required: 'No (Default: 10)', desc: 'Max sources to retrieve and crawl (max 15).' },
@@ -101,8 +102,8 @@ export default function Docs() {
       desc: 'Retrieves current period stats (requests per endpoint, token consumption, limits, remaining requests, percentage of limits consumed).',
       endpoint: 'GET',
       path: '/v1/usage',
-      curl: `curl -s -H "X-API-Key: sm_live_YOUR_KEY" http://localhost:8000/v1/usage`,
-      python: `from searchmind import SearchMindClient\n\nclient = SearchMindClient(api_key="YOUR_KEY")\nusage = client.get_usage()`,
+      curl: `curl -s -H "X-API-Key: ${displayKey}" http://localhost:8000/v1/usage`,
+      python: `from searchmind import SearchMindClient\n\nclient = SearchMindClient(api_key="${displayKey}")\nusage = client.get_usage()`,
       params: []
     }
   }

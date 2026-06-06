@@ -22,7 +22,9 @@ class SearchMindTool(BaseTool):
     args_schema: Type[BaseModel] = SearchMindInput
     client: Any  # Avoid type checking errors if SearchMindClient isn't pre-imported
 
-    def __init__(self, client: SearchMindClient, **kwargs):
+    def __init__(self, client: Optional[SearchMindClient] = None, **kwargs):
+        if client is None:
+            client = SearchMindClient()
         super().__init__(client=client, **kwargs)
 
     class Config:
