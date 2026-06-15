@@ -17,7 +17,8 @@ function AdminLayout({ children, onLogout }) {
   useEffect(() => {
     const checkHealth = async () => {
       try {
-        const res = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/health`)
+        const apiUrl = (import.meta.env.VITE_API_URL || 'http://localhost:8000').replace(/\/$/, '')
+        const res = await fetch(`${apiUrl}/health`)
         if (res.ok) {
           const data = await res.json()
           setSystemStatus(data.status === 'ok' ? 'healthy' : 'degraded')

@@ -24,7 +24,8 @@ export default function Pricing({ token, user, setUser }) {
     setCouponSuccess('')
 
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/v1/coupons/redeem`, {
+      const apiUrl = (import.meta.env.VITE_API_URL || 'http://localhost:8000').replace(/\/$/, '')
+      const response = await fetch(`${apiUrl}/v1/coupons/redeem`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -69,7 +70,8 @@ export default function Pricing({ token, user, setUser }) {
     else if (selectedPlan === 'Free Sandbox') planKey = 'free'
 
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/admin/users/${user.id}/plan`, {
+      const apiUrl = (import.meta.env.VITE_API_URL || 'http://localhost:8000').replace(/\/$/, '')
+      const response = await fetch(`${apiUrl}/admin/users/${user.id}/plan`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json'

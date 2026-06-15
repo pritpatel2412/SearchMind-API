@@ -102,8 +102,9 @@ export default function Auth({ setToken, setUser, setApiKey }) {
       ? { email, password, full_name: fullName, ...telemetry }
       : { email, password, ...telemetry }
 
+    const apiUrl = (import.meta.env.VITE_API_URL || 'http://localhost:8000').replace(/\/$/, '')
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}${endpoint}`, {
+      const response = await fetch(`${apiUrl}${endpoint}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(body)
@@ -132,8 +133,9 @@ export default function Auth({ setToken, setUser, setApiKey }) {
   }
 
   const fetchKeys = async (tokenStr) => {
+    const apiUrl = (import.meta.env.VITE_API_URL || 'http://localhost:8000').replace(/\/$/, '')
     try {
-      const res = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/v1/api-keys`, {
+      const res = await fetch(`${apiUrl}/v1/api-keys`, {
         headers: { 'Authorization': `Bearer ${tokenStr}` }
       })
       const data = await res.json()

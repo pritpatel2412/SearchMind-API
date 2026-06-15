@@ -5,7 +5,7 @@ export default function Docs({ apiKey }) {
   const [activeSec, setActiveSec] = useState('auth')
   const [copiedCode, setCopiedCode] = useState('')
   const displayKey = apiKey || 'sm_live_YOUR_KEY'
-  const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000'
+  const apiUrl = (import.meta.env.VITE_API_URL || 'http://localhost:8000').replace(/\/$/, '')
 
   const handleCopy = (id, text) => {
     navigator.clipboard.writeText(text)

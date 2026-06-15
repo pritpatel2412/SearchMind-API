@@ -28,7 +28,8 @@ export default function CouponsPage() {
     setError('')
     try {
       const token = localStorage.getItem('adminToken')
-      const res = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/v1/admin/coupons`, {
+      const apiUrl = (import.meta.env.VITE_API_URL || 'http://localhost:8000').replace(/\/$/, '')
+      const res = await fetch(`${apiUrl}/v1/admin/coupons`, {
         headers: { 'Authorization': `Bearer ${token}` }
       })
       if (!res.ok) throw new Error('Failed to fetch coupons')
@@ -62,7 +63,8 @@ export default function CouponsPage() {
 
     try {
       const token = localStorage.getItem('adminToken')
-      const res = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/v1/admin/coupons`, {
+      const apiUrl = (import.meta.env.VITE_API_URL || 'http://localhost:8000').replace(/\/$/, '')
+      const res = await fetch(`${apiUrl}/v1/admin/coupons`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -92,7 +94,8 @@ export default function CouponsPage() {
     setSuccess('')
     try {
       const token = localStorage.getItem('adminToken')
-      const res = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/v1/admin/coupons/${couponId}`, {
+      const apiUrl = (import.meta.env.VITE_API_URL || 'http://localhost:8000').replace(/\/$/, '')
+      const res = await fetch(`${apiUrl}/v1/admin/coupons/${couponId}`, {
         method: 'DELETE',
         headers: { 'Authorization': `Bearer ${token}` }
       })

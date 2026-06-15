@@ -24,7 +24,8 @@ export default function UsersPage() {
     try {
       setLoading(true)
       const token = localStorage.getItem('adminToken')
-      const res = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/v1/admin/users`, {
+      const apiUrl = (import.meta.env.VITE_API_URL || 'http://localhost:8000').replace(/\/$/, '')
+      const res = await fetch(`${apiUrl}/v1/admin/users`, {
         headers: { 'Authorization': `Bearer ${token}` }
       })
       if (!res.ok) throw new Error('Failed to fetch users')
@@ -47,7 +48,8 @@ export default function UsersPage() {
   const handleToggleActive = async (id, currentStatus) => {
     try {
       const token = localStorage.getItem('adminToken')
-      const res = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/v1/admin/users/${id}/status`, {
+      const apiUrl = (import.meta.env.VITE_API_URL || 'http://localhost:8000').replace(/\/$/, '')
+      const res = await fetch(`${apiUrl}/v1/admin/users/${id}/status`, {
         method: 'PUT',
         headers: { 
           'Content-Type': 'application/json',
@@ -94,7 +96,8 @@ export default function UsersPage() {
     if (!selectedUser) return
     try {
       const token = localStorage.getItem('adminToken')
-      const res = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/v1/admin/users/${selectedUser.id}/plan`, {
+      const apiUrl = (import.meta.env.VITE_API_URL || 'http://localhost:8000').replace(/\/$/, '')
+      const res = await fetch(`${apiUrl}/v1/admin/users/${selectedUser.id}/plan`, {
         method: 'PUT',
         headers: { 
           'Content-Type': 'application/json',

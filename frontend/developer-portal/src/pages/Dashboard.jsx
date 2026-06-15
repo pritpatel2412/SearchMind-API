@@ -26,7 +26,7 @@ const formatTime = (isoStr) => {
 }
 
 export default function Dashboard({ token, user, apiKey, setApiKey }) {
-  const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000'
+  const apiUrl = (import.meta.env.VITE_API_URL || 'http://localhost:8000').replace(/\/$/, '')
   const [keys, setKeys] = useState([])
   const [usage, setUsage] = useState(null)
   const [loading, setLoading] = useState(false)
