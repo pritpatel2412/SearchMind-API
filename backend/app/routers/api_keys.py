@@ -63,26 +63,29 @@ async def list_api_keys(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
-    """List all active API keys for the authenticated user."""
-    result = await db.execute(
-        select(APIKey).where(
+    """List all active API keys for the authenticated user, fetching monthly usage in a single query."""
+    now = datetime.now(timezone.utc)
+    
+    # Outer join UsageRecord for the current period to avoid N+1 queries
+    query = (
+        select(APIKey, UsageRecord)
+        .outerjoin(
+            UsageRecord,
+            (UsageRecord.api_key_id == APIKey.id) &
+            (UsageRecord.period_year == now.year) &
+            (UsageRecord.period_month == now.month)
+        )
+        .where(
             APIKey.user_id == current_user.id,
             APIKey.is_active == True
         )
     )
-    keys = result.scalars().all()
     
-    now = datetime.now(timezone.utc)
+    result = await db.execute(query)
+    rows = result.all()
+    
     responses = []
-    for k in keys:
-        usage_res = await db.execute(
-            select(UsageRecord).where(
-                UsageRecord.api_key_id == k.id,
-                UsageRecord.period_year == now.year,
-                UsageRecord.period_month == now.month
-            )
-        )
-        usage = usage_res.scalar_one_or_none()
+    for k, usage in rows:
         total_requests = 0
         if usage:
             total_requests = (

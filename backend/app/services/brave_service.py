@@ -3,6 +3,8 @@ import logging
 from typing import Optional
 from app.config import settings
 
+from app.http_client import get_http_client
+
 logger = logging.getLogger("searchmind.brave")
 BRAVE_SEARCH_URL = "https://api.search.brave.com/res/v1/web/search"
 
@@ -37,10 +39,10 @@ async def brave_search(
         params["freshness"] = freshness
 
     try:
-        async with httpx.AsyncClient(timeout=10.0) as client:
-            response = await client.get(BRAVE_SEARCH_URL, headers=headers, params=params)
-            response.raise_for_status()
-            data = response.json()
+        client = get_http_client()
+        response = await client.get(BRAVE_SEARCH_URL, headers=headers, params=params, timeout=10.0)
+        response.raise_for_status()
+        data = response.json()
 
         results = []
         for item in data.get("web", {}).get("results", []):

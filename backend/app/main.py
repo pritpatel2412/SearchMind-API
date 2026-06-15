@@ -14,6 +14,7 @@ from app.middleware.cors import setup_cors
 from app.redis_client import close_redis, get_redis
 from app.routers import search, extract, crawl, research, usage, api_keys, admin
 from app.routers.auth import router as auth_router
+from app.http_client import get_http_client, close_http_client
 from app.services.cache_service import purge_expired_cached_results
 
 # Import models so Alembic and metadata stay in sync
@@ -28,9 +29,12 @@ logger = logging.getLogger("searchmind")
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    """Startup: migrations + cache purge. Shutdown: close pools."""
+    """Startup: migrations + cache purge + http client. Shutdown: close pools."""
     app.state.start_time = datetime.datetime.utcnow()
     logger.info("Starting SearchMind API v%s", settings.APP_VERSION)
+
+    # Initialize the global HTTP client pool
+    get_http_client()
 
     if settings.RUN_MIGRATIONS_ON_STARTUP:
         try:
@@ -57,6 +61,7 @@ async def lifespan(app: FastAPI):
 
     yield
 
+    await close_http_client()
     await close_redis()
     await engine.dispose()
     logger.info("SearchMind API shut down.")

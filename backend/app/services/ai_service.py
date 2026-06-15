@@ -4,6 +4,8 @@ import logging
 from typing import List, Dict, Optional
 from app.config import settings
 
+from app.http_client import get_http_client
+
 logger = logging.getLogger("searchmind.ai")
 
 async def call_llm(prompt: str, max_tokens: int = 500) -> Optional[str]:
@@ -25,11 +27,14 @@ async def call_llm(prompt: str, max_tokens: int = 500) -> Optional[str]:
 
     try:
         url = f"{settings.LLM_BASE_URL.rstrip('/')}/chat/completions"
-        async with httpx.AsyncClient(timeout=30.0) as client:
-            response = await client.post(url, headers=headers, json=payload)
-            response.raise_for_status()
-            data = response.json()
-            return data["choices"][0]["message"]["content"].strip()
+        client = get_http_client()
+        response = await client.post(url, headers=headers, json=payload, timeout=30.0)
+        response.raise_for_status()
+        data = response.json()
+        return data["choices"][0]["message"]["content"].strip()
+    except httpx.HTTPStatusError as e:
+        logger.error(f"LLM chat completions request failed: {e}. Response body: {e.response.text}")
+        return None
     except Exception as e:
         logger.error(f"LLM chat completions request failed: {e}")
         return None

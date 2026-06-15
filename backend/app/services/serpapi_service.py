@@ -3,6 +3,8 @@ import logging
 from typing import Optional
 from app.config import settings
 
+from app.http_client import get_http_client
+
 logger = logging.getLogger("searchmind.serpapi")
 SERPAPI_URL = "https://serpapi.com/search"
 
@@ -28,10 +30,10 @@ async def serpapi_search(
     }
 
     try:
-        async with httpx.AsyncClient(timeout=10.0) as client:
-            response = await client.get(SERPAPI_URL, params=params)
-            response.raise_for_status()
-            data = response.json()
+        client = get_http_client()
+        response = await client.get(SERPAPI_URL, params=params, timeout=10.0)
+        response.raise_for_status()
+        data = response.json()
 
         results = []
         for item in data.get("organic_results", []):

@@ -10,7 +10,8 @@ from app.services.search_provider import web_search
 from app.services.fetch_service import fetch_url_content
 from app.services.extract_service import extract_content
 from app.services.rank_service import rank_results
-from app.services.ai_service import synthesize_answer
+from app.services.ai_service import synthesize_answer, call_llm
+import json
 from app.auth.api_key_auth import get_current_api_key
 from app.middleware.rate_limiter import enforce_rate_limits
 from app.middleware.usage_tracker import track_usage
@@ -38,7 +39,7 @@ async def research(
     start_time = time.time()
 
     # 2. Generate sub-queries to query multiple angles
-    sub_queries = generate_sub_queries(request.query)
+    sub_queries = await generate_sub_queries(request.query)
 
     # 3. Parallel search queries (Brave → SerpAPI → DuckDuckGo per query)
     search_tasks = [web_search(q, num_results=5) for q in sub_queries]
@@ -136,8 +137,33 @@ async def extract_for_research(result: dict) -> dict:
     return result
 
 
-def generate_sub_queries(query: str) -> list[str]:
-    """Generates expanded queries to research multiple angles of a topic."""
+async def generate_sub_queries(query: str) -> list[str]:
+    """Generates expanded queries to research multiple angles of a topic dynamically using LLM."""
+    prompt = f"""You are an advanced search agent. Generate exactly 2 semantically diverse and optimized search sub-queries to deeply research the topic: "{query}".
+Respond ONLY with a JSON array of strings containing the sub-queries. No explanations, no markdown formatting blocks, just the JSON array.
+Example: ["sub-query 1", "sub-query 2"]"""
+    
+    res = await call_llm(prompt, max_tokens=100)
+    if res:
+        try:
+            # Clean markdown wrappers if any
+            clean_res = res.strip()
+            if clean_res.startswith("```json"):
+                clean_res = clean_res[7:]
+            elif clean_res.startswith("```"):
+                clean_res = clean_res[3:]
+            if clean_res.endswith("```"):
+                clean_res = clean_res[:-3]
+            clean_res = clean_res.strip()
+            
+            sub_queries = json.loads(clean_res)
+            if isinstance(sub_queries, list) and len(sub_queries) > 0:
+                # prepend the original query
+                return [query] + [str(q) for q in sub_queries[:2]]
+        except Exception as e:
+            logger.warning(f"Failed to parse dynamic sub-queries: {e}. Falling back to static expansion.")
+    
+    # Fallback to static
     return [
         query,
         f"{query} tutorial guide",

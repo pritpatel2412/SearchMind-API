@@ -4,6 +4,8 @@ from typing import Optional
 from playwright.async_api import async_playwright
 from app.config import settings
 
+from app.http_client import get_http_client
+
 logger = logging.getLogger("searchmind.fetch")
 
 HEADERS = {
@@ -16,16 +18,17 @@ async def fetch_url_content(url: str, use_js: bool = False) -> Optional[str]:
     """Fetch raw HTML from URL. Falls back to Playwright for JS-heavy pages or failures."""
     if not use_js:
         try:
-            async with httpx.AsyncClient(
+            client = get_http_client()
+            response = await client.get(
+                url,
                 timeout=12.0,
                 follow_redirects=True,
                 headers=HEADERS
-            ) as client:
-                response = await client.get(url)
-                if response.status_code == 200:
-                    content_type = response.headers.get("content-type", "").lower()
-                    if "text/html" in content_type or "text/plain" in content_type:
-                        return response.text
+            )
+            if response.status_code == 200:
+                content_type = response.headers.get("content-type", "").lower()
+                if "text/html" in content_type or "text/plain" in content_type:
+                    return response.text
         except Exception as e:
             logger.debug(f"HTTPX fetch failed for {url}: {e}. Retrying with Playwright...")
 

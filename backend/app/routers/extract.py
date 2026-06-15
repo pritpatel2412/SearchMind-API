@@ -1,3 +1,4 @@
+import asyncio
 import hashlib
 import time
 from fastapi import APIRouter, Depends, Request
@@ -18,6 +19,60 @@ from app.models.search_log import SearchLog
 
 router = APIRouter()
 
+async def process_single_url(
+    url: str,
+    use_js: bool,
+    max_content_length: int,
+    db: AsyncSession
+) -> ExtractedPage:
+    cache_key = "extract:" + hashlib.sha256(url.encode()).hexdigest()
+    try:
+        cached = await get_cached(cache_key, db=db)
+        if cached:
+            return ExtractedPage(**cached)
+    except Exception:
+        pass
+
+    try:
+        html = await fetch_url_content(url, use_js=use_js)
+        if not html:
+            return ExtractedPage(
+                url=url, title=None, content="", author=None,
+                published_date=None, language=None, word_count=0,
+                extraction_method="failed", success=False, error="Failed to fetch URL content"
+            )
+
+        extracted = extract_content(html, url)
+        content = extracted["content"][:max_content_length]
+        page = ExtractedPage(
+            url=url,
+            title=extracted.get("title", ""),
+            content=content,
+            author=extracted.get("author"),
+            published_date=extracted.get("published_date"),
+            language=extracted.get("language"),
+            word_count=len(content.split()),
+            extraction_method=extracted.get("extraction_method", "unknown"),
+            success=True
+        )
+        
+        # Cache successfully extracted page content
+        try:
+            await set_cached(
+                cache_key, page.model_dump(), ttl=settings.EXTRACT_CACHE_TTL, db=db
+            )
+        except Exception:
+            pass
+            
+        return page
+
+    except Exception as e:
+        return ExtractedPage(
+            url=url, title=None, content="", author=None,
+            published_date=None, language=None, word_count=0,
+            extraction_method="error", success=False, error=str(e)
+        )
+
 @router.post("/extract", response_model=ExtractResponse, tags=["Extract"])
 async def extract(
     request: ExtractRequest,
@@ -33,58 +88,13 @@ async def extract(
     await enforce_rate_limits(http_request, api_key, db)
 
     start_time = time.time()
-    results = []
 
-    for url in request.urls[:10]:  # limit to 10 URLs per batch request
-        cache_key = "extract:" + hashlib.sha256(url.encode()).hexdigest()
-        try:
-            cached = await get_cached(cache_key, db=db)
-            if cached:
-                results.append(ExtractedPage(**cached))
-                continue
-        except Exception:
-            pass
-
-        try:
-            html = await fetch_url_content(url, use_js=request.use_js_rendering)
-            if not html:
-                results.append(ExtractedPage(
-                    url=url, title=None, content="", author=None,
-                    published_date=None, language=None, word_count=0,
-                    extraction_method="failed", success=False, error="Failed to fetch URL content"
-                ))
-                continue
-
-            extracted = extract_content(html, url)
-            content = extracted["content"][:request.max_content_length]
-            page = ExtractedPage(
-                url=url,
-                title=extracted.get("title", ""),
-                content=content,
-                author=extracted.get("author"),
-                published_date=extracted.get("published_date"),
-                language=extracted.get("language"),
-                word_count=len(content.split()),
-                extraction_method=extracted.get("extraction_method", "unknown"),
-                success=True
-            )
-            
-            # Cache successfully extracted page content
-            try:
-                await set_cached(
-                    cache_key, page.model_dump(), ttl=settings.EXTRACT_CACHE_TTL, db=db
-                )
-            except Exception:
-                pass
-                
-            results.append(page)
-
-        except Exception as e:
-            results.append(ExtractedPage(
-                url=url, title=None, content="", author=None,
-                published_date=None, language=None, word_count=0,
-                extraction_method="error", success=False, error=str(e)
-            ))
+    # Process all URLs concurrently (limited to 10 URLs per batch request)
+    tasks = [
+        process_single_url(url, request.use_js_rendering, request.max_content_length, db)
+        for url in request.urls[:10]
+    ]
+    results = await asyncio.gather(*tasks)
 
     extracted_count = sum(1 for r in results if r.success)
     failed_count = sum(1 for r in results if not r.success)

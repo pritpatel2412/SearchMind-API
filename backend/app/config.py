@@ -21,7 +21,7 @@ class Settings(BaseSettings):
     # LLM Settings (Replacing Anthropic Claude API keys with Groq / NIM compatibility)
     LLM_PROVIDER: str = "groq"  # groq | nvidia | openai
     LLM_API_KEY: Optional[str] = ""
-    LLM_MODEL: str = "llama-3.3-70b-specdec"
+    LLM_MODEL: str = "llama-3.3-70b-versatile"
     LLM_BASE_URL: str = "https://api.groq.com/openai/v1"
 
     # Rate Limits (Requests/min and monthly quotas per monetization plans)
