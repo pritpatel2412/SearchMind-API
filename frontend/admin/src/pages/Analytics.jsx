@@ -37,7 +37,10 @@ export default function AnalyticsPage() {
     const fetchAnalytics = async () => {
       try {
         setLoading(true)
-        const res = await fetch(`http://localhost:8000/v1/admin/analytics?time_range=${timeRange}`)
+        const token = localStorage.getItem('adminToken')
+        const res = await fetch(`http://localhost:8000/v1/admin/analytics?time_range=${timeRange}`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        })
         if (!res.ok) throw new Error('Failed to fetch platform analytics')
         const json = await res.json()
         setData(json)

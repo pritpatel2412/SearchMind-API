@@ -14,10 +14,16 @@ from app.models.usage import UsageRecord
 from app.models.search_log import SearchLog
 from app.models.coupon import Coupon, CouponRedemption
 from app.redis_client import get_redis
+from app.auth.jwt_auth import get_current_admin, create_access_token, ACCESS_TOKEN_EXPIRE_MINUTES
+
 
 router = APIRouter()
 
 # Schema definitions
+class AdminLoginRequest(BaseModel):
+    email: str
+    password: str
+
 class UserAdminResponse(BaseModel):
     id: str
     name: str
@@ -76,8 +82,24 @@ class SystemHealthResponse(BaseModel):
     database: ComponentHealth
     redis: ComponentHealth
 
+@router.post("/admin/login", tags=["Admin"])
+async def admin_login(request: AdminLoginRequest):
+    """Authenticate admin and return JWT token."""
+    # Hardcoded admin credentials as requested
+    if request.email == "pritptl2412@gmail.com" and request.password == "Prit_p@tel2412":
+        from datetime import timedelta
+        token = create_access_token(
+            data={"sub": "admin", "role": "root_admin"},
+            expires_delta=timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+        )
+        return {"access_token": token, "token_type": "bearer"}
+    raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid admin credentials")
+
 @router.get("/admin/users", response_model=List[UserAdminResponse], tags=["Admin"])
-async def list_users(db: AsyncSession = Depends(get_db)):
+async def list_users(
+    db: AsyncSession = Depends(get_db),
+    admin_auth: dict = Depends(get_current_admin)
+):
     """List all registered users with their keys count and total cumulative request volume."""
     result = await db.execute(select(User).order_by(User.created_at.desc()))
     users = result.scalars().all()
@@ -137,7 +159,8 @@ async def list_users(db: AsyncSession = Depends(get_db)):
 async def update_user_plan(
     user_id: str,
     request: UpdatePlanRequest,
-    db: AsyncSession = Depends(get_db)
+    db: AsyncSession = Depends(get_db),
+    admin_auth: dict = Depends(get_current_admin)
 ):
     """Update a user's subscription level."""
     try:
@@ -158,7 +181,8 @@ async def update_user_plan(
 async def update_user_status(
     user_id: str,
     request: UpdateStatusRequest,
-    db: AsyncSession = Depends(get_db)
+    db: AsyncSession = Depends(get_db),
+    admin_auth: dict = Depends(get_current_admin)
 ):
     """Enable or disable a user's account access."""
     try:
@@ -176,7 +200,11 @@ async def update_user_status(
     return {"status": "success", "message": f"User status set to active={request.active}"}
 
 @router.get("/admin/analytics", response_model=AnalyticsResponse, tags=["Admin"])
-async def get_admin_analytics(time_range: str = "12h", db: AsyncSession = Depends(get_db)):
+async def get_admin_analytics(
+    time_range: str = "12h", 
+    db: AsyncSession = Depends(get_db),
+    admin_auth: dict = Depends(get_current_admin)
+):
     """Retrieve real-time platform key stats and recent daily volume timelines."""
     # 1. Total Accounts
     total_accs_result = await db.execute(select(func.count(User.id)))
@@ -379,7 +407,11 @@ async def get_admin_analytics(time_range: str = "12h", db: AsyncSession = Depend
 
 
 @router.get("/admin/health", response_model=SystemHealthResponse, tags=["Admin"])
-async def get_admin_system_health(request: Request, db: AsyncSession = Depends(get_db)):
+async def get_admin_system_health(
+    request: Request, 
+    db: AsyncSession = Depends(get_db),
+    admin_auth: dict = Depends(get_current_admin)
+):
     """Retrieve detailed real-time platform system health telemetry."""
     # 1. API Server Uptime
     api_status = "ok"
@@ -478,7 +510,10 @@ class CreateCouponRequest(BaseModel):
     target_plan: str = "pro"
 
 @router.get("/admin/coupons", response_model=List[CouponAdminResponse], tags=["Admin"])
-async def list_coupons(db: AsyncSession = Depends(get_db)):
+async def list_coupons(
+    db: AsyncSession = Depends(get_db),
+    admin_auth: dict = Depends(get_current_admin)
+):
     """List all coupons for admin oversight."""
     result = await db.execute(select(Coupon).order_by(Coupon.created_at.desc()))
     coupons = result.scalars().all()
@@ -504,7 +539,8 @@ async def list_coupons(db: AsyncSession = Depends(get_db)):
 @router.post("/admin/coupons", tags=["Admin"])
 async def create_coupon(
     request: CreateCouponRequest,
-    db: AsyncSession = Depends(get_db)
+    db: AsyncSession = Depends(get_db),
+    admin_auth: dict = Depends(get_current_admin)
 ):
     """Create a new promotional coupon code."""
     # Check if duplicate code
@@ -544,7 +580,8 @@ async def create_coupon(
 @router.delete("/admin/coupons/{coupon_id}", tags=["Admin"])
 async def delete_coupon(
     coupon_id: str,
-    db: AsyncSession = Depends(get_db)
+    db: AsyncSession = Depends(get_db),
+    admin_auth: dict = Depends(get_current_admin)
 ):
     """Deactivate or delete a coupon code."""
     try:

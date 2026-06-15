@@ -17,6 +17,7 @@ ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24  # 1 day
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/v1/auth/login", auto_error=False)
+oauth2_admin_scheme = OAuth2PasswordBearer(tokenUrl="/v1/admin/login", auto_error=False)
 
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
@@ -80,3 +81,19 @@ async def get_current_user(
     await check_and_apply_coupon_expiration(user, db)
 
     return user
+
+async def get_current_admin(token: str = Depends(oauth2_admin_scheme)) -> dict:
+    credentials_exception = HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="Could not validate admin credentials",
+        headers={"WWW-Authenticate": "Bearer"},
+    )
+    if not token:
+        raise credentials_exception
+    try:
+        payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[ALGORITHM])
+        if payload.get("role") != "root_admin":
+            raise credentials_exception
+        return payload
+    except Exception:
+        raise credentials_exception

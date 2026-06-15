@@ -6,8 +6,9 @@ import AnalyticsPage from './pages/Analytics.jsx'
 import SystemHealthPage from './pages/SystemHealth.jsx'
 import NotFound from './pages/NotFound.jsx'
 import CouponsPage from './pages/Coupons.jsx'
+import Login from './pages/Login.jsx'
 
-function AdminLayout({ children }) {
+function AdminLayout({ children, onLogout }) {
   const location = useLocation()
   const currentPath = location.pathname
   const [systemStatus, setSystemStatus] = useState('healthy')
@@ -50,13 +51,8 @@ function AdminLayout({ children }) {
         {/* Branding header */}
         <div className="p-6 border-b border-beige-deep bg-cream/40">
           <Link to="/" className="flex items-center gap-2.5 group">
-            <div className="p-1.5 rounded bg-primary text-white group-hover:scale-105 transition-transform duration-300">
-              <ShieldCheck size={14} />
-            </div>
+            <img src="/logo-new.png" alt="SearchMind Logo" className="h-8 w-auto group-hover:scale-105 transition-transform duration-300" />
             <div className="flex flex-col">
-              <span className="font-bold text-sm tracking-tight font-sans text-ink leading-none">
-                SearchMind
-              </span>
               <span className="text-micro-uppercase text-slate mt-0.5">
                 Admin Console
               </span>
@@ -136,7 +132,10 @@ function AdminLayout({ children }) {
               <ExternalLink size={11} />
             </a>
           </div>
-          <button className="button-ghost text-micro font-sans h-[30px] font-semibold flex items-center justify-center">
+          <button 
+            onClick={onLogout}
+            className="button-ghost text-micro font-sans h-[30px] font-semibold flex items-center justify-center cursor-pointer"
+          >
             <LogOut size={11} className="mr-1.5 text-accent-red" />
             Logout Session
           </button>
@@ -146,11 +145,9 @@ function AdminLayout({ children }) {
       {/* MOBILE HEADER */}
       <header className="md:hidden sticky top-0 z-40 bg-cream/95 backdrop-blur border-b border-beige-deep px-4 py-3 flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <div className="p-1 rounded bg-primary text-white">
-            <ShieldCheck size={14} />
-          </div>
+          <img src="/logo-new.png" alt="SearchMind Logo" className="h-6 w-auto" />
           <span className="font-extrabold text-sm tracking-tight font-display text-ink">
-            SearchMind <span className="text-[9px] font-mono text-primary">ADMIN</span>
+            <span className="text-[9px] font-mono text-primary">ADMIN</span>
           </span>
         </div>
         <div className="flex items-center gap-2">
@@ -194,9 +191,25 @@ function AdminLayout({ children }) {
 }
 
 export default function App() {
+  const [token, setToken] = useState(localStorage.getItem('adminToken'))
+
+  const handleLogin = (newToken) => {
+    localStorage.setItem('adminToken', newToken)
+    setToken(newToken)
+  }
+
+  const handleLogout = () => {
+    localStorage.removeItem('adminToken')
+    setToken(null)
+  }
+
+  if (!token) {
+    return <Login onLogin={handleLogin} />
+  }
+
   return (
     <Router>
-      <AdminLayout>
+      <AdminLayout onLogout={handleLogout}>
         <Routes>
           <Route path="/" element={<Navigate to="/users" replace />} />
           <Route path="/users" element={<UsersPage />} />
@@ -210,3 +223,4 @@ export default function App() {
     </Router>
   )
 }
+

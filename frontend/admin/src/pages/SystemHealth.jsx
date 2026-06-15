@@ -37,7 +37,10 @@ export default function SystemHealthPage() {
     setError('')
     addLog('info', 'Executing platform-wide heartbeat liveness probe...')
     try {
-      const res = await fetch('http://localhost:8000/v1/admin/health')
+      const token = localStorage.getItem('adminToken')
+      const res = await fetch('http://localhost:8000/v1/admin/health', {
+        headers: { 'Authorization': `Bearer ${token}` }
+      })
       if (!res.ok) throw new Error('Health check endpoint returned status ' + res.status)
       const data = await res.json()
       setHealth(data)

@@ -23,7 +23,10 @@ export default function UsersPage() {
   const fetchUsers = async () => {
     try {
       setLoading(true)
-      const res = await fetch('http://localhost:8000/v1/admin/users')
+      const token = localStorage.getItem('adminToken')
+      const res = await fetch('http://localhost:8000/v1/admin/users', {
+        headers: { 'Authorization': `Bearer ${token}` }
+      })
       if (!res.ok) throw new Error('Failed to fetch users')
       const data = await res.json()
       setUsers(data)
@@ -43,9 +46,13 @@ export default function UsersPage() {
   // Toggle active/inactive status
   const handleToggleActive = async (id, currentStatus) => {
     try {
+      const token = localStorage.getItem('adminToken')
       const res = await fetch(`http://localhost:8000/v1/admin/users/${id}/status`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
         body: JSON.stringify({ active: !currentStatus })
       })
       if (!res.ok) throw new Error('Failed to update status')
@@ -86,9 +93,13 @@ export default function UsersPage() {
   const handleSavePlan = async () => {
     if (!selectedUser) return
     try {
+      const token = localStorage.getItem('adminToken')
       const res = await fetch(`http://localhost:8000/v1/admin/users/${selectedUser.id}/plan`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
         body: JSON.stringify({ plan: newPlan })
       })
       if (!res.ok) throw new Error('Failed to update plan')

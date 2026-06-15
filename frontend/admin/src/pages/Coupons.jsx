@@ -27,7 +27,10 @@ export default function CouponsPage() {
     setLoading(true)
     setError('')
     try {
-      const res = await fetch('http://localhost:8000/v1/admin/coupons')
+      const token = localStorage.getItem('adminToken')
+      const res = await fetch('http://localhost:8000/v1/admin/coupons', {
+        headers: { 'Authorization': `Bearer ${token}` }
+      })
       if (!res.ok) throw new Error('Failed to fetch coupons')
       const data = await res.json()
       setCoupons(data)
@@ -58,10 +61,12 @@ export default function CouponsPage() {
     }
 
     try {
+      const token = localStorage.getItem('adminToken')
       const res = await fetch('http://localhost:8000/v1/admin/coupons', {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
         },
         body: JSON.stringify(payload)
       })
@@ -86,8 +91,10 @@ export default function CouponsPage() {
     setError('')
     setSuccess('')
     try {
+      const token = localStorage.getItem('adminToken')
       const res = await fetch(`http://localhost:8000/v1/admin/coupons/${couponId}`, {
-        method: 'DELETE'
+        method: 'DELETE',
+        headers: { 'Authorization': `Bearer ${token}` }
       })
       if (!res.ok) {
         const data = await res.json()
