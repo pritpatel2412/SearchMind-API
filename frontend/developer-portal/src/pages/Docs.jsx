@@ -5,6 +5,7 @@ export default function Docs({ apiKey }) {
   const [activeSec, setActiveSec] = useState('auth')
   const [copiedCode, setCopiedCode] = useState('')
   const displayKey = apiKey || 'sm_live_YOUR_KEY'
+  const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000'
 
   const handleCopy = (id, text) => {
     navigator.clipboard.writeText(text)
@@ -27,7 +28,7 @@ export default function Docs({ apiKey }) {
       endpoint: 'Header Format',
       method: 'X-API-Key',
       path: 'sm_live_...',
-      curl: `curl -H "X-API-Key: ${displayKey}" http://localhost:8000/v1/usage`,
+      curl: `curl -H "X-API-Key: ${displayKey}" ${apiUrl}/v1/usage`,
       python: `from searchmind import SearchMindClient\nclient = SearchMindClient(api_key="${displayKey}")`,
       params: [
         { name: 'X-API-Key', type: 'String (Header)', required: 'Yes', desc: 'Secure SHA-256 hashed API key (e.g. sm_live_abc1...)' }
@@ -38,7 +39,7 @@ export default function Docs({ apiKey }) {
       desc: 'Orchestrates search provider pipelines (Brave -> SerpAPI -> DuckDuckGo) returning ordered web results optimized for LLM contexts. Includes optional Claude/Groq synthesis to answer the prompt directly.',
       endpoint: 'POST',
       path: '/v1/search',
-      curl: `curl -X POST http://localhost:8000/v1/search \\
+      curl: `curl -X POST ${apiUrl}/v1/search \\
   -H "X-API-Key: ${displayKey}" \\
   -H "Content-Type: application/json" \\
   -d '{
@@ -62,7 +63,7 @@ export default function Docs({ apiKey }) {
       desc: 'Retrieves raw HTML from one or more URLs, strips navigation, scripts, ads, and returns clean text content using a cascading parser chain (Trafilatura -> Readability -> BeautifulSoup). Supports optional Playwright JS rendering.',
       endpoint: 'POST',
       path: '/v1/extract',
-      curl: `curl -X POST http://localhost:8000/v1/extract \\
+      curl: `curl -X POST ${apiUrl}/v1/extract \\
   -H "X-API-Key: ${displayKey}" \\
   -H "Content-Type: application/json" \\
   -d '{
@@ -82,7 +83,7 @@ export default function Docs({ apiKey }) {
       desc: 'Generates multiple query vectors, crawls and scrapes top 8+ URLs in parallel, ranks results, and calls Groq/Claude models to assemble a comprehensive research summary with citations.',
       endpoint: 'POST',
       path: '/v1/research',
-      curl: `curl -X POST http://localhost:8000/v1/research \\
+      curl: `curl -X POST ${apiUrl}/v1/research \\
   -H "X-API-Key: ${displayKey}" \\
   -H "Content-Type: application/json" \\
   -d '{
@@ -102,7 +103,7 @@ export default function Docs({ apiKey }) {
       desc: 'Retrieves current period stats (requests per endpoint, token consumption, limits, remaining requests, percentage of limits consumed).',
       endpoint: 'GET',
       path: '/v1/usage',
-      curl: `curl -s -H "X-API-Key: ${displayKey}" http://localhost:8000/v1/usage`,
+      curl: `curl -s -H "X-API-Key: ${displayKey}" ${apiUrl}/v1/usage`,
       python: `from searchmind import SearchMindClient\n\nclient = SearchMindClient(api_key="${displayKey}")\nusage = client.get_usage()`,
       params: []
     }

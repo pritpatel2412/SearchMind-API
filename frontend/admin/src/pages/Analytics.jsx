@@ -38,7 +38,7 @@ export default function AnalyticsPage() {
       try {
         setLoading(true)
         const token = localStorage.getItem('adminToken')
-        const res = await fetch(${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/v1/admin/analytics?time_range=${timeRange}`, {
+        const res = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/v1/admin/analytics?time_range=${timeRange}`, {
           headers: { 'Authorization': `Bearer ${token}` }
         })
         if (!res.ok) throw new Error('Failed to fetch platform analytics')

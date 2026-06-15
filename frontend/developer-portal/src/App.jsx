@@ -48,7 +48,7 @@ function AppContent({ token, setToken, user, setUser, apiKey, setApiKey, handleL
 
   useEffect(() => {
     if (token && user) {
-      fetch(${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/v1/coupons/active`, {
+      fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/v1/coupons/active`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }

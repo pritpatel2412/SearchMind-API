@@ -140,7 +140,7 @@ export default function Playground({ token, user, setUser, apiKey }) {
     setUpgradeMsg('')
     const planKey = targetPlan === 'Developer Pro' ? 'pro' : 'enterprise'
     try {
-      const response = await fetch(${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/admin/users/${user.id}/plan`, {
+      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/admin/users/${user.id}/plan`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json'
@@ -276,7 +276,7 @@ export default function Playground({ token, user, setUser, apiKey }) {
           pollCount++
           
           addLog(`[Poll #${pollCount}] Requesting task status from router...`)
-          const statusResponse = await fetch(${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/v1/crawl/${taskId}`, {
+          const statusResponse = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/v1/crawl/${taskId}`, {
             method: 'GET',
             headers: headers
           })

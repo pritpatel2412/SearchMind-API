@@ -133,7 +133,7 @@ export default function Auth({ setToken, setUser, setApiKey }) {
 
   const fetchKeys = async (tokenStr) => {
     try {
-      const res = await fetch(${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/v1/api-keys`, {
+      const res = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/v1/api-keys`, {
         headers: { 'Authorization': `Bearer ${tokenStr}` }
       })
       const data = await res.json()
