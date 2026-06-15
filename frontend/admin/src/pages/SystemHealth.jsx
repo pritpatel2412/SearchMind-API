@@ -38,7 +38,7 @@ export default function SystemHealthPage() {
     addLog('info', 'Executing platform-wide heartbeat liveness probe...')
     try {
       const token = localStorage.getItem('adminToken')
-      const res = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/v1/admin/health`, {
+      const res = await fetch(${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/v1/admin/health`, {
         headers: { 'Authorization': `Bearer ${token}` }
       })
       if (!res.ok) throw new Error('Health check endpoint returned status ' + res.status)

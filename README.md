@@ -6,6 +6,11 @@ The platform abstracts the complexities of search provider fallbacks, headless J
 
 **Status:** Beta (under active development)
 
+### 🚀 Live Deployment
+- **Developer Portal:** [https://searchmind-api.vercel.app/](https://searchmind-api.vercel.app/)
+- **Backend API:** [https://searchmind-api.onrender.com](https://searchmind-api.onrender.com)
+- **API Documentation:** [https://searchmind-api.onrender.com/docs](https://searchmind-api.onrender.com/docs)
+
 ---
 
 ## Table of Contents
