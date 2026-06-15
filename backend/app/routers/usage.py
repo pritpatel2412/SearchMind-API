@@ -12,6 +12,7 @@ from app.auth.api_key_auth import get_current_api_key
 from app.auth.jwt_auth import get_current_user
 from app.schemas.usage import UsageResponse
 from app.models.user import User
+from app.models.search_log import SearchLog
 
 router = APIRouter()
 
@@ -130,3 +131,40 @@ async def get_usage(
         remaining_requests=remaining,
         percentage_used=percentage
     )
+
+
+@router.get("/logs", tags=["Usage"])
+async def get_logs(
+    limit: int = 10,
+    db: AsyncSession = Depends(get_db),
+    auth_obj = Depends(get_current_user_or_api_key)
+):
+    """
+    Get recent search/API logs for the authenticated user or API key.
+    """
+    if isinstance(auth_obj, User):
+        user = auth_obj
+        query = select(SearchLog).where(
+            SearchLog.user_id == user.id
+        ).order_by(SearchLog.created_at.desc()).limit(limit)
+    else:
+        api_key = auth_obj
+        query = select(SearchLog).where(
+            SearchLog.api_key_id == api_key.id
+        ).order_by(SearchLog.created_at.desc()).limit(limit)
+
+    result = await db.execute(query)
+    logs = result.scalars().all()
+
+    return [
+        {
+            "id": str(log.id),
+            "endpoint": log.endpoint,
+            "query": log.query,
+            "latency_ms": log.latency_ms,
+            "status_code": log.status_code,
+            "error_message": log.error_message,
+            "created_at": log.created_at.isoformat() if log.created_at else None
+        }
+        for log in logs
+    ]

@@ -1,7 +1,7 @@
 import asyncio
 import time
 import logging
-from fastapi import APIRouter, Depends, Request
+from fastapi import APIRouter, Depends, Request, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from typing import List, Optional
 
@@ -30,9 +30,12 @@ async def research(
     db: AsyncSession = Depends(get_db)
 ):
     """
-    Deep research mode: multi-query search, parallel page extraction,
-    relevance ranking, and LLM-powered answer synthesis.
+    Perform a deep, parallelized research loop across multiple web sources.
+    Searches, crawls top results, extracts content, synthesizes a final answer, and provides citations.
     """
+    if getattr(api_key.user, "plan", "free") != "enterprise":
+        raise HTTPException(status_code=403, detail="Deep research endpoint is reserved for Enterprise customers.")
+
     # 1. Rate limiter check
     await enforce_rate_limits(http_request, api_key, db)
 

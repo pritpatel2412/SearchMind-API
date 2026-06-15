@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { HashRouter as Router, Routes, Route, Navigate, Link, useLocation } from 'react-router-dom'
-import { Terminal } from 'lucide-react'
+import { Terminal, X, Gift } from 'lucide-react'
 import Navbar from './components/Navbar.jsx'
 import Home from './pages/Home.jsx'
 import Dashboard from './pages/Dashboard.jsx'
@@ -17,6 +17,8 @@ import Caching from './pages/Caching.jsx'
 import UseCases from './pages/UseCases.jsx'
 import PythonSDK from './pages/PythonSDK.jsx'
 import Status from './pages/Status.jsx'
+import NotFound from './pages/NotFound.jsx'
+import Roadmap from './pages/Roadmap.jsx'
 
 function HashScroll() {
   const { hash, pathname } = useLocation()
@@ -41,8 +43,73 @@ function AppContent({ token, setToken, user, setUser, apiKey, setApiKey, handleL
   const location = useLocation()
   const isAuthPage = location.pathname === '/auth'
 
+  const [activeCoupon, setActiveCoupon] = useState(null)
+  const [showCouponBanner, setShowCouponBanner] = useState(true)
+
+  useEffect(() => {
+    if (token && user) {
+      fetch('http://localhost:8000/v1/coupons/active', {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      })
+      .then(res => {
+        if (res.ok) return res.json()
+        return null
+      })
+      .then(data => {
+        if (data && data.code) {
+          setActiveCoupon(data)
+          
+          const dismissed = localStorage.getItem(`dismissed_coupon_${data.code}`)
+          if (data.days_remaining <= 7) {
+            setShowCouponBanner(true)
+          } else if (dismissed === 'true') {
+            setShowCouponBanner(false)
+          } else {
+            setShowCouponBanner(true)
+          }
+        } else {
+          setActiveCoupon(null)
+          setShowCouponBanner(false)
+        }
+      })
+      .catch(() => {
+        setActiveCoupon(null)
+        setShowCouponBanner(false)
+      })
+    } else {
+      setActiveCoupon(null)
+      setShowCouponBanner(false)
+    }
+  }, [token, user])
+
   return (
     <div className="flex flex-col min-h-screen">
+      {activeCoupon && showCouponBanner && (
+        <div className="bg-primary text-white text-center py-1.5 px-4 text-xs font-mono relative flex items-center justify-center gap-2 select-none border-b border-primary-deep/20 z-50">
+          <span className="flex items-center gap-1">
+            <Gift size={12} className="animate-pulse" />
+            Special Promo: Code <strong>{activeCoupon.code}</strong> is active. 
+            You have <strong>{activeCoupon.days_remaining} days</strong> of Pro access remaining.
+          </span>
+          {activeCoupon.days_remaining > 7 ? (
+            <button 
+              onClick={() => {
+                localStorage.setItem(`dismissed_coupon_${activeCoupon.code}`, 'true')
+                setShowCouponBanner(false)
+              }}
+              className="absolute right-4 top-1/2 -translate-y-1/2 text-white/80 hover:text-white transition-colors cursor-pointer"
+            >
+              <X size={12} />
+            </button>
+          ) : (
+            <span className="text-[10px] bg-white/20 px-1.5 py-0.5 rounded font-sans uppercase font-semibold ml-2">
+              Ending Soon
+            </span>
+          )}
+        </div>
+      )}
       <Navbar token={token} user={user} onLogout={handleLogout} />
       <main className="flex-grow">
         <Routes>
@@ -53,14 +120,14 @@ function AppContent({ token, setToken, user, setUser, apiKey, setApiKey, handleL
           />
           <Route 
             path="/playground" 
-            element={token ? <Playground token={token} apiKey={apiKey} /> : <Navigate to="/auth?mode=login" />} 
+            element={token ? <Playground token={token} user={user} setUser={setUser} apiKey={apiKey} /> : <Navigate to="/auth?mode=login" />} 
           />
           <Route 
             path="/auth" 
             element={token ? <Navigate to="/dashboard" /> : <Auth setToken={setToken} setUser={setUser} setApiKey={setApiKey} />} 
           />
           <Route path="/docs" element={<Docs apiKey={apiKey} />} />
-          <Route path="/pricing" element={<Pricing />} />
+          <Route path="/pricing" element={<Pricing token={token} user={user} setUser={setUser} />} />
           <Route path="/terms" element={<Terms />} />
           <Route path="/privacy" element={<Privacy />} />
           <Route path="/features" element={<Features />} />
@@ -70,7 +137,9 @@ function AppContent({ token, setToken, user, setUser, apiKey, setApiKey, handleL
           <Route path="/use-cases" element={<UseCases />} />
           <Route path="/python-sdk" element={<PythonSDK />} />
           <Route path="/status" element={<Status />} />
-          <Route path="*" element={<Navigate to="/" />} />
+           <Route path="/roadmap" element={<Roadmap />} />
+          <Route path="/404" element={<NotFound />} />
+          <Route path="*" element={<Navigate to="/404" replace />} />
         </Routes>
       </main>
       

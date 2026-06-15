@@ -53,8 +53,8 @@ export default function PythonSDK() {
           <motion.div variants={itemVars} className="space-y-4">
             <h3 className="text-heading-4 text-ink font-mono uppercase tracking-wider">1. Installation</h3>
             <div className="bg-surface-code rounded-lg p-4 flex justify-between items-center group hover:border-primary/50 transition-colors border border-transparent">
-              <code className="text-sm font-mono text-white/90">pip install searchmind-python</code>
-              <button onClick={() => copyToClipboard('pip install searchmind-python')} className="text-slate hover:text-primary transition-colors hover:scale-110 active:scale-95">
+              <code className="text-sm font-mono text-white/90">pip install searchmind-api</code>
+              <button onClick={() => copyToClipboard('pip install searchmind-api')} className="text-slate hover:text-primary transition-colors hover:scale-110 active:scale-95">
                 <Copy size={16} />
               </button>
             </div>

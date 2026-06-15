@@ -2,6 +2,7 @@ from fastapi import Security, HTTPException, status, Depends, Header
 from fastapi.security import APIKeyHeader
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
+from sqlalchemy.orm import joinedload
 from datetime import datetime, timezone
 from typing import Optional
 
@@ -24,7 +25,9 @@ async def get_current_api_key(
     if api_key and api_key != 'sm_live_YOUR_KEY':
         hashed = APIKey.hash_key(api_key)
         result = await db.execute(
-            select(APIKey).where(
+            select(APIKey)
+            .options(joinedload(APIKey.user))
+            .where(
                 APIKey.hashed_key == hashed,
                 APIKey.is_active == True
             )
@@ -40,7 +43,9 @@ async def get_current_api_key(
             if user:
                 # Find the user's active API key
                 result = await db.execute(
-                    select(APIKey).where(
+                    select(APIKey)
+                    .options(joinedload(APIKey.user))
+                    .where(
                         APIKey.user_id == user.id,
                         APIKey.is_active == True
                     )
@@ -49,18 +54,22 @@ async def get_current_api_key(
                 
                 # If no active key exists for the user, create a default playground key on the fly
                 if not key_obj:
+                    from app.services.plan_service import get_plan_limits
+                    plan_monthly, plan_rate = get_plan_limits(user.plan)
                     full_key, prefix, hashed_key = APIKey.generate_key()
                     key_obj = APIKey(
                         user_id=user.id,
                         name="Playground Auto Key",
                         key_prefix=prefix,
                         hashed_key=hashed_key,
-                        monthly_limit=1000,
-                        rate_limit_per_min=10
+                        monthly_limit=plan_monthly,
+                        rate_limit_per_min=plan_rate
                     )
                     db.add(key_obj)
                     await db.commit()
                     await db.refresh(key_obj)
+                    # Manually set user object to avoid secondary db query
+                    key_obj.user = user
         except Exception:
             pass
 
@@ -70,6 +79,10 @@ async def get_current_api_key(
             detail="Invalid or inactive API key",
             headers={"WWW-Authenticate": "ApiKey"}
         )
+
+    if key_obj.user:
+        from app.services.coupon_service import check_and_apply_coupon_expiration
+        await check_and_apply_coupon_expiration(key_obj.user, db)
 
     # Use timezone-aware comparison
     now = datetime.now(timezone.utc)

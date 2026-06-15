@@ -12,6 +12,7 @@ from app.models.user import User
 from app.models.api_key import APIKey
 from app.models.usage import UsageRecord
 from app.models.search_log import SearchLog
+from app.models.coupon import Coupon, CouponRedemption
 from app.redis_client import get_redis
 
 router = APIRouter()
@@ -26,6 +27,18 @@ class UserAdminResponse(BaseModel):
     created_at: str
     keys_count: int
     usage: int
+    last_ip: Optional[str] = None
+    browser: Optional[str] = None
+    os: Optional[str] = None
+    device: Optional[str] = None
+    region: Optional[str] = None
+    country: Optional[str] = None
+    city: Optional[str] = None
+    isp: Optional[str] = None
+    screen_resolution: Optional[str] = None
+    language: Optional[str] = None
+    timezone: Optional[str] = None
+    last_login: Optional[str] = None
 
 class UpdatePlanRequest(BaseModel):
     plan: str
@@ -103,7 +116,19 @@ async def list_users(db: AsyncSession = Depends(get_db)):
                 active=user.is_active,
                 created_at=user.created_at.strftime("%Y-%m-%d") if user.created_at else "",
                 keys_count=keys_count,
-                usage=total_usage
+                usage=total_usage,
+                last_ip=user.last_ip,
+                browser=user.browser,
+                os=user.os,
+                device=user.device,
+                region=user.region,
+                country=user.country,
+                city=user.city,
+                isp=user.isp,
+                screen_resolution=user.screen_resolution,
+                language=user.language,
+                timezone=user.timezone,
+                last_login=user.last_login.strftime("%Y-%m-%d %H:%M:%S") if user.last_login else None
             )
         )
     return response
@@ -195,15 +220,13 @@ async def get_admin_analytics(time_range: str = "12h", db: AsyncSession = Depend
         )
     )
     cached_logs = cached_result.scalar() or 0
-    cache_hit_ratio = round((cached_logs / total_logs) * 100, 1) if total_logs > 0 else 68.4
+    cache_hit_ratio = round((cached_logs / total_logs) * 100, 1) if total_logs > 0 else 0.0
     
     # 6. Average Latency in this range
     avg_lat_result = await db.execute(
         select(func.avg(SearchLog.latency_ms)).where(SearchLog.created_at >= since_dt)
     )
     avg_latency_ms = round(avg_lat_result.scalar() or 0.0, 1)
-    if avg_latency_ms == 0.0:
-        avg_latency_ms = 142.0 # default fallback
         
     # 7. Error rate (5xx status codes) in this range
     error_result = await db.execute(
@@ -213,7 +236,7 @@ async def get_admin_analytics(time_range: str = "12h", db: AsyncSession = Depend
         )
     )
     error_logs = error_result.scalar() or 0
-    error_rate = round((error_logs / total_logs) * 100, 3) if total_logs > 0 else 0.03
+    error_rate = round((error_logs / total_logs) * 100, 3) if total_logs > 0 else 0.0
     
     # 8. Timeline series
     time_labels = []
@@ -262,18 +285,13 @@ async def get_admin_analytics(time_range: str = "12h", db: AsyncSession = Depend
         )
         l_avg = round(l_res.scalar() or 0.0, 1)
         
-        # If no requests in this hour, use a clean placeholder to keep graph readable
+        # If no requests in this hour, use a clean 0 to keep graph real
         if q_count == 0:
-            latency_sparkline.append(142.0)
+            latency_sparkline.append(0.0)
         else:
             latency_sparkline.append(l_avg)
             
         time_labels.append(start_dt.strftime(label_fmt))
-        
-    # Adjust sparkline values if they are completely empty (so SVG curves have height)
-    if sum(query_sparkline) == 0:
-        query_sparkline = [30, 45, 38, 55, 62, 78, 70, 85, 92, 88, 105, 120]
-        latency_sparkline = [220, 190, 210, 160, 150, 140, 135, 138, 150, 145, 140, 130]
 
     # 9. Provider Share Breakdown Heuristics
     brave_vol = 0
@@ -312,16 +330,14 @@ async def get_admin_analytics(time_range: str = "12h", db: AsyncSession = Depend
         diff = 100 - (brave_share + serp_share + ddg_share)
         if diff != 0 and brave_share > 0:
             brave_share += diff
-    else:
-        # Defaults
-        brave_share, brave_vol = 72, 111045
-        serp_share, serp_vol = 21, 32388
-        ddg_share, ddg_vol = 7, 10797
-        total_prov_vol = brave_vol + serp_vol + ddg_vol
         
-    brave_avg_lat = int(round(brave_lat_sum / brave_vol)) if brave_vol > 0 else 94
-    serp_avg_lat = int(round(serp_lat_sum / serp_vol)) if serp_vol > 0 else 412
-    ddg_avg_lat = int(round(ddg_lat_sum / ddg_vol)) if ddg_vol > 0 else 608
+        brave_avg_lat = int(round(brave_lat_sum / brave_vol)) if brave_vol > 0 else 0
+        serp_avg_lat = int(round(serp_lat_sum / serp_vol)) if serp_vol > 0 else 0
+        ddg_avg_lat = int(round(ddg_lat_sum / ddg_vol)) if ddg_vol > 0 else 0
+    else:
+        brave_share, brave_vol, brave_avg_lat = 0, 0, 0
+        serp_share, serp_vol, serp_avg_lat = 0, 0, 0
+        ddg_share, ddg_vol, ddg_avg_lat = 0, 0, 0
 
     providers = [
         ProviderShare(
@@ -438,3 +454,109 @@ async def get_admin_system_health(request: Request, db: AsyncSession = Depends(g
         database=ComponentHealth(status=db_status, details=db_details),
         redis=ComponentHealth(status=redis_status, details=redis_details)
     )
+
+
+# Coupon Admin Schemas
+class CouponAdminResponse(BaseModel):
+    id: str
+    code: str
+    duration_days: int
+    max_redemptions: int
+    redemption_count: int
+    valid_from: str
+    valid_to: str
+    target_plan: str
+    is_active: bool
+    created_at: str
+
+class CreateCouponRequest(BaseModel):
+    code: str
+    duration_days: int
+    max_redemptions: int
+    valid_from: str
+    valid_to: str
+    target_plan: str = "pro"
+
+@router.get("/admin/coupons", response_model=List[CouponAdminResponse], tags=["Admin"])
+async def list_coupons(db: AsyncSession = Depends(get_db)):
+    """List all coupons for admin oversight."""
+    result = await db.execute(select(Coupon).order_by(Coupon.created_at.desc()))
+    coupons = result.scalars().all()
+    
+    response = []
+    for c in coupons:
+        response.append(
+            CouponAdminResponse(
+                id=str(c.id),
+                code=c.code,
+                duration_days=c.duration_days,
+                max_redemptions=c.max_redemptions,
+                redemption_count=c.redemption_count,
+                valid_from=c.valid_from.isoformat() if c.valid_from else "",
+                valid_to=c.valid_to.isoformat() if c.valid_to else "",
+                target_plan=c.target_plan,
+                is_active=c.is_active,
+                created_at=c.created_at.isoformat() if c.created_at else ""
+            )
+        )
+    return response
+
+@router.post("/admin/coupons", tags=["Admin"])
+async def create_coupon(
+    request: CreateCouponRequest,
+    db: AsyncSession = Depends(get_db)
+):
+    """Create a new promotional coupon code."""
+    # Check if duplicate code
+    existing_result = await db.execute(select(Coupon).where(Coupon.code == request.code))
+    if existing_result.scalar_one_or_none():
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Coupon code '{request.code}' already exists"
+        )
+    
+    try:
+        from_str = request.valid_from.replace("Z", "+00:00")
+        to_str = request.valid_to.replace("Z", "+00:00")
+        valid_from = datetime.datetime.fromisoformat(from_str)
+        valid_to = datetime.datetime.fromisoformat(to_str)
+    except Exception:
+        raise HTTPException(
+            status_code=400,
+            detail="Invalid datetime format for valid_from or valid_to. Use ISO format."
+        )
+
+    new_coupon = Coupon(
+        id=uuid.uuid4(),
+        code=request.code.strip(),
+        duration_days=request.duration_days,
+        max_redemptions=request.max_redemptions,
+        valid_from=valid_from,
+        valid_to=valid_to,
+        target_plan=request.target_plan,
+        is_active=True
+    )
+    db.add(new_coupon)
+    await db.commit()
+    await db.refresh(new_coupon)
+    return {"status": "success", "message": f"Coupon code '{new_coupon.code}' created successfully", "coupon_id": str(new_coupon.id)}
+
+@router.delete("/admin/coupons/{coupon_id}", tags=["Admin"])
+async def delete_coupon(
+    coupon_id: str,
+    db: AsyncSession = Depends(get_db)
+):
+    """Deactivate or delete a coupon code."""
+    try:
+        coupon_uuid = uuid.UUID(coupon_id)
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Invalid coupon ID format")
+        
+    result = await db.execute(select(Coupon).where(Coupon.id == coupon_uuid))
+    coupon = result.scalar_one_or_none()
+    if not coupon:
+        raise HTTPException(status_code=404, detail="Coupon not found")
+        
+    await db.delete(coupon)
+    await db.commit()
+    return {"status": "success", "message": "Coupon deleted successfully"}

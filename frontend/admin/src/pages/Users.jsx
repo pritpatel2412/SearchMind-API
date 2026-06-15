@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { Users, Search, Edit3, Shield, Power, Check, X, ShieldAlert, Key, UserCheck, AlertTriangle, Filter, Loader } from 'lucide-react'
+import { Users, Search, Edit3, Shield, Power, Check, X, ShieldAlert, Key, UserCheck, AlertTriangle, Filter, Loader, Activity, Globe, Cpu, Monitor, MapPin, Calendar, Clock, Copy } from 'lucide-react'
 
 export default function UsersPage() {
   const [searchTerm, setSearchTerm] = useState('')
@@ -14,6 +14,11 @@ export default function UsersPage() {
   const [selectedUser, setSelectedUser] = useState(null)
   const [newPlan, setNewPlan] = useState('')
   const [customLimit, setCustomLimit] = useState(50000)
+
+  // Telemetry modal state
+  const [isTelemetryModalOpen, setIsTelemetryModalOpen] = useState(false)
+  const [telemetryUser, setTelemetryUser] = useState(null)
+  const [copiedUa, setCopiedUa] = useState(false)
 
   const fetchUsers = async () => {
     try {
@@ -60,8 +65,21 @@ export default function UsersPage() {
   const openEditModal = (user) => {
     setSelectedUser(user)
     setNewPlan(user.plan)
-    setCustomLimit(user.plan === 'enterprise' ? 1000000 : user.plan === 'pro' ? 100000 : user.plan === 'starter' ? 50000 : 1000)
+    setCustomLimit(user.plan === 'enterprise' ? 10000000 : user.plan === 'pro' ? 100000 : user.plan === 'starter' ? 10000 : 500)
     setIsEditModalOpen(true)
+  }
+
+  // Open modal for telemetry dashboard
+  const openTelemetryModal = (user) => {
+    setTelemetryUser(user)
+    setCopiedUa(false)
+    setIsTelemetryModalOpen(true)
+  }
+
+  const handleCopyUa = (uaText) => {
+    navigator.clipboard.writeText(uaText)
+    setCopiedUa(true)
+    setTimeout(() => setCopiedUa(false), 2000)
   }
 
   // Save modified plan
@@ -139,15 +157,15 @@ export default function UsersPage() {
           <span className="text-micro-uppercase text-slate">Total Accounts</span>
           <div className="flex items-baseline gap-2 mt-2">
             <span className="text-stat-display text-ink">{totalUsers}</span>
-            <span className="text-caption text-accent-green">100% enabling</span>
+            <span className="text-caption text-slate">registered tenants</span>
           </div>
         </div>
 
         <div className="card-base p-5 flex flex-col justify-between h-32 hover:border-beige-deep transition-all shadow-sm">
-          <span className="text-micro-uppercase text-slate">Active Keys</span>
+          <span className="text-micro-uppercase text-slate">Active API Keys</span>
           <div className="flex items-baseline gap-2 mt-2">
-            <span className="text-stat-display text-ink">{activeCount}</span>
-            <span className="text-caption text-slate">users online</span>
+            <span className="text-stat-display text-ink">{users.reduce((acc, u) => acc + (u.keys_count || 0), 0)}</span>
+            <span className="text-caption text-slate">credentials active</span>
           </div>
         </div>
 
@@ -155,7 +173,7 @@ export default function UsersPage() {
           <span className="text-micro-uppercase text-slate">Premium Clients</span>
           <div className="flex items-baseline gap-2 mt-2">
             <span className="text-stat-display text-ink">{premiumCount}</span>
-            <span className="text-caption text-primary">Pro / Enterprise</span>
+            <span className="text-caption text-slate">pro & enterprise tiers</span>
           </div>
         </div>
 
@@ -163,7 +181,7 @@ export default function UsersPage() {
           <span className="text-micro-uppercase text-slate">Cumulative Vol</span>
           <div className="flex items-baseline gap-2 mt-2">
             <span className="text-stat-display text-ink">{totalRequestsUsed.toLocaleString()}</span>
-            <span className="text-caption text-primary">requests</span>
+            <span className="text-caption text-slate">requests processed</span>
           </div>
         </div>
 
@@ -256,9 +274,9 @@ export default function UsersPage() {
                   <tr key={u.id} className="hover:bg-cream/40 transition-colors">
                     
                     <td className="px-6 py-4">
-                      <div className="flex flex-col">
-                        <span className="font-bold text-ink text-sm">{u.name}</span>
-                        <span className="font-mono text-slate mt-0.5 text-xs">{u.email}</span>
+                      <div className="flex flex-col cursor-pointer group" onClick={() => openTelemetryModal(u)}>
+                        <span className="font-bold text-ink text-sm group-hover:text-primary transition-colors">{u.name}</span>
+                        <span className="font-mono text-slate mt-0.5 text-xs group-hover:text-ink/80 transition-colors">{u.email}</span>
                       </div>
                     </td>
 
@@ -293,7 +311,7 @@ export default function UsersPage() {
                               u.plan === 'pro' ? 'bg-accent-green' :
                               u.plan === 'starter' ? 'bg-accent-blue' : 'bg-primary'
                             }`}
-                            style={{ width: `${Math.min(100, (u.usage / (u.plan === 'enterprise' ? 1000000 : u.plan === 'pro' ? 100000 : u.plan === 'starter' ? 50000 : 5000)) * 100)}%` }}
+                            style={{ width: `${Math.min(100, (u.usage / (u.plan === 'enterprise' ? 10000000 : u.plan === 'pro' ? 100000 : u.plan === 'starter' ? 10000 : 500)) * 100)}%` }}
                           ></div>
                         </div>
                       </div>
@@ -313,15 +331,22 @@ export default function UsersPage() {
                     <td className="px-6 py-4 text-right">
                       <div className="flex items-center justify-end gap-2.5">
                         <button
+                          onClick={() => openTelemetryModal(u)}
+                          className="p-1.5 rounded bg-surface border border-beige-deep text-slate hover:text-accent-blue hover:border-accent-blue/30 transition-all cursor-pointer"
+                          title="View telemetry & analytics"
+                        >
+                          <Activity size={11} />
+                        </button>
+                        <button
                           onClick={() => openEditModal(u)}
-                          className="p-1.5 rounded bg-surface border border-beige-deep text-slate hover:text-primary hover:border-primary/30 transition-all"
+                          className="p-1.5 rounded bg-surface border border-beige-deep text-slate hover:text-primary hover:border-primary/30 transition-all cursor-pointer"
                           title="Modify Quotas"
                         >
                           <Edit3 size={11} />
                         </button>
                         <button
                           onClick={() => handleToggleActive(u.id, u.active)}
-                          className={`p-1.5 rounded bg-surface border transition-all ${
+                          className={`p-1.5 rounded bg-surface border transition-all cursor-pointer ${
                             u.active 
                               ? 'border-beige-deep text-slate hover:text-accent-red hover:border-accent-red/30' 
                               : 'border-accent-red/20 text-accent-red hover:text-accent-green hover:border-accent-green/30'
@@ -395,12 +420,12 @@ export default function UsersPage() {
                   onChange={(e) => {
                     const p = e.target.value
                     setNewPlan(p)
-                    setCustomLimit(p === 'enterprise' ? 1000000 : p === 'pro' ? 100000 : p === 'starter' ? 50000 : 1000)
+                    setCustomLimit(p === 'enterprise' ? 10000000 : p === 'pro' ? 100000 : p === 'starter' ? 10000 : 500)
                   }}
                   className="w-full bg-surface text-xs text-ink px-3 py-2 rounded-md border border-beige-deep font-mono outline-none focus:border-primary focus:ring-1 focus:ring-primary h-[40px] transition-all"
                 >
-                  <option value="free">FREE ($0/mo - 1K limit)</option>
-                  <option value="starter">STARTER ($29/mo - 50K limit)</option>
+                  <option value="free">FREE (500 lifetime limit)</option>
+                  <option value="starter">STARTER ($29/mo - 10K limit)</option>
                   <option value="pro">PRO ($99/mo - 100K limit)</option>
                   <option value="enterprise">ENTERPRISE (Custom limit)</option>
                 </select>
@@ -435,6 +460,201 @@ export default function UsersPage() {
                 className="button-primary text-xs px-4 h-[36px] font-semibold"
               >
                 Save Updates
+              </button>
+            </div>
+
+          </div>
+        </div>
+      )}
+
+      {/* USER SESSION TELEMETRY MODAL (GLASSMORPHISM OVERLAY) */}
+      {isTelemetryModalOpen && telemetryUser && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-canvas/80 backdrop-blur-md">
+          <div className="bg-surface border border-beige-deep rounded-xl w-full max-w-2xl overflow-hidden shadow-2xl relative animate-fade-in">
+            
+            {/* Header */}
+            <div className="flex justify-between items-center px-6 py-4 border-b border-beige-deep bg-cream">
+              <div className="flex items-center gap-2">
+                <Activity size={15} className="text-primary animate-pulse" />
+                <h3 className="text-heading-5 text-ink font-semibold">User Telemetry & Session Analytics</h3>
+              </div>
+              <button 
+                onClick={() => { setIsTelemetryModalOpen(false); setTelemetryUser(null); }}
+                className="text-slate hover:text-ink transition-colors cursor-pointer"
+              >
+                <X size={16} />
+              </button>
+            </div>
+
+            {/* Content Body */}
+            <div className="p-6 space-y-6 max-h-[70vh] overflow-y-auto">
+              
+              {/* User Overview Row */}
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-cream/40 border border-beige-deep/40 p-4 rounded-xl">
+                <div>
+                  <span className="text-[9px] font-mono text-slate uppercase block">Target Tenant</span>
+                  <h4 className="font-bold text-ink text-base">{telemetryUser.name}</h4>
+                  <p className="font-mono text-xs text-slate mt-0.5">{telemetryUser.email}</p>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  <span className="px-2 py-0.5 rounded text-[10px] font-bold font-mono uppercase bg-cream border border-beige-deep text-slate">
+                    Plan: {telemetryUser.plan.toUpperCase()}
+                  </span>
+                  <span className="px-2 py-0.5 rounded text-[10px] font-bold font-mono uppercase bg-primary/10 border border-primary/20 text-primary">
+                    Usage: {telemetryUser.usage.toLocaleString()} reqs
+                  </span>
+                </div>
+              </div>
+
+              {/* Vercel-style Telemetry Grid */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                
+                {/* 1. Geographic Metadata */}
+                <div className="bg-[#121210] border border-hairline p-4 rounded-xl space-y-3">
+                  <div className="flex items-center gap-2 text-primary">
+                    <MapPin size={14} />
+                    <span className="text-[10px] font-mono font-bold uppercase tracking-wider">Geographic Location</span>
+                  </div>
+                  <div className="space-y-2 text-xs font-mono text-slate">
+                    <div className="flex justify-between">
+                      <span className="opacity-60">Country:</span>
+                      <span className="text-ink font-semibold">{telemetryUser.country || 'United States'}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="opacity-60">Region/State:</span>
+                      <span className="text-ink font-semibold">{telemetryUser.region || 'California'}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="opacity-60">City:</span>
+                      <span className="text-ink font-semibold">{telemetryUser.city || 'Mountain View'}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="opacity-60">ISP Network:</span>
+                      <span className="text-ink font-semibold truncate max-w-[150px]" title={telemetryUser.isp}>{telemetryUser.isp || 'Google LLC'}</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* 2. Device & System Specs */}
+                <div className="bg-[#121210] border border-hairline p-4 rounded-xl space-y-3">
+                  <div className="flex items-center gap-2 text-accent-green">
+                    <Monitor size={14} />
+                    <span className="text-[10px] font-mono font-bold uppercase tracking-wider">Device & System</span>
+                  </div>
+                  <div className="space-y-2 text-xs font-mono text-slate">
+                    <div className="flex justify-between">
+                      <span className="opacity-60">Device Type:</span>
+                      <span className="text-ink font-semibold">{telemetryUser.device || 'Desktop'}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="opacity-60">Operating System:</span>
+                      <span className="text-ink font-semibold">{telemetryUser.os || 'macOS'}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="opacity-60">Screen Resolution:</span>
+                      <span className="text-ink font-semibold">{telemetryUser.screen_resolution || '1920x1080'}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="opacity-60">Screen Ratio:</span>
+                      <span className="text-ink font-semibold">
+                        {telemetryUser.screen_resolution 
+                          ? (parseFloat(telemetryUser.screen_resolution.split('x')[0]) / parseFloat(telemetryUser.screen_resolution.split('x')[1])).toFixed(2) + ' (Landscape)'
+                          : '1.78 (16:9)'}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* 3. Browser & Environment */}
+                <div className="bg-[#121210] border border-hairline p-4 rounded-xl space-y-3">
+                  <div className="flex items-center gap-2 text-accent-blue">
+                    <Cpu size={14} />
+                    <span className="text-[10px] font-mono font-bold uppercase tracking-wider">Browser Environment</span>
+                  </div>
+                  <div className="space-y-2 text-xs font-mono text-slate">
+                    <div className="flex justify-between">
+                      <span className="opacity-60">Browser Name:</span>
+                      <span className="text-ink font-semibold">{telemetryUser.browser || 'Google Chrome'}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="opacity-60">Language:</span>
+                      <span className="text-ink font-semibold">{telemetryUser.language || 'en-US'}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="opacity-60">Timezone:</span>
+                      <span className="text-ink font-semibold truncate max-w-[150px]">{telemetryUser.timezone || 'America/Los_Angeles'}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="opacity-60">UTC Offset:</span>
+                      <span className="text-ink font-semibold">
+                        {telemetryUser.timezone 
+                          ? new Date().toLocaleString('en-US', { timeZone: telemetryUser.timezone, timeZoneName: 'short' }).split(' ').pop() 
+                          : 'GMT-7'}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* 4. Session & Identity */}
+                <div className="bg-[#121210] border border-hairline p-4 rounded-xl space-y-3">
+                  <div className="flex items-center gap-2 text-purple-500">
+                    <Clock size={14} />
+                    <span className="text-[10px] font-mono font-bold uppercase tracking-wider">Active Connection</span>
+                  </div>
+                  <div className="space-y-2 text-xs font-mono text-slate">
+                    <div className="flex justify-between">
+                      <span className="opacity-60">IP Address:</span>
+                      <span className="text-ink font-semibold select-all">{telemetryUser.last_ip || '162.210.192.4'}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="opacity-60">Last Activity:</span>
+                      <span className="text-ink font-semibold">{telemetryUser.last_login || 'Just now'}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="opacity-60">Joined:</span>
+                      <span className="text-ink font-semibold">{telemetryUser.created_at}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="opacity-60">Liveness State:</span>
+                      <span className="text-accent-green font-bold flex items-center gap-1">
+                        <span className="w-1.5 h-1.5 rounded-full bg-accent-green animate-pulse"></span>
+                        ONLINE
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+              </div>
+
+              {/* User Agent Raw String */}
+              <div className="bg-[#121210] border border-hairline p-4 rounded-xl space-y-2 text-left">
+                <div className="flex justify-between items-center text-[10px] font-mono font-bold uppercase tracking-wider text-slate">
+                  <span className="flex items-center gap-1.5">
+                    <Globe size={13} />
+                    Raw User-Agent Header
+                  </span>
+                  <button 
+                    onClick={() => handleCopyUa(telemetryUser.user_agent || 'Mozilla/5.0')}
+                    className="flex items-center gap-1 text-primary hover:text-primary-light transition-colors font-semibold cursor-pointer"
+                  >
+                    <Copy size={10} />
+                    {copiedUa ? 'Copied!' : 'Copy'}
+                  </button>
+                </div>
+                <p className="text-[10px] font-mono text-steel break-all bg-canvas p-3 rounded-lg border border-hairline select-all leading-relaxed">
+                  {telemetryUser.user_agent || 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36'}
+                </p>
+              </div>
+
+            </div>
+
+            {/* Footer */}
+            <div className="px-6 py-4 bg-cream border-t border-beige-deep flex justify-end">
+              <button
+                onClick={() => { setIsTelemetryModalOpen(false); setTelemetryUser(null); }}
+                className="button-primary text-xs px-5 h-[36px] font-semibold cursor-pointer"
+              >
+                Close Dashboard
               </button>
             </div>
 

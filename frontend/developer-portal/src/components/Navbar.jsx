@@ -1,6 +1,6 @@
 import React from 'react'
 import { Link, useLocation } from 'react-router-dom'
-import { Terminal, Key, Play, BookOpen, LogOut, CreditCard } from 'lucide-react'
+import { Terminal, Key, Play, BookOpen, LogOut, CreditCard, Compass } from 'lucide-react'
 
 export default function Navbar({ token, user, onLogout }) {
   const location = useLocation()
@@ -13,7 +13,8 @@ export default function Navbar({ token, user, onLogout }) {
       { label: 'Playground', path: '/playground', icon: Play }
     ] : []),
     { label: 'Pricing', path: '/pricing', icon: CreditCard },
-    { label: 'API Reference', path: '/docs', icon: BookOpen }
+    { label: 'API Reference', path: '/docs', icon: BookOpen },
+    { label: 'Roadmap', path: '/roadmap', icon: Compass }
   ]
 
   return (

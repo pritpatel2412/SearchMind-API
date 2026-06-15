@@ -157,9 +157,15 @@ export default function SystemHealthPage() {
               <Server size={14} className="text-accent-blue" />
               API Server
             </div>
-            <div className="flex items-center gap-1 px-2.5 py-0.5 bg-cream rounded-full border border-beige-deep font-mono text-[9px] text-accent-green font-bold uppercase">
-              <span className="w-1.5 h-1.5 rounded-full bg-accent-green animate-pulse mr-1"></span>
-              LIVE
+            <div className={`flex items-center gap-1 px-2.5 py-0.5 rounded-full border font-mono text-[9px] font-bold uppercase ${
+              health && health.status !== 'down'
+                ? 'text-accent-green bg-accent-green/5 border-accent-green/20'
+                : 'text-accent-red bg-accent-red/5 border-accent-red/20'
+            }`}>
+              <span className={`w-1.5 h-1.5 rounded-full mr-1 ${
+                health && health.status !== 'down' ? 'bg-accent-green animate-pulse' : 'bg-accent-red'
+              }`}></span>
+              {health && health.status !== 'down' ? 'LIVE' : 'OFFLINE'}
             </div>
           </div>
 
@@ -170,7 +176,7 @@ export default function SystemHealthPage() {
           </div>
           
           <div className="border-t border-beige-deep/50 pt-2.5 mt-2 flex justify-between font-mono text-[9px] text-slate">
-            <span>Uptime: {health ? formatUptime(health?.api?.details?.uptime_seconds) : 'Loading...'}</span>
+            <span>Uptime: {health && health.status !== 'down' ? formatUptime(health?.api?.details?.uptime_seconds) : 'Offline'}</span>
             <span>Workers: {health?.api?.details?.workers || 4} active</span>
           </div>
         </div>

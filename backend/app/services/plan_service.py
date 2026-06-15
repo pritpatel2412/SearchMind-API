@@ -4,7 +4,7 @@ from app.config import settings
 
 
 PLAN_LIMITS: dict[str, tuple[int, int]] = {
-    "free": (settings.FREE_MONTHLY_LIMIT, settings.FREE_RATE_PER_MIN),
+    "free": (settings.FREE_TOTAL_LIMIT, settings.FREE_RATE_PER_MIN),
     "starter": (settings.STARTER_MONTHLY_LIMIT, settings.STARTER_RATE_PER_MIN),
     "pro": (settings.PRO_MONTHLY_LIMIT, settings.PRO_RATE_PER_MIN),
     "enterprise": (10_000_000, 1000),

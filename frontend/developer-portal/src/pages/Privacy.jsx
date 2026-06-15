@@ -138,13 +138,24 @@ export default function Privacy() {
           </div>
 
           <div className="space-y-4">
-            <h2 className="text-heading-4 text-ink">10. Contact</h2>
-            <p className="text-body-md text-charcoal">
-              For questions or concerns about this Privacy Policy, please contact us at{' '}
-              <a href="mailto:privacy@searchmind.dev" className="text-primary hover:underline font-medium">
-                privacy@searchmind.dev
-              </a>.
+            <h2 className="text-heading-4 text-ink">10. Contact & Beta Disclaimer</h2>
+            <p className="text-body-md text-charcoal leading-relaxed">
+              For any questions, feedback, or inquiries regarding this Privacy Policy or your data, please reach out to our team.
             </p>
+            <div className="bg-[#121210] border border-hairline p-6 rounded-xl text-slate font-mono space-y-3 leading-relaxed text-xs">
+              <p>
+                SearchMind is currently in beta and under active development. We advise against making any payments until the stable version is officially released.
+              </p>
+              <p>
+                Interested in testing features, sharing feedback, or learning more? Contact us at{' '}
+                <a href="mailto:try.prit24@gmail.com" className="text-primary hover:underline font-medium">
+                  try.prit24@gmail.com
+                </a>.
+              </p>
+              <p>
+                Your feedback helps shape the future of SearchMind.
+              </p>
+            </div>
           </div>
 
         </div>

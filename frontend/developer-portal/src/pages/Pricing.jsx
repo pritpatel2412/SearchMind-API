@@ -1,18 +1,95 @@
 import React, { useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Check, Info, Mail, AlertTriangle, HelpCircle, X, ChevronDown } from 'lucide-react'
+import { Check, Info, Mail, AlertTriangle, HelpCircle, X, ChevronDown, Gift } from 'lucide-react'
 
-export default function Pricing() {
+export default function Pricing({ token, user, setUser }) {
   const [billingPeriod, setBillingPeriod] = useState('monthly') // 'monthly' | 'annually'
   const [selectedPlan, setSelectedPlan] = useState(null)
   const [showModal, setShowModal] = useState(false)
+  const [upgrading, setUpgrading] = useState(false)
+  const [upgradeMessage, setUpgradeMessage] = useState('')
   
   // FAQ state
   const [openFaq, setOpenFaq] = useState(null)
 
+  const [couponCode, setCouponCode] = useState('')
+  const [couponLoading, setCouponLoading] = useState(false)
+  const [couponError, setCouponError] = useState('')
+  const [couponSuccess, setCouponSuccess] = useState('')
+
+  const handleRedeemCoupon = async () => {
+    if (!couponCode.trim()) return
+    setCouponLoading(true)
+    setCouponError('')
+    setCouponSuccess('')
+
+    try {
+      const response = await fetch('http://localhost:8000/v1/coupons/redeem', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ code: couponCode.trim().toUpperCase() })
+      })
+      const data = await response.json()
+      if (!response.ok) {
+        throw new Error(data.detail || 'Redemption failed')
+      }
+      setCouponSuccess(`Coupon code '${couponCode.trim().toUpperCase()}' successfully redeemed! Your account has been upgraded to ${data.plan.toUpperCase()}.`)
+      setCouponCode('')
+      
+      if (user && setUser) {
+        setUser({ ...user, plan: data.plan })
+      }
+    } catch (err) {
+      setCouponError(err.message)
+    } finally {
+      setCouponLoading(false)
+    }
+  }
+
   const handlePlanClick = (planName) => {
     setSelectedPlan(planName)
     setShowModal(true)
+    setUpgradeMessage('')
+  }
+
+  const handleActivateUpgrade = async () => {
+    if (!token || !user) {
+      setUpgradeMessage('Please register or log in first to upgrade your plan.')
+      return
+    }
+    setUpgrading(true)
+    setUpgradeMessage('')
+    
+    let planKey = 'free'
+    if (selectedPlan === 'Developer Pro') planKey = 'pro'
+    else if (selectedPlan === 'Scale Enterprise') planKey = 'enterprise'
+    else if (selectedPlan === 'Free Sandbox') planKey = 'free'
+
+    try {
+      const response = await fetch(`http://localhost:8000/admin/users/${user.id}/plan`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ plan: planKey })
+      })
+      const data = await response.json()
+      if (!response.ok) {
+        throw new Error(data.detail || 'Failed to update plan')
+      }
+      
+      const updatedUser = { ...user, plan: planKey }
+      setUser(updatedUser)
+      setUpgradeMessage(`Successfully upgraded to the ${selectedPlan} tier!`)
+      setTimeout(() => setShowModal(false), 2000)
+    } catch (err) {
+      setUpgradeMessage(`Upgrade failed: ${err.message}`)
+    } finally {
+      setUpgrading(false)
+    }
   }
 
   const toggleFaq = (index) => {
@@ -25,9 +102,9 @@ export default function Pricing() {
       price: 0,
       desc: 'Ideal for initial integration tests, sandbox environments, and developer hobbies.',
       features: [
-        '1,000 queries per month',
+        '500 total lifetime credits',
         '5 requests per minute limit',
-        'Basic search depth (snippets only)',
+        'Access to /v1/search only',
         'Standard Trafilatura extraction',
         'Community discord support'
       ],
@@ -42,7 +119,7 @@ export default function Pricing() {
       features: [
         '10,000 queries per month',
         '30 requests per minute limit',
-        'Advanced search depth (full-DOM crawler)',
+        'Access to /v1/extract & /v1/crawl',
         'Dual-tier cache lookup (Redis/Postgres)',
         'Playwright headless client fallback',
         'Priority API support'
@@ -56,10 +133,10 @@ export default function Pricing() {
       price: billingPeriod === 'monthly' ? 99 : 79,
       desc: 'For high-throughput agent loops, continuous domain scraping, and multi-tenant applications.',
       features: [
-        '100,000 queries per month',
-        '120 requests per minute limit',
+        '100,000+ queries per month',
+        '120+ requests per minute limit',
+        'Full access including /v1/research',
         'Parallel Celery crawling tasks',
-        'Custom cache TTL policies',
         'Dedicated proxy servers',
         '99.98% Uptime SLA'
       ],
@@ -109,7 +186,7 @@ export default function Pricing() {
             <span className="font-serif italic text-primary">scaling agent pipelines</span>.
           </h1>
           <p className="text-body-md text-slate leading-relaxed">
-            Start completely free with 1,000 monthly credits. Switch plans as your workload grows. No hidden costs.
+            Start completely free with 500 lifetime credits. Switch plans as your workload grows. No hidden costs.
           </p>
 
           {/* Billing Switcher Tab */}
@@ -195,6 +272,60 @@ export default function Pricing() {
           ))}
         </div>
 
+        {/* Coupon Redemption Section */}
+        <div className="card-base p-8 max-w-xl mx-auto space-y-6 relative overflow-hidden bg-cream/40 border border-beige-deep text-left">
+          <div className="flex items-center gap-2 text-primary font-mono text-xs uppercase font-bold tracking-wider">
+            <Gift size={14} className="animate-pulse" />
+            <span>Redeem Promotion Coupon</span>
+          </div>
+          <div>
+            <h3 className="text-heading-4 text-ink font-semibold">Have a promotion code?</h3>
+            <p className="text-body-sm text-slate mt-1 leading-relaxed">
+              Enter your coupon code below to upgrade your plan and unlock premium features for a limited time.
+            </p>
+          </div>
+
+          {!token ? (
+            <div className="bg-[#121210] border border-hairline p-4 rounded-xl text-center font-mono text-xs text-slate">
+              Please <Link to="/auth?mode=login" className="text-primary hover:underline font-bold">log in</Link> or <Link to="/auth?mode=register" className="text-primary hover:underline font-bold">register</Link> to redeem coupons.
+            </div>
+          ) : (
+            <div className="space-y-4">
+              <div className="flex flex-col sm:flex-row gap-3">
+                <input
+                  type="text"
+                  placeholder="e.g. LAUNCH50"
+                  value={couponCode}
+                  onChange={(e) => setCouponCode(e.target.value)}
+                  disabled={couponLoading}
+                  className="glass-input flex-grow font-mono uppercase"
+                />
+                <button
+                  onClick={handleRedeemCoupon}
+                  disabled={couponLoading || !couponCode.trim()}
+                  className="button-primary font-semibold text-xs tracking-wider uppercase h-[44px] px-6 select-none shrink-0"
+                >
+                  {couponLoading ? 'Validating...' : 'Redeem Code'}
+                </button>
+              </div>
+
+              {couponError && (
+                <div className="p-3 bg-accent-red/5 border border-accent-red/25 rounded-md flex items-start gap-2.5 text-accent-red font-mono text-[11px] leading-relaxed">
+                  <AlertTriangle size={13} className="shrink-0 mt-0.5" />
+                  <span>{couponError}</span>
+                </div>
+              )}
+
+              {couponSuccess && (
+                <div className="p-3 bg-accent-green/5 border border-accent-green/25 rounded-md flex items-start gap-2.5 text-accent-green font-mono text-[11px] leading-relaxed">
+                  <Check size={13} className="shrink-0 mt-0.5" />
+                  <span>{couponSuccess}</span>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+
         {/* FAQs Section */}
         <div className="pt-16 border-t border-hairline max-w-3xl mx-auto space-y-8">
           <div className="text-center space-y-2">
@@ -245,7 +376,7 @@ export default function Pricing() {
               </div>
               <button 
                 onClick={() => setShowModal(false)}
-                className="text-slate hover:text-primary transition-colors"
+                className="text-slate hover:text-primary transition-colors cursor-pointer"
               >
                 <X size={16} />
               </button>
@@ -253,18 +384,23 @@ export default function Pricing() {
 
             <div className="space-y-4 font-sans text-xs text-charcoal leading-relaxed text-left">
               <p>
-                You selected the <strong>{selectedPlan}</strong> plan.
+                You selected the <strong>{selectedPlan}</strong>.
               </p>
-              <p className="bg-cream border border-beige-deep p-4 rounded-lg text-slate font-mono">
-                SearchMind is currently in its active beta validation stage. We are not processing any monetary payments at this time, and the Free Sandbox tier is fully active for all registered tenants.
-              </p>
-              <p>
-                If you require quota upgrades, custom rate limits, or have enterprise partnership inquiries, please get in touch with our team:
-              </p>
+              <div className="bg-[#121210] border border-hairline p-4 rounded-xl text-slate font-mono space-y-3 leading-relaxed">
+                <p>
+                  SearchMind is currently in beta and under active development. We advise against making any payments until the stable version is officially released.
+                </p>
+                <p>
+                  Interested in testing features, sharing feedback, or learning more? Contact us at <a href="mailto:try.prit24@gmail.com" className="text-primary hover:underline">try.prit24@gmail.com</a>.
+                </p>
+                <p>
+                  Your feedback helps shape the future of SearchMind.
+                </p>
+              </div>
             </div>
 
             {/* Email Contact Box */}
-            <div className="flex items-center gap-3 bg-surface-code border border-beige-deep px-4 py-3 rounded-lg font-mono text-xs">
+            <div className="flex items-center gap-3 bg-surface-code border border-hairline px-4 py-3 rounded-lg font-mono text-xs">
               <Mail size={14} className="text-primary shrink-0" />
               <a 
                 href="mailto:try.prit24@gmail.com" 
@@ -277,13 +413,13 @@ export default function Pricing() {
             <div className="flex gap-3 pt-2">
               <a
                 href="mailto:try.prit24@gmail.com"
-                className="button-primary flex-1 font-semibold"
+                className="button-primary flex-1 font-semibold text-center flex items-center justify-center"
               >
                 Contact Team
               </a>
               <button
                 onClick={() => setShowModal(false)}
-                className="button-cream flex-1"
+                className="button-cream flex-1 cursor-pointer"
               >
                 Close Notice
               </button>

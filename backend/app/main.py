@@ -12,7 +12,7 @@ from app.database import SessionLocal, engine, get_db
 from app.db_migrate import run_migrations
 from app.middleware.cors import setup_cors
 from app.redis_client import close_redis, get_redis
-from app.routers import search, extract, crawl, research, usage, api_keys, admin
+from app.routers import search, extract, crawl, research, usage, api_keys, admin, coupons
 from app.routers.auth import router as auth_router
 from app.http_client import get_http_client, close_http_client
 from app.services.cache_service import purge_expired_cached_results
@@ -86,6 +86,7 @@ app.include_router(research.router, prefix="/v1")
 app.include_router(usage.router, prefix="/v1")
 app.include_router(api_keys.router, prefix="/v1")
 app.include_router(admin.router, prefix="/v1")
+app.include_router(coupons.router, prefix="/v1")
 
 
 @app.get("/health", tags=["System"])

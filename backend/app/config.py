@@ -25,7 +25,7 @@ class Settings(BaseSettings):
     LLM_BASE_URL: str = "https://api.groq.com/openai/v1"
 
     # Rate Limits (Requests/min and monthly quotas per monetization plans)
-    FREE_MONTHLY_LIMIT: int = 1000
+    FREE_TOTAL_LIMIT: int = 500
     FREE_RATE_PER_MIN: int = 5
     STARTER_MONTHLY_LIMIT: int = 10000
     STARTER_RATE_PER_MIN: int = 30

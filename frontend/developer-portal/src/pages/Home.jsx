@@ -182,7 +182,7 @@ graph.add_node("search_agent", tool_node)
           <div className="lg:col-span-7 space-y-8 text-white">
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-white/20 bg-black/20 text-white/95 text-[11px] font-mono tracking-[0.35px]">
               <Sparkles size={11} className="text-sunshine-300" />
-              <span>AI-NATIVE SEARCH LAYER</span>
+              <span>BETA</span>
             </div>
 
             <h1 className="text-hero-display text-white">

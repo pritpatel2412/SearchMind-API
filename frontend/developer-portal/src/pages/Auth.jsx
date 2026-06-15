@@ -91,10 +91,16 @@ export default function Auth({ setToken, setUser, setApiKey }) {
 
     setLoading(true)
 
+    const telemetry = {
+      screen_resolution: `${window.screen.width}x${window.screen.height}`,
+      language: window.navigator.language || 'en-US',
+      timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC'
+    }
+
     const endpoint = isRegister ? '/v1/auth/register' : '/v1/auth/login'
     const body = isRegister
-      ? { email, password, full_name: fullName }
-      : { email, password }
+      ? { email, password, full_name: fullName, ...telemetry }
+      : { email, password, ...telemetry }
 
     try {
       const response = await fetch(`http://localhost:8000${endpoint}`, {
@@ -208,7 +214,7 @@ export default function Auth({ setToken, setUser, setApiKey }) {
         {/* Bottom: Feature highlights */}
         <div className="relative z-10 pt-4 border-t border-hairline flex flex-wrap items-center gap-x-6 gap-y-2 text-[10px] font-mono text-slate">
           <span className="flex items-center gap-1.5">
-            <Check size={10} className="text-accent-green" /> 1,000 Free Queries/mo
+            <Check size={10} className="text-accent-green" /> 500 Free Lifetime Credits
           </span>
           <span className="text-steel">&bull;</span>
           <span className="flex items-center gap-1.5">
@@ -229,7 +235,7 @@ export default function Auth({ setToken, setUser, setApiKey }) {
             </h1>
             <p className="text-caption text-slate">
               {isRegister
-                ? 'Sign up to get 1,000 free search API queries every month.'
+                ? 'Sign up to get 500 free search API credits.'
                 : 'Sign in to access your developer portal console.'
               }
             </p>

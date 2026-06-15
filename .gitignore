@@ -53,5 +53,16 @@ Thumbs.db
 # Extra files to be ignored
 project_analysis.md
 antigravity_ai_search_platform_prompt.md
+SEARCHMIND_DESIGN_PROMPT.md
 
-    
+# One-off migration and debug scripts (handled by Alembic)
+backend/migrate_ip.py
+backend/migrate_user_analytics.py
+backend/migrate_coupons.py
+backend/check_db_ip.py
+backend/test_ip.py
+backend/upgrade_user.py
+backend/verify_coupons.py
+
+# Pytest cache
+.pytest_cache/

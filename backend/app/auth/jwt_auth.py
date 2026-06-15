@@ -76,4 +76,7 @@ async def get_current_user(
     if user is None:
         raise credentials_exception
 
+    from app.services.coupon_service import check_and_apply_coupon_expiration
+    await check_and_apply_coupon_expiration(user, db)
+
     return user

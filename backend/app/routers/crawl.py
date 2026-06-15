@@ -88,6 +88,9 @@ async def crawl(
     Trigger a background crawler job for a specific URL domain.
     Poll status and results with ``GET /v1/crawl/{task_id}``.
     """
+    if getattr(api_key.user, "plan", "free") == "free":
+        raise HTTPException(status_code=403, detail="Crawl endpoint requires a Pro or Enterprise plan.")
+
     await enforce_rate_limits(http_request, api_key, db)
 
     start_time = time.time()

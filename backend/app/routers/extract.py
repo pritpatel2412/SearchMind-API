@@ -1,7 +1,7 @@
 import asyncio
 import hashlib
 import time
-from fastapi import APIRouter, Depends, Request
+from fastapi import APIRouter, Depends, Request, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from typing import List, Optional
 
@@ -84,6 +84,9 @@ async def extract(
     Extract clean readable text and metadata from one or more URLs.
     Supports optional JS rendering via Playwright chromium browser.
     """
+    if getattr(api_key.user, "plan", "free") == "free":
+        raise HTTPException(status_code=403, detail="Extract endpoint requires a Pro or Enterprise plan.")
+
     # 1. Rate limiter check
     await enforce_rate_limits(http_request, api_key, db)
 

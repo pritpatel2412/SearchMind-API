@@ -58,7 +58,7 @@ export default function Terms() {
                 <tbody className="text-ink bg-cream-soft">
                   <tr className="border-b border-beige-deep/50">
                     <td className="px-4 py-3 text-ink font-semibold">Free</td>
-                    <td className="px-4 py-3">1,000</td>
+                    <td className="px-4 py-3">500 (lifetime)</td>
                     <td className="px-4 py-3">5 req/min</td>
                   </tr>
                   <tr className="border-b border-beige-deep/50">
@@ -67,9 +67,9 @@ export default function Terms() {
                     <td className="px-4 py-3">30 req/min</td>
                   </tr>
                   <tr>
-                    <td className="px-4 py-3 text-ink font-semibold">Pro</td>
-                    <td className="px-4 py-3">100,000</td>
-                    <td className="px-4 py-3">100 req/min</td>
+                    <td className="px-4 py-3 text-ink font-semibold">Pro / Enterprise</td>
+                    <td className="px-4 py-3">100,000+</td>
+                    <td className="px-4 py-3">120+ req/min</td>
                   </tr>
                 </tbody>
               </table>
@@ -135,13 +135,24 @@ export default function Terms() {
           </div>
 
           <div className="space-y-4">
-            <h2 className="text-heading-4 text-ink">10. Contact</h2>
-            <p className="text-body-md text-charcoal">
-              For questions about these Terms, please contact us at{' '}
-              <a href="mailto:legal@searchmind.dev" className="text-primary hover:underline font-medium">
-                legal@searchmind.dev
-              </a>.
+            <h2 className="text-heading-4 text-ink">10. Contact & Beta Disclaimer</h2>
+            <p className="text-body-md text-charcoal leading-relaxed">
+              For any questions, feedback, or inquiries regarding these Terms or the platform itself, please reach out to our team.
             </p>
+            <div className="bg-[#121210] border border-hairline p-6 rounded-xl text-slate font-mono space-y-3 leading-relaxed text-xs">
+              <p>
+                SearchMind is currently in beta and under active development. We advise against making any payments until the stable version is officially released.
+              </p>
+              <p>
+                Interested in testing features, sharing feedback, or learning more? Contact us at{' '}
+                <a href="mailto:try.prit24@gmail.com" className="text-primary hover:underline font-medium">
+                  try.prit24@gmail.com
+                </a>.
+              </p>
+              <p>
+                Your feedback helps shape the future of SearchMind.
+              </p>
+            </div>
           </div>
 
         </div>
