@@ -47,7 +47,7 @@ export default function Dashboard({ token, user, apiKey, setApiKey }) {
     if (!token) return
     setLogsLoading(true)
     try {
-      const response = await fetch('http://localhost:8000/v1/logs?limit=4', {
+      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/v1/logs?limit=4`, {
         headers: { 'Authorization': `Bearer ${token}` }
       })
       if (!response.ok) throw new Error('Failed to load activity logs')
@@ -72,7 +72,7 @@ export default function Dashboard({ token, user, apiKey, setApiKey }) {
     if (!token) return
     setLoading(true)
     try {
-      const response = await fetch('http://localhost:8000/v1/usage', {
+      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/v1/usage`, {
         headers: { 'Authorization': `Bearer ${token}` }
       })
       if (!response.ok) throw new Error('Failed to load usage data')
@@ -89,7 +89,7 @@ export default function Dashboard({ token, user, apiKey, setApiKey }) {
     if (!token) return
     setKeysLoading(true)
     try {
-      const response = await fetch('http://localhost:8000/v1/api-keys', {
+      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/v1/api-keys`, {
         headers: { 'Authorization': `Bearer ${token}` }
       })
       if (!response.ok) throw new Error('Failed to load API keys')
@@ -120,7 +120,7 @@ export default function Dashboard({ token, user, apiKey, setApiKey }) {
     if (!newKeyName.trim()) return
 
     try {
-      const response = await fetch('http://localhost:8000/v1/api-keys', {
+      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/v1/api-keys`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -145,7 +145,7 @@ export default function Dashboard({ token, user, apiKey, setApiKey }) {
 
   const handleRevokeKey = async (keyId) => {
     try {
-      const response = await fetch(`http://localhost:8000/v1/api-keys/${keyId}`, {
+      const response = await fetch(`${import.meta.env.VITE_API_URL || `${import.meta.env.VITE_API_URL || 'http://localhost:8000'}`}/v1/api-keys/${keyId}`, {
         method: 'DELETE',
         headers: { 'Authorization': `Bearer ${token}` }
       })
@@ -168,7 +168,7 @@ export default function Dashboard({ token, user, apiKey, setApiKey }) {
   const activeKeyDisplay = apiKey || (keys.length > 0 ? `${keys[0].key_prefix}••••••••••••••••••••••••••••` : 'sm_live_your_api_key_here')
 
   const codeSnippets = {
-    curl: `curl -X POST "http://localhost:8000/v1/search" \\
+    curl: `curl -X POST `${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/v1/search` \\
   -H "X-API-Key: ${activeKeyDisplay}" \\
   -H "Content-Type: application/json" \\
   -d '{
