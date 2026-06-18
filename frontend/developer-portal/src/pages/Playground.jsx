@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import { 
   Play, Sparkles, AlertCircle, Clock, Database, ExternalLink, Copy, Check, 
-  Download, Terminal, Search, Globe, Calendar, BookOpen, GitBranch, Sliders, Settings2, Cpu, Layers, X
+  Download, Terminal, Search, Globe, Calendar, BookOpen, GitBranch, Sliders, Settings2, Cpu, Layers, X, Lock
 } from 'lucide-react'
 
 // Theme config for endpoints
@@ -117,12 +117,12 @@ export default function Playground({ token, user, setUser, apiKey }) {
   const userPlan = (user?.plan || 'free').toLowerCase()
 
   // Authorization checks
-  const isAuthorized = () => {
-    if (endpoint === '/v1/search') return true
-    if (endpoint === '/v1/extract' || endpoint === '/v1/crawl') {
+  const isAuthorized = (targetEndpoint = endpoint) => {
+    if (targetEndpoint === '/v1/search') return true
+    if (targetEndpoint === '/v1/extract' || targetEndpoint === '/v1/crawl') {
       return userPlan === 'pro' || userPlan === 'enterprise'
     }
-    if (endpoint === '/v1/research') {
+    if (targetEndpoint === '/v1/research') {
       return userPlan === 'enterprise'
     }
     return true
@@ -378,27 +378,33 @@ export default function Playground({ token, user, setUser, apiKey }) {
                 const Icon = item.icon
                 const isActive = endpoint === item.path
                 const itemConf = configs[item.path]
+                const locked = !isAuthorized(item.path)
                 return (
                   <button
                     key={item.path}
                     type="button"
+                    disabled={locked}
                     onClick={() => {
                       setEndpoint(item.path)
                       setResults(null)
                       setError('')
                       setUpgradeMsg('')
                     }}
-                    className={`p-3.5 rounded-xl border text-left transition-all duration-300 relative group flex flex-col justify-between h-22 cursor-pointer ${
-                      isActive 
-                        ? `${itemConf.bgClass} ${itemConf.activeBorder} ${itemConf.glowClass}` 
-                        : 'bg-surface-code/30 border-hairline hover:border-hairline-strong hover:bg-surface-code/50'
+                    className={`p-3.5 rounded-xl border text-left transition-all duration-300 relative group flex flex-col justify-between h-22 ${
+                      locked 
+                        ? 'opacity-50 cursor-not-allowed bg-surface-code/20 border-hairline' 
+                        : isActive 
+                          ? `${itemConf.bgClass} ${itemConf.activeBorder} ${itemConf.glowClass} cursor-pointer` 
+                          : 'bg-surface-code/30 border-hairline hover:border-hairline-strong hover:bg-surface-code/50 cursor-pointer'
                     }`}
                   >
                     <div className="flex items-center justify-between w-full">
                       <span className={`p-2 rounded-lg transition-colors ${isActive ? 'bg-[#0c0c0b] border border-hairline-strong ' + itemConf.colorClass : 'bg-[#0c0c0b]/40 border border-hairline text-slate group-hover:text-ink'}`}>
                         <Icon size={13} />
                       </span>
-                      {isActive && (
+                      {locked ? (
+                        <span className="text-slate/60"><Lock size={12} /></span>
+                      ) : isActive && (
                         <span className="w-1.5 h-1.5 rounded-full animate-pulse" style={{ backgroundColor: itemConf.accentColor }}></span>
                       )}
                     </div>
@@ -463,6 +469,23 @@ export default function Playground({ token, user, setUser, apiKey }) {
                       value={query}
                       onChange={(e) => setQuery(e.target.value)}
                     />
+                  </div>
+                  <div className="flex flex-wrap gap-2 mt-1">
+                    {[
+                      "Latest breakthroughs in Quantum Computing",
+                      "Current interest rates and economic outlook",
+                      "How to optimize React performance"
+                    ].map((q, i) => (
+                      <button
+                        key={i}
+                        type="button"
+                        disabled={!isAuthorized()}
+                        onClick={() => setQuery(q)}
+                        className="text-[10px] bg-surface-code/50 border border-hairline hover:border-hairline-strong text-slate hover:text-ink px-2.5 py-1.5 rounded-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        {q}
+                      </button>
+                    ))}
                   </div>
                 </div>
 
@@ -639,6 +662,23 @@ export default function Playground({ token, user, setUser, apiKey }) {
                       value={researchQuery}
                       onChange={(e) => setResearchQuery(e.target.value)}
                     />
+                  </div>
+                  <div className="flex flex-wrap gap-2 mt-1">
+                    {[
+                      "Comprehensive analysis of autonomous AI agents",
+                      "Market research on the electric vehicle industry",
+                      "Impact of new SEC climate disclosure rules"
+                    ].map((q, i) => (
+                      <button
+                        key={i}
+                        type="button"
+                        disabled={!isAuthorized()}
+                        onClick={() => setResearchQuery(q)}
+                        className="text-[10px] bg-surface-code/50 border border-hairline hover:border-hairline-strong text-slate hover:text-ink px-2.5 py-1.5 rounded-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        {q}
+                      </button>
+                    ))}
                   </div>
                 </div>
 
