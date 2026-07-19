@@ -33,6 +33,7 @@ class SearchResult(BaseModel):
     published_date: Optional[str] = None
     source_type: str = "webpage"
     author: Optional[str] = None
+    extraction_status: str = "ok"
 
 class Citation(BaseModel):
     index: int

@@ -6,6 +6,7 @@ from typing import Optional
 
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.services.progress_emitter import ProgressEmitter
+from app.utils.bot_wall_detector import is_blocked_content
 
 from app.services.search_provider import web_search
 from app.services.fetch_service import fetch_url_content
@@ -88,7 +89,8 @@ async def perform_search(req: SearchRequest, db: Optional[AsyncSession] = None) 
             score=r.get("score", 0.5),
             published_date=r.get("published_date"),
             source_type=r.get("source_type", "webpage"),
-            author=r.get("author")
+            author=r.get("author"),
+            extraction_status=r.get("extraction_status", "ok")
         )
         for r in ranked
     ]
@@ -163,7 +165,8 @@ async def perform_search_streaming(req: SearchRequest, emitter: ProgressEmitter,
         SearchResult(
             title=r.get("title", ""), url=r.get("url", ""), content=r.get("content", ""),
             score=r.get("score", 0.5), published_date=r.get("published_date"),
-            source_type=r.get("source_type", "webpage"), author=r.get("author")
+            source_type=r.get("source_type", "webpage"), author=r.get("author"),
+            extraction_status=r.get("extraction_status", "ok")
         )
         for r in ranked
     ]
@@ -188,23 +191,40 @@ async def enrich_result(result: dict, emitter: Optional["ProgressEmitter"] = Non
         await emitter.emit("progress", {"stage": "fetch", "url": result["url"], "status": "start"})
     try:
         html = await fetch_url_content(result["url"], emitter=emitter)
-        if html:
-            extracted = extract_content(html, result["url"])
-            result.update({
-                "content": extracted.get("content", result.get("snippet", "")),
-                "author": extracted.get("author"),
-                "published_date": result.get("published_date") or extracted.get("published_date"),
-                "extraction_method": extracted.get("extraction_method")
-            })
+        if not html:
+            result["content"] = result.get("snippet", "")
+            result["extraction_status"] = "fetch_failed"
+            return result
+
+        extracted = extract_content(html, result["url"])
+        extracted_content = extracted.get("content", "")
+
+        if is_blocked_content(extracted_content):
+            result["content"] = result.get("snippet", "")
+            result["extraction_status"] = "blocked_fallback_to_snippet"
             if emitter:
                 await emitter.emit("progress", {
                     "stage": "extract", "url": result["url"],
+                    "status": "blocked", "fallback": "snippet"
+                })
+        else:
+            result.update({
+                "content": extracted_content,
+                "author": extracted.get("author"),
+                "published_date": result.get("published_date") or extracted.get("published_date"),
+                "extraction_method": extracted.get("extraction_method"),
+            })
+            result["extraction_status"] = "ok"
+            if emitter:
+                await emitter.emit("progress", {
+                    "stage": "extract", "url": result["url"], "status": "done",
                     "method": extracted.get("extraction_method"),
-                    "word_count": len(extracted.get("content", "").split())
+                    "word_count": len(extracted_content.split())
                 })
     except Exception as e:
         logger.debug(f"Failed to enrich result for {result.get('url')}: {e}")
         result["content"] = result.get("snippet", "")
+        result["extraction_status"] = "error"
         if emitter:
             await emitter.emit("error", {"stage": "fetch", "url": result["url"], "message": str(e)})
     return result

@@ -7,6 +7,7 @@ from typing import List, Optional
 from app.services.progress_emitter import ProgressEmitter
 from app.utils.sse import queue_to_sse
 from fastapi.responses import StreamingResponse
+from app.utils.bot_wall_detector import is_blocked_content
 
 from app.schemas.research import ResearchRequest, ResearchSource, ResearchResponse
 from app.services.search_provider import web_search
@@ -134,18 +135,39 @@ async def extract_for_research(result: dict, emitter: Optional[ProgressEmitter] 
         if emitter:
             await emitter.emit("progress", {"stage": "fetch", "url": result["url"], "status": "start"})
         html = await fetch_url_content(result["url"], emitter=emitter)
-        if html:
+        if not html:
+            result["content"] = result.get("snippet", "")
+            result["extraction_status"] = "fetch_failed"
+            return result
+
+        if emitter:
+            await emitter.emit("progress", {"stage": "extract", "url": result["url"], "status": "start"})
+        
+        extracted = extract_content(html, result["url"])
+        extracted_content = extracted.get("content", "")
+
+        if is_blocked_content(extracted_content):
+            result["content"] = result.get("snippet", "")
+            result["extraction_status"] = "blocked_fallback_to_snippet"
             if emitter:
-                await emitter.emit("progress", {"stage": "extract", "url": result["url"], "status": "start"})
-            extracted = extract_content(html, result["url"])
-            result["content"] = extracted.get("content", "")
+                await emitter.emit("progress", {
+                    "stage": "extract", "url": result["url"],
+                    "status": "blocked", "fallback": "snippet"
+                })
+        else:
+            result["content"] = extracted_content
             result["author"] = extracted.get("author")
             result["published_date"] = result.get("published_date") or extracted.get("published_date")
+            result["extraction_status"] = "ok"
             if emitter:
-                await emitter.emit("progress", {"stage": "extract", "url": result["url"], "status": "done", "word_count": len(result["content"].split())})
+                await emitter.emit("progress", {
+                    "stage": "extract", "url": result["url"], "status": "done",
+                    "word_count": len(extracted_content.split())
+                })
     except Exception as e:
         logger.debug(f"Deep research enrichment failed for {result.get('url')}: {e}")
         result["content"] = result.get("snippet", "")
+        result["extraction_status"] = "error"
         if emitter:
             await emitter.emit("error", {"stage": "fetch", "url": result["url"], "message": str(e)})
     return result
