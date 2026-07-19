@@ -20,13 +20,15 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libatspi2.0-0 \
     libcups2 \
     fonts-liberation \
+    libxkbcommon0 \
+    libxfixes3 \
     && rm -rf /var/lib/apt/lists/*
 
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Install Playwright Chromium browser
-RUN playwright install --with-deps chromium
+RUN playwright install chromium
 
 COPY . .
 
