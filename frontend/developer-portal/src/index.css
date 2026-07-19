@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,200..800;1,6..72,200..800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Inter:wght@400;500;600&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -12,7 +12,6 @@
   
   h1, h2, h3, h4, h5, h6 {
     @apply font-display tracking-tight text-ink;
-    font-feature-settings: "ss01", "ss04", "ss11", "liga";
   }
 }
 
@@ -124,115 +123,115 @@
   /* Strict typography classes */
   .text-hero-display {
     font-size: 84px;
-    font-weight: 400;
+    font-weight: 700;
     line-height: 1.05;
     letter-spacing: -1.5px;
-    font-family: 'Newsreader', serif;
+    font-family: 'Outfit', sans-serif;
   }
   .text-display-lg {
     font-size: 64px;
-    font-weight: 400;
+    font-weight: 600;
     line-height: 1.10;
     letter-spacing: -1px;
-    font-family: 'Newsreader', serif;
+    font-family: 'Outfit', sans-serif;
   }
   .text-heading-1 {
     font-size: 52px;
-    font-weight: 400;
+    font-weight: 600;
     line-height: 1.15;
     letter-spacing: -0.5px;
-    font-family: 'Newsreader', serif;
+    font-family: 'Outfit', sans-serif;
   }
   .text-stat-display {
     font-size: 56px;
-    font-weight: 400;
+    font-weight: 600;
     line-height: 1.10;
     letter-spacing: -1px;
-    font-family: 'Newsreader', serif;
+    font-family: 'Outfit', sans-serif;
   }
   .text-heading-2 {
     font-size: 36px;
-    font-weight: 500;
+    font-weight: 600;
     line-height: 1.20;
     letter-spacing: -0.5px;
-    font-family: 'Newsreader', serif;
+    font-family: 'Outfit', sans-serif;
   }
   .text-heading-3 {
     font-size: 28px;
     font-weight: 500;
     line-height: 1.25;
     letter-spacing: 0;
-    font-family: 'Newsreader', serif;
+    font-family: 'Outfit', sans-serif;
   }
   .text-heading-4 {
     font-size: 22px;
     font-weight: 500;
     line-height: 1.30;
     letter-spacing: 0;
-    font-family: 'Newsreader', serif;
+    font-family: 'Outfit', sans-serif;
   }
   .text-heading-5 {
     font-size: 18px;
     font-weight: 500;
     line-height: 1.40;
     letter-spacing: 0;
-    font-family: 'Newsreader', serif;
+    font-family: 'Outfit', sans-serif;
   }
   .text-subtitle {
     font-size: 18px;
     font-weight: 400;
     line-height: 1.50;
     letter-spacing: 0;
-    font-family: 'Newsreader', serif;
+    font-family: 'Inter', sans-serif;
   }
   .text-body-md {
     font-size: 16px;
     font-weight: 400;
     line-height: 1.55;
     letter-spacing: 0;
-    font-family: 'Newsreader', serif;
+    font-family: 'Inter', sans-serif;
   }
   .text-body-md-medium {
     font-size: 16px;
     font-weight: 500;
     line-height: 1.55;
     letter-spacing: 0;
-    font-family: 'Newsreader', serif;
+    font-family: 'Inter', sans-serif;
   }
   .text-body-sm {
     font-size: 14px;
     font-weight: 400;
     line-height: 1.50;
     letter-spacing: 0;
-    font-family: 'Newsreader', serif;
+    font-family: 'Inter', sans-serif;
   }
   .text-body-sm-medium {
     font-size: 14px;
     font-weight: 500;
     line-height: 1.50;
     letter-spacing: 0;
-    font-family: 'Newsreader', serif;
+    font-family: 'Inter', sans-serif;
   }
   .text-caption {
     font-size: 13px;
     font-weight: 400;
     line-height: 1.40;
     letter-spacing: 0;
-    font-family: 'Newsreader', serif;
+    font-family: 'Inter', sans-serif;
   }
   .text-caption-bold {
     font-size: 13px;
     font-weight: 600;
     line-height: 1.40;
     letter-spacing: 0;
-    font-family: 'Newsreader', serif;
+    font-family: 'Inter', sans-serif;
   }
   .text-micro {
     font-size: 12px;
     font-weight: 500;
     line-height: 1.40;
     letter-spacing: 0;
-    font-family: 'Newsreader', serif;
+    font-family: 'Inter', sans-serif;
   }
   .text-micro-uppercase {
     font-size: 11px;
@@ -240,14 +239,14 @@
     line-height: 1.40;
     letter-spacing: 1px;
     text-transform: uppercase;
-    font-family: 'Newsreader', serif;
+    font-family: 'Inter', sans-serif;
   }
   .text-button-md {
     font-size: 14px;
     font-weight: 500;
     line-height: 1.30;
     letter-spacing: 0;
-    font-family: 'Newsreader', serif;
+    font-family: 'Inter', sans-serif;
   }
   .text-code-md {
     font-size: 14px;
@@ -283,7 +282,7 @@
   gap: 12px;
   padding: 10px 0;
   border-bottom: 1px solid rgba(255,255,255,0.06);
-  font-family: 'Newsreader', serif;
+  font-family: 'Inter', sans-serif;
 }
 
 .feed-index {
