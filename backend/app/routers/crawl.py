@@ -45,9 +45,13 @@ def _celery_available() -> bool:
 
 async def _run_inline_crawl(task_id: str, url: str, max_depth: int, max_pages: int) -> None:
     """Run the crawl logic in-process (no Celery) and store results in memory."""
+    class DummyEmitter:
+        def emit(self, event: str, data: dict):
+            pass
+            
     try:
         from app.workers.tasks import async_crawl
-        result = await async_crawl(url, max_depth, max_pages)
+        result = await async_crawl(url, max_depth, max_pages, emitter=DummyEmitter())
         _in_memory_crawl_results[task_id] = {
             "state": "SUCCESS",
             "ready": True,
@@ -193,14 +197,19 @@ async def crawl(
     use_celery = _celery_available()
 
     if use_celery:
-        from app.workers.tasks import crawl_url_task
-        task = crawl_url_task.delay(
-            url=request.url,
-            max_depth=request.max_depth,
-            max_pages=request.max_pages,
-        )
-        task_id = task.id
-    else:
+        try:
+            from app.workers.tasks import crawl_url_task
+            task = crawl_url_task.delay(
+                url=request.url,
+                max_depth=request.max_depth,
+                max_pages=request.max_pages,
+            )
+            task_id = task.id
+        except Exception as e:
+            logger.error("Celery delay failed: %s", e)
+            use_celery = False
+
+    if not use_celery:
         # Generate a task ID and launch inline
         import uuid
         task_id = str(uuid.uuid4())
