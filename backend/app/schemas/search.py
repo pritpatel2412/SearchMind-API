@@ -25,6 +25,7 @@ class SearchRequest(BaseModel):
     time_range: Optional[str] = Field(default=None, description="pd=day, pw=week, pm=month, py=year")
     max_content_length: int = Field(default=2000, ge=100, le=10000)
     vectorize: bool = Field(default=False, description="If true, returns semantic chunks and embeddings")
+    extract_images: bool = Field(default=False, description="If true, uses Vision models to transcribe images into text")
 
 class SearchResult(BaseModel):
     title: str

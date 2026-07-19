@@ -29,6 +29,7 @@ async def process_single_url(
     max_content_length: int,
     db: AsyncSession,
     vectorize: bool = False,
+    extract_images: bool = False,
     emitter: Optional[ProgressEmitter] = None
 ) -> ExtractedPage:
     cache_key = "extract:" + hashlib.sha256(url.encode()).hexdigest()
@@ -42,7 +43,7 @@ async def process_single_url(
     try:
         if emitter:
             await emitter.emit("progress", {"stage": "fetch", "url": url, "status": "start"})
-        html = await fetch_url_content(url, use_js=use_js, emitter=emitter)
+        html = await fetch_url_content(url, use_js=use_js, extract_images=extract_images, emitter=emitter)
         if not html:
             return ExtractedPage(
                 url=url, title=None, content="", author=None,
@@ -116,7 +117,7 @@ async def extract(
 
     # Process all URLs concurrently (limited to 10 URLs per batch request)
     tasks = [
-        process_single_url(url, request.use_js_rendering, request.max_content_length, db, request.vectorize)
+        process_single_url(url, request.use_js_rendering, request.max_content_length, db, request.vectorize, request.extract_images)
         for url in request.urls[:10]
     ]
     results = await asyncio.gather(*tasks)
@@ -169,7 +170,7 @@ async def extract_stream(
         try:
             start_time = time.time()
             tasks = [
-                process_single_url(url, request.use_js_rendering, request.max_content_length, db, request.vectorize, emitter)
+                process_single_url(url, request.use_js_rendering, request.max_content_length, db, request.vectorize, request.extract_images, emitter)
                 for url in request.urls[:10]
             ]
             results = await asyncio.gather(*tasks)
