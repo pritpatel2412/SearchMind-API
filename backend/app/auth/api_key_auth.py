@@ -49,6 +49,7 @@ async def get_current_api_key(
                         APIKey.user_id == user.id,
                         APIKey.is_active == True
                     )
+                )
                 key_obj = result.scalars().first()
                 
                 # If no active key exists for the user, create a default playground key on the fly
