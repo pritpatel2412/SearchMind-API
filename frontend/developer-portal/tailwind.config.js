@@ -68,8 +68,8 @@ export default {
         }
       },
       fontFamily: {
-        sans: ['Inter', 'ui-sans-serif', 'system-ui', '-apple-system', 'sans-serif'],
-        'sans-tight': ['Inter Tight', 'Inter', 'sans-serif'],
+        sans: ['Newsreader', 'Playfair Display', 'Georgia', 'serif'],
+        'sans-tight': ['Newsreader', 'Georgia', 'serif'],
         display: ['Newsreader', 'Playfair Display', 'Georgia', 'serif'],
         mono: ['JetBrains Mono', 'monospace']
       },
