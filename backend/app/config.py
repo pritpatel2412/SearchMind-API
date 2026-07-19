@@ -23,6 +23,9 @@ class Settings(BaseSettings):
     LLM_API_KEY: Optional[str] = ""
     LLM_MODEL: str = "openai/gpt-oss-120b"
     LLM_BASE_URL: str = "https://api.groq.com/openai/v1"
+    
+    # OpenAI Embedding Key
+    OPENAI_API_KEY: Optional[str] = ""
 
     # Rate Limits (Requests/min and monthly quotas per monetization plans)
     FREE_TOTAL_LIMIT: int = 500

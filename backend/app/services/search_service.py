@@ -15,6 +15,7 @@ from app.services.rank_service import rank_results
 from app.services.ai_service import synthesize_answer
 from app.services.cache_service import get_cached, set_cached
 from app.services.safety_service import filter_safe_results
+from app.services.embedding_service import embedding_service
 from app.schemas.search import SearchRequest, SearchResponse, SearchResult
 from app.config import settings
 
@@ -30,7 +31,8 @@ async def perform_search(req: SearchRequest, db: Optional[AsyncSession] = None) 
         "search_depth": req.search_depth, 
         "include_domains": req.include_domains,
         "exclude_domains": req.exclude_domains, 
-        "topic": req.topic
+        "topic": req.topic,
+        "vectorize": req.vectorize
     }
     cache_key = "search:" + hashlib.sha256(json.dumps(cache_payload, sort_keys=True).encode()).hexdigest()
 
@@ -80,6 +82,19 @@ async def perform_search(req: SearchRequest, db: Optional[AsyncSession] = None) 
     # 8. Build citations
     citations = build_citations(ranked) if req.include_raw_content else []
 
+    # 8.5 Vectorize if requested
+    if req.vectorize:
+        vector_tasks = []
+        for r in ranked:
+            content = r.get("content", "")
+            if content:
+                vector_tasks.append(embedding_service.vectorize_text(content))
+            else:
+                vector_tasks.append(asyncio.sleep(0, result=None)) # dummy task
+        vectors_results = await asyncio.gather(*vector_tasks)
+        for i, r in enumerate(ranked):
+            r["vectors"] = vectors_results[i]
+
     # 9. Assemble response model
     search_results = [
         SearchResult(
@@ -90,7 +105,8 @@ async def perform_search(req: SearchRequest, db: Optional[AsyncSession] = None) 
             published_date=r.get("published_date"),
             source_type=r.get("source_type", "webpage"),
             author=r.get("author"),
-            extraction_status=r.get("extraction_status", "ok")
+            extraction_status=r.get("extraction_status", "ok"),
+            vectors=r.get("vectors")
         )
         for r in ranked
     ]
@@ -121,7 +137,8 @@ async def perform_search_streaming(req: SearchRequest, emitter: ProgressEmitter,
     cache_payload = {
         "query": req.query, "num_results": req.num_results,
         "search_depth": req.search_depth, "include_domains": req.include_domains,
-        "exclude_domains": req.exclude_domains, "topic": req.topic
+        "exclude_domains": req.exclude_domains, "topic": req.topic,
+        "vectorize": req.vectorize
     }
     cache_key = "search:" + hashlib.sha256(json.dumps(cache_payload, sort_keys=True).encode()).hexdigest()
 
@@ -161,12 +178,27 @@ async def perform_search_streaming(req: SearchRequest, emitter: ProgressEmitter,
 
     citations = build_citations(ranked) if req.include_raw_content else []
 
+    if req.vectorize:
+        await emitter.emit("progress", {"stage": "vectorize", "status": "start"})
+        vector_tasks = []
+        for r in ranked:
+            content = r.get("content", "")
+            if content:
+                vector_tasks.append(embedding_service.vectorize_text(content))
+            else:
+                vector_tasks.append(asyncio.sleep(0, result=None))
+        vectors_results = await asyncio.gather(*vector_tasks)
+        for i, r in enumerate(ranked):
+            r["vectors"] = vectors_results[i]
+        await emitter.emit("progress", {"stage": "vectorize", "status": "done"})
+
     search_results = [
         SearchResult(
             title=r.get("title", ""), url=r.get("url", ""), content=r.get("content", ""),
             score=r.get("score", 0.5), published_date=r.get("published_date"),
             source_type=r.get("source_type", "webpage"), author=r.get("author"),
-            extraction_status=r.get("extraction_status", "ok")
+            extraction_status=r.get("extraction_status", "ok"),
+            vectors=r.get("vectors")
         )
         for r in ranked
     ]

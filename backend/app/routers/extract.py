@@ -10,6 +10,7 @@ from app.services.fetch_service import fetch_url_content
 from app.services.extract_service import extract_content
 from app.auth.api_key_auth import get_current_api_key
 from app.services.progress_emitter import ProgressEmitter
+from app.services.embedding_service import embedding_service
 from app.utils.sse import queue_to_sse
 from fastapi.responses import StreamingResponse
 from app.middleware.rate_limiter import enforce_rate_limits
@@ -27,6 +28,7 @@ async def process_single_url(
     use_js: bool,
     max_content_length: int,
     db: AsyncSession,
+    vectorize: bool = False,
     emitter: Optional[ProgressEmitter] = None
 ) -> ExtractedPage:
     cache_key = "extract:" + hashlib.sha256(url.encode()).hexdigest()
@@ -52,6 +54,14 @@ async def process_single_url(
             await emitter.emit("progress", {"stage": "extract", "url": url, "status": "start"})
         extracted = extract_content(html, url)
         content = extracted["content"][:max_content_length]
+        vectors = None
+        if vectorize and content:
+            if emitter:
+                await emitter.emit("progress", {"stage": "vectorize", "url": url, "status": "start"})
+            vectors = await embedding_service.vectorize_text(content)
+            if emitter:
+                await emitter.emit("progress", {"stage": "vectorize", "url": url, "status": "done"})
+
         page = ExtractedPage(
             url=url,
             title=extracted.get("title", ""),
@@ -61,7 +71,8 @@ async def process_single_url(
             language=extracted.get("language"),
             word_count=len(content.split()),
             extraction_method=extracted.get("extraction_method", "unknown"),
-            success=True
+            success=True,
+            vectors=vectors
         )
         
         if emitter:
@@ -105,7 +116,7 @@ async def extract(
 
     # Process all URLs concurrently (limited to 10 URLs per batch request)
     tasks = [
-        process_single_url(url, request.use_js_rendering, request.max_content_length, db)
+        process_single_url(url, request.use_js_rendering, request.max_content_length, db, request.vectorize)
         for url in request.urls[:10]
     ]
     results = await asyncio.gather(*tasks)
@@ -158,7 +169,7 @@ async def extract_stream(
         try:
             start_time = time.time()
             tasks = [
-                process_single_url(url, request.use_js_rendering, request.max_content_length, db, emitter)
+                process_single_url(url, request.use_js_rendering, request.max_content_length, db, request.vectorize, emitter)
                 for url in request.urls[:10]
             ]
             results = await asyncio.gather(*tasks)
