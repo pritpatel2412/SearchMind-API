@@ -18,3 +18,5 @@ python-multipart==0.0.12
 bcrypt==4.2.1
 python-jose[cryptography]==3.3.0
 duckduckgo-search==6.3.7
+openai==1.50.2
+langchain-text-splitters==0.3.0

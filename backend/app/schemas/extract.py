@@ -5,6 +5,7 @@ class ExtractRequest(BaseModel):
     urls: List[str]
     use_js_rendering: bool = False
     max_content_length: int = 5000
+    vectorize: bool = False
 
 class ExtractedPage(BaseModel):
     url: str
@@ -17,6 +18,7 @@ class ExtractedPage(BaseModel):
     extraction_method: str
     success: bool
     error: Optional[str] = None
+    vectors: Optional[List[dict]] = None
 
 class ExtractResponse(BaseModel):
     results: List[ExtractedPage]
