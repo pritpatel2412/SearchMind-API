@@ -16,6 +16,8 @@ from app.routers import search, extract, crawl, research, usage, api_keys, admin
 from app.routers.auth import router as auth_router
 from app.http_client import get_http_client, close_http_client
 from app.services.cache_service import purge_expired_cached_results
+from fastapi.responses import JSONResponse
+from fastapi import Request
 
 # Import models so Alembic and metadata stay in sync
 from app.models import User, APIKey, SearchLog, UsageRecord, CachedResult  # noqa: F401
@@ -87,6 +89,16 @@ app.include_router(usage.router, prefix="/v1")
 app.include_router(api_keys.router, prefix="/v1")
 app.include_router(admin.router, prefix="/v1")
 app.include_router(coupons.router, prefix="/v1")
+
+
+@app.exception_handler(Exception)
+async def global_exception_handler(request: Request, exc: Exception):
+    logger.error("Unhandled exception: %s", exc, exc_info=True)
+    return JSONResponse(
+        status_code=500,
+        content={"detail": "Internal Server Error", "error": str(exc)},
+        headers={"Access-Control-Allow-Origin": "*"}
+    )
 
 
 @app.get("/health", tags=["System"])
