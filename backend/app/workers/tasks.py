@@ -8,20 +8,26 @@ from app.workers.celery_app import celery_app
 from app.services.fetch_service import fetch_url_content
 from app.services.extract_service import extract_content
 from app.services.cache_service import set_cached
+from app.services.sync_progress_emitter import SyncProgressEmitter
 from app.config import settings
 
-@celery_app.task(name="tasks.crawl_url")
-def crawl_url_task(url: str, max_depth: int = 1, max_pages: int = 10) -> dict:
+@celery_app.task(name="tasks.crawl_url", bind=True)
+def crawl_url_task(self, url: str, max_depth: int = 1, max_pages: int = 10) -> dict:
     """Synchronous Celery wrapper to execute the async crawl logic."""
+    emitter = SyncProgressEmitter(run_id=self.request.id, redis_channel=f"crawl:stream:{self.request.id}")
+    emitter.emit("started", {"url": url, "max_depth": max_depth, "max_pages": max_pages})
+    
     try:
         loop = asyncio.get_event_loop()
     except RuntimeError:
         loop = asyncio.new_event_loop()
         asyncio.set_event_loop(loop)
     
-    return loop.run_until_complete(async_crawl(url, max_depth, max_pages))
+    result = loop.run_until_complete(async_crawl(url, max_depth, max_pages, emitter))
+    emitter.emit("complete", result)
+    return result
 
-async def async_crawl(start_url: str, max_depth: int, max_pages: int) -> dict:
+async def async_crawl(start_url: str, max_depth: int, max_pages: int, emitter: SyncProgressEmitter) -> dict:
     """Async crawling logic restricted to the input domain."""
     parsed_start = urlparse(start_url)
     allowed_domain = parsed_start.netloc.lower().replace("www.", "")
@@ -42,6 +48,7 @@ async def async_crawl(start_url: str, max_depth: int, max_pages: int) -> dict:
         visited.add(normalized_url)
 
         try:
+            emitter.emit("progress", {"stage": "fetch", "url": normalized_url, "status": "start"})
             html = await fetch_url_content(normalized_url)
             if not html:
                 results.append({
@@ -49,8 +56,10 @@ async def async_crawl(start_url: str, max_depth: int, max_pages: int) -> dict:
                     "success": False,
                     "error": "Failed to retrieve page content"
                 })
+                emitter.emit("error", {"stage": "fetch", "url": normalized_url, "message": "Failed to retrieve page content"})
                 continue
 
+            emitter.emit("progress", {"stage": "extract", "url": normalized_url, "status": "start"})
             extracted = extract_content(html, normalized_url)
             content = extracted.get("content", "")
             title = extracted.get("title", "")
@@ -62,6 +71,7 @@ async def async_crawl(start_url: str, max_depth: int, max_pages: int) -> dict:
                 "success": True
             }
             results.append(page_result)
+            emitter.emit("progress", {"stage": "extract", "url": normalized_url, "status": "done"})
 
             cache_key = "extract:" + hashlib.sha256(normalized_url.encode()).hexdigest()
             cache_payload = {
@@ -101,6 +111,7 @@ async def async_crawl(start_url: str, max_depth: int, max_pages: int) -> dict:
                 "success": False,
                 "error": str(e)
             })
+            emitter.emit("error", {"stage": "pipeline", "url": normalized_url, "message": str(e)})
 
     return {
         "seed_url": start_url,

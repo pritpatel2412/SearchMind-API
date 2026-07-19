@@ -268,3 +268,44 @@ async def get_crawl_status(
         raise HTTPException(status_code=404, detail="Crawl task not found")
 
     return _build_crawl_status_from_celery(task_id)
+
+from fastapi.responses import StreamingResponse
+from app.utils.sse import format_sse
+import json
+
+@router.get("/crawl/{task_id}/stream", tags=["Crawl"])
+async def get_crawl_stream(
+    task_id: str,
+    http_request: Request,
+    api_key: APIKey = Depends(get_current_api_key),
+):
+    """
+    Subscribe to the live event stream of a background crawl task.
+    Requires Celery/Redis backend.
+    """
+    if not _celery_available():
+        raise HTTPException(status_code=501, detail="Live stream requires Celery broker (Redis) to be active.")
+
+    async def event_stream():
+        try:
+            redis = await get_redis()
+            pubsub = redis.pubsub()
+            channel = f"crawl:stream:{task_id}"
+            await pubsub.subscribe(channel)
+            
+            async for message in pubsub.listen():
+                if await http_request.is_disconnected():
+                    break
+                if message["type"] == "message":
+                    payload = json.loads(message["data"])
+                    event = payload.get("event")
+                    data = payload.get("data", {})
+                    yield format_sse(event, data)
+                    
+                    if event in ("complete", "error"):
+                        break
+        finally:
+            await pubsub.unsubscribe(channel)
+
+    return StreamingResponse(event_stream(), media_type="text/event-stream")
+

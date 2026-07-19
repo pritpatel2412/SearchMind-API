@@ -1,4 +1,5 @@
 import React, { useState } from 'react'
+import { useLiveSearch } from '../hooks/useLiveSearch'
 import { 
   Play, Sparkles, AlertCircle, Clock, Database, ExternalLink, Copy, Check, 
   Download, Terminal, Search, Globe, Calendar, BookOpen, GitBranch, Sliders, Settings2, Cpu, Layers, X, Lock
@@ -103,13 +104,11 @@ export default function Playground({ token, user, setUser, apiKey }) {
   const [maxPages, setMaxPages] = useState(10)
 
   // System states
-  const [loading, setLoading] = useState(false)
-  const [results, setResults] = useState(null)
-  const [error, setError] = useState('')
-  const [latency, setLatency] = useState(0)
+  const apiUrl = (import.meta.env.VITE_API_URL || 'http://localhost:8000').replace(/\/$/, '')
+  const { loading, error, results, events, screenshots, latency, runPipeline, cancel, reset } = useLiveSearch(apiUrl, endpoint, token, apiKey)
+
   const [copiedResponse, setCopiedResponse] = useState(false)
   const [responseTab, setResponseTab] = useState('json')
-  const [queryLogs, setQueryLogs] = useState([])
   const [upgradingPlan, setUpgradingPlan] = useState(false)
   const [upgradeMsg, setUpgradeMsg] = useState('')
 
@@ -163,31 +162,14 @@ export default function Playground({ token, user, setUser, apiKey }) {
     }
   }
 
-  const addLog = (msg) => {
-    setQueryLogs(prev => [...prev, msg])
-  }
-
   const handleSearch = async (e) => {
     e.preventDefault()
     if (!isAuthorized()) return
-
-    setLoading(true)
-    setError('')
-    setResults(null)
-    setQueryLogs([])
     
-    const startTime = Date.now()
-    const urlKey = apiKey || 'sm_live_YOUR_KEY'
-
-    const apiUrl = (import.meta.env.VITE_API_URL || 'http://localhost:8000').replace(/\/$/, '')
-    let requestUrl = apiUrl + endpoint
     let payload = {}
 
     if (endpoint === '/v1/search') {
-      if (!query.trim()) {
-        setLoading(false)
-        return
-      }
+      if (!query.trim()) return
       payload = {
         query: query.trim(),
         num_results: parseInt(numResults),
@@ -198,138 +180,32 @@ export default function Playground({ token, user, setUser, apiKey }) {
         max_content_length: 2000
       }
       if (timeRange) payload.time_range = timeRange
-      
-      addLog("Initializing SearchMind query resolver...")
-      addLog("Routing search query to Brave Web Index...")
-      addLog(`Query details: depth=${searchDepth}, topic=${topic}, size=${numResults}`)
     } else if (endpoint === '/v1/extract') {
-      if (!extractUrls.trim()) {
-        setLoading(false)
-        return
-      }
+      if (!extractUrls.trim()) return
       const urlsArray = extractUrls.split('\n').map(u => u.trim()).filter(Boolean)
       payload = {
         urls: urlsArray,
         use_js_rendering: useJsRendering,
         max_content_length: parseInt(maxContentLength)
       }
-      addLog(`Launching extraction pipeline for ${urlsArray.length} nodes...`)
-      if (useJsRendering) {
-        addLog("Spawning headless Playwright instances for JS rendering...")
-      }
     } else if (endpoint === '/v1/research') {
-      if (!researchQuery.trim()) {
-        setLoading(false)
-        return
-      }
+      if (!researchQuery.trim()) return
       payload = {
         query: researchQuery.trim(),
         max_sources: parseInt(maxSources),
         search_depth: 'advanced',
         include_summary: true
       }
-      addLog("Deep Research Mode enabled: spawning parallel search routines...")
-      addLog("Generating sub-queries to analyze topic from multiple angles...")
-      addLog("Fetching and cross-referencing sources concurrently...")
     } else if (endpoint === '/v1/crawl') {
-      if (!crawlUrl.trim()) {
-        setLoading(false)
-        return
-      }
+      if (!crawlUrl.trim()) return
       payload = {
         url: crawlUrl.trim(),
         max_depth: parseInt(maxDepth),
         max_pages: parseInt(maxPages)
       }
-      addLog("Queueing crawl request in Celery daemon...")
     }
 
-    try {
-      const headers = {
-        'X-API-Key': urlKey,
-        'Content-Type': 'application/json'
-      }
-      if (token) {
-        headers['Authorization'] = `Bearer ${token}`
-      }
-
-      if (endpoint === '/v1/crawl') {
-        const response = await fetch(requestUrl, {
-          method: 'POST',
-          headers: headers,
-          body: JSON.stringify(payload)
-        })
-
-        const data = await response.json()
-        if (!response.ok) {
-          throw new Error(data.detail || 'API request failed')
-        }
-
-        const taskId = data.task_id
-        addLog(`Crawl job enqueued with Task ID: ${taskId}`)
-        addLog("Polling backend status for background crawling task...")
-
-        let finished = false
-        let pollCount = 0
-        let taskData = null
-        
-        while (!finished && pollCount < 40) {
-          await new Promise(resolve => setTimeout(resolve, 2000))
-          pollCount++
-          
-          addLog(`[Poll #${pollCount}] Requesting task status from router...`)
-          const apiUrl = (import.meta.env.VITE_API_URL || 'http://localhost:8000').replace(/\/$/, '')
-          const statusResponse = await fetch(`${apiUrl}/v1/crawl/${taskId}`, {
-            method: 'GET',
-            headers: headers
-          })
-          
-          if (!statusResponse.ok) {
-            throw new Error('Failed to retrieve crawl status from backend.')
-          }
-          
-          taskData = await statusResponse.json()
-          addLog(`Task State: ${taskData.status}. Ready: ${taskData.ready}`)
-          
-          if (taskData.ready) {
-            finished = true
-          }
-        }
-
-        setLatency(Date.now() - startTime)
-        if (taskData && taskData.successful === false) {
-          throw new Error(taskData.error || 'Crawl task completed with failure.')
-        }
-
-        if (!taskData || !taskData.ready) {
-          throw new Error('Crawl task timed out. Polling limits exceeded.')
-        }
-
-        addLog(`Crawl task completed! Pages crawled: ${taskData.pages_crawled}`)
-        setResults(taskData)
-      } else {
-        const response = await fetch(requestUrl, {
-          method: 'POST',
-          headers: headers,
-          body: JSON.stringify(payload)
-        })
-
-        const data = await response.json()
-        setLatency(Date.now() - startTime)
-        
-        if (!response.ok) {
-          throw new Error(data.detail || 'API request failed')
-        }
-
-        addLog("Response payload received. Parsing JSON...")
-        setResults(data)
-      }
-    } catch (err) {
-      addLog("Pipeline returned exception.")
-      setError(err.message)
-    } finally {
-      setLoading(false)
-    }
+    await runPipeline(payload, endpoint === '/v1/crawl')
   }
 
   const handleCopyResponse = (text) => {
@@ -386,8 +262,7 @@ export default function Playground({ token, user, setUser, apiKey }) {
                     disabled={locked}
                     onClick={() => {
                       setEndpoint(item.path)
-                      setResults(null)
-                      setError('')
+                      reset()
                       setUpgradeMsg('')
                     }}
                     className={`p-3.5 rounded-xl border text-left transition-all duration-300 relative group flex flex-col justify-between h-22 ${
@@ -838,19 +713,70 @@ export default function Playground({ token, user, setUser, apiKey }) {
           {/* Response Console */}
           <div className="bg-[#0e0e0d]/50 backdrop-blur-xl border border-hairline rounded-2xl min-h-[500px] overflow-hidden flex flex-col justify-between shadow-2xl relative">
             
-            {/* Logs stream while querying */}
-            {loading && (
-              <div className="p-6 font-mono text-xs text-[#3b9eff] space-y-2.5 flex-grow bg-[#090908]/50">
-                {queryLogs.map((log, index) => (
-                  <div key={index} className="flex items-start gap-1.5">
-                    <span className="text-steel select-none">&gt;</span>
-                    <span className="leading-relaxed">{log}</span>
+            {/* Live Event Stream */}
+            {(loading || events.length > 0) && !results && !error && (
+              <div className="p-6 font-mono text-xs text-slate space-y-3 flex-grow bg-[#090908]/50 overflow-y-auto">
+                <div className="flex items-center justify-between pb-2 border-b border-hairline mb-4">
+                  <div className="flex items-center gap-2 text-primary">
+                    <div className="w-2 h-2 bg-primary rounded-full animate-pulse"></div>
+                    <span className="font-bold uppercase tracking-wider">Live Pipeline Feed</span>
                   </div>
-                ))}
-                <div className="flex items-center gap-2.5 pt-4">
-                  <div className="w-4 h-4 border-2 border-[#3b9eff]/30 border-t-[#3b9eff] rounded-full animate-spin"></div>
-                  <span className="text-steel italic">Resolving response stream...</span>
+                  {loading && (
+                    <button onClick={cancel} className="text-accent-red hover:bg-accent-red/10 px-3 py-1 rounded text-[10px] uppercase font-bold border border-accent-red/20 transition-colors cursor-pointer">
+                      Cancel
+                    </button>
+                  )}
                 </div>
+                
+                {/* Event Feed */}
+                <div className="space-y-3">
+                  {events.map((evt, idx) => (
+                    <div key={idx} className="flex items-start gap-3">
+                      <span className="text-steel select-none w-5 opacity-50 shrink-0">{(idx + 1).toString().padStart(2, '0')}</span>
+                      <div className="flex flex-col gap-1 w-full">
+                        <div className="flex gap-2 items-center">
+                          <span className={`px-1.5 py-0.5 text-[9px] uppercase font-bold rounded border ${
+                            evt.event === 'error' ? 'bg-accent-red/10 border-accent-red/20 text-accent-red' :
+                            evt.event === 'info' ? 'bg-[#3b9eff]/10 border-[#3b9eff]/20 text-[#3b9eff]' :
+                            evt.event === 'fetch' ? 'bg-[#a78bfa]/10 border-[#a78bfa]/20 text-[#a78bfa]' :
+                            evt.event === 'search' ? 'bg-orange-500/10 border-orange-500/20 text-orange-400' :
+                            'bg-surface-code border-hairline text-slate'
+                          }`}>{evt.event}</span>
+                          {evt.data.url && (
+                            <span className="text-[10px] text-steel truncate max-w-sm">{evt.data.url}</span>
+                          )}
+                        </div>
+                        <span className="text-ink leading-relaxed">{evt.data.message || JSON.stringify(evt.data)}</span>
+                      </div>
+                    </div>
+                  ))}
+                  
+                  {loading && (
+                    <div className="flex items-center gap-2.5 pt-4 opacity-70">
+                      <div className="w-4 h-4 border-2 border-primary/30 border-t-primary rounded-full animate-spin"></div>
+                      <span className="text-steel italic">Awaiting events...</span>
+                    </div>
+                  )}
+                </div>
+
+                {/* Screenshot Filmstrip */}
+                {screenshots.length > 0 && (
+                  <div className="mt-6 pt-6 border-t border-hairline">
+                    <div className="text-[10px] font-bold uppercase tracking-wider text-steel mb-3 flex items-center gap-2">
+                      <Globe size={12} /> Live Browser Captures
+                    </div>
+                    <div className="flex gap-3 overflow-x-auto pb-2 snap-x">
+                      {screenshots.map((s, idx) => (
+                        <div key={idx} className="shrink-0 w-48 rounded-lg border border-hairline overflow-hidden bg-black snap-start group relative">
+                          <img src={`data:image/jpeg;base64,${s.b64}`} alt="Screenshot" className="w-full h-32 object-cover opacity-80 group-hover:opacity-100 transition-opacity" />
+                          <div className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-black/80 to-transparent p-2">
+                            <span className="text-[9px] text-white truncate block">{s.url}</span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
             )}
 

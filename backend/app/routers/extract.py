@@ -9,6 +9,9 @@ from app.schemas.extract import ExtractRequest, ExtractedPage, ExtractResponse
 from app.services.fetch_service import fetch_url_content
 from app.services.extract_service import extract_content
 from app.auth.api_key_auth import get_current_api_key
+from app.services.progress_emitter import ProgressEmitter
+from app.utils.sse import queue_to_sse
+from fastapi.responses import StreamingResponse
 from app.middleware.rate_limiter import enforce_rate_limits
 from app.middleware.usage_tracker import track_usage
 from app.services.cache_service import get_cached, set_cached
@@ -23,7 +26,8 @@ async def process_single_url(
     url: str,
     use_js: bool,
     max_content_length: int,
-    db: AsyncSession
+    db: AsyncSession,
+    emitter: Optional[ProgressEmitter] = None
 ) -> ExtractedPage:
     cache_key = "extract:" + hashlib.sha256(url.encode()).hexdigest()
     try:
@@ -34,7 +38,9 @@ async def process_single_url(
         pass
 
     try:
-        html = await fetch_url_content(url, use_js=use_js)
+        if emitter:
+            await emitter.emit("progress", {"stage": "fetch", "url": url, "status": "start"})
+        html = await fetch_url_content(url, use_js=use_js, emitter=emitter)
         if not html:
             return ExtractedPage(
                 url=url, title=None, content="", author=None,
@@ -42,6 +48,8 @@ async def process_single_url(
                 extraction_method="failed", success=False, error="Failed to fetch URL content"
             )
 
+        if emitter:
+            await emitter.emit("progress", {"stage": "extract", "url": url, "status": "start"})
         extracted = extract_content(html, url)
         content = extracted["content"][:max_content_length]
         page = ExtractedPage(
@@ -56,6 +64,9 @@ async def process_single_url(
             success=True
         )
         
+        if emitter:
+            await emitter.emit("progress", {"stage": "extract", "url": url, "status": "done", "word_count": page.word_count})
+
         # Cache successfully extracted page content
         try:
             await set_cached(
@@ -127,3 +138,70 @@ async def extract(
         extracted_count=extracted_count,
         failed_count=failed_count
     )
+
+@router.post("/extract/stream", tags=["Extract"])
+async def extract_stream(
+    request: ExtractRequest,
+    http_request: Request,
+    api_key: APIKey = Depends(get_current_api_key),
+    db: AsyncSession = Depends(get_db)
+):
+    await enforce_rate_limits(http_request, api_key, db)
+    if getattr(api_key.user, "plan", "free") == "free":
+        raise HTTPException(status_code=403, detail="Extract endpoint requires a Pro or Enterprise plan.")
+
+    queue: asyncio.Queue = asyncio.Queue()
+    emitter = ProgressEmitter(queue=queue)
+
+    async def run_pipeline():
+        await emitter.emit("started", {"endpoint": "extract", "urls": request.urls[:10]})
+        try:
+            start_time = time.time()
+            tasks = [
+                process_single_url(url, request.use_js_rendering, request.max_content_length, db, emitter)
+                for url in request.urls[:10]
+            ]
+            results = await asyncio.gather(*tasks)
+            extracted_count = sum(1 for r in results if r.success)
+            failed_count = sum(1 for r in results if not r.success)
+
+            await track_usage(db, api_key, "extract", result_count=extracted_count)
+            latency = int((time.time() - start_time) * 1000)
+
+            # DB Log
+            log_entry = SearchLog(
+                api_key_id=api_key.id, user_id=api_key.user_id, endpoint="extract",
+                query=f"URLs count: {len(request.urls)}", results_count=extracted_count,
+                cached=False, latency_ms=latency,
+                ip_address=http_request.client.host if http_request.client else None,
+                user_agent=http_request.headers.get("user-agent"), status_code=200
+            )
+            db.add(log_entry)
+            await db.commit()
+
+            response = ExtractResponse(
+                results=results, extracted_count=extracted_count, failed_count=failed_count
+            )
+            await emitter.emit("complete", response.model_dump())
+        except asyncio.CancelledError:
+            raise
+        except Exception as e:
+            await emitter.emit("error", {"stage": "pipeline", "message": str(e)})
+        finally:
+            await emitter.close()
+
+    task = asyncio.create_task(run_pipeline())
+
+    async def event_stream():
+        try:
+            async for frame in queue_to_sse(queue):
+                if await http_request.is_disconnected():
+                    task.cancel()
+                    break
+                yield frame
+        finally:
+            if not task.done():
+                task.cancel()
+
+    return StreamingResponse(event_stream(), media_type="text/event-stream")
+

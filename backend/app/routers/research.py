@@ -4,6 +4,9 @@ import logging
 from fastapi import APIRouter, Depends, Request, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from typing import List, Optional
+from app.services.progress_emitter import ProgressEmitter
+from app.utils.sse import queue_to_sse
+from fastapi.responses import StreamingResponse
 
 from app.schemas.research import ResearchRequest, ResearchSource, ResearchResponse
 from app.services.search_provider import web_search
@@ -125,18 +128,26 @@ async def research(
     )
 
 
-async def extract_for_research(result: dict) -> dict:
+async def extract_for_research(result: dict, emitter: Optional[ProgressEmitter] = None) -> dict:
     """Download and extract clean body content from search result URL."""
     try:
-        html = await fetch_url_content(result["url"])
+        if emitter:
+            await emitter.emit("progress", {"stage": "fetch", "url": result["url"], "status": "start"})
+        html = await fetch_url_content(result["url"], emitter=emitter)
         if html:
+            if emitter:
+                await emitter.emit("progress", {"stage": "extract", "url": result["url"], "status": "start"})
             extracted = extract_content(html, result["url"])
             result["content"] = extracted.get("content", "")
             result["author"] = extracted.get("author")
             result["published_date"] = result.get("published_date") or extracted.get("published_date")
+            if emitter:
+                await emitter.emit("progress", {"stage": "extract", "url": result["url"], "status": "done", "word_count": len(result["content"].split())})
     except Exception as e:
         logger.debug(f"Deep research enrichment failed for {result.get('url')}: {e}")
         result["content"] = result.get("snippet", "")
+        if emitter:
+            await emitter.emit("error", {"stage": "fetch", "url": result["url"], "message": str(e)})
     return result
 
 
@@ -172,3 +183,119 @@ Example: ["sub-query 1", "sub-query 2"]"""
         f"{query} tutorial guide",
         f"{query} examples best practices",
     ]
+
+async def perform_research_streaming(
+    request: ResearchRequest,
+    emitter: ProgressEmitter,
+    http_request: Request,
+    api_key: APIKey,
+    db: AsyncSession
+) -> ResearchResponse:
+    start_time = time.time()
+    await emitter.emit("progress", {"stage": "plan", "status": "start"})
+    sub_queries = await generate_sub_queries(request.query)
+    await emitter.emit("progress", {"stage": "plan", "status": "done", "sub_queries": sub_queries})
+
+    await emitter.emit("progress", {"stage": "provider_query", "status": "start", "sub_queries_count": len(sub_queries)})
+    search_tasks = [web_search(q, num_results=5) for q in sub_queries]
+    search_results_list = await asyncio.gather(*search_tasks, return_exceptions=True)
+
+    all_results = []
+    seen_urls = set()
+    for res in search_results_list:
+        if isinstance(res, Exception):
+            continue
+        for r in res:
+            url_norm = r["url"].strip().lower()
+            if url_norm not in seen_urls:
+                seen_urls.add(url_norm)
+                all_results.append(r)
+    await emitter.emit("progress", {"stage": "provider_query", "status": "done", "results_found": len(all_results)})
+
+    extract_tasks = [extract_for_research(r, emitter) for r in all_results[:request.max_sources]]
+    enriched = await asyncio.gather(*extract_tasks, return_exceptions=True)
+
+    valid_enriched = []
+    for r in enriched:
+        if isinstance(r, Exception):
+            continue
+        valid_enriched.append(r)
+
+    await emitter.emit("progress", {"stage": "rank", "status": "start"})
+    ranked = rank_results(valid_enriched, request.query)[:request.max_sources]
+    await emitter.emit("progress", {"stage": "rank", "status": "done", "ranked_count": len(ranked)})
+
+    summary = None
+    if request.include_summary and ranked:
+        await emitter.emit("progress", {"stage": "synthesize", "status": "start"})
+        try:
+            summary = await synthesize_answer(request.query, ranked, max_tokens=800)
+            await emitter.emit("progress", {"stage": "synthesize", "status": "done"})
+        except Exception as e:
+            logger.error(f"Deep Research LLM synthesis failed: {e}")
+            await emitter.emit("error", {"stage": "synthesize", "message": str(e)})
+
+    sources = [
+        ResearchSource(
+            title=r.get("title", ""), url=r.get("url", ""), content=r.get("content", "")[:3000],
+            score=r.get("score", 0.5), source_type=r.get("source_type", "webpage"),
+            published_date=r.get("published_date")
+        )
+        for r in ranked
+    ]
+
+    await track_usage(db, api_key, "research", result_count=len(sources))
+    latency = int((time.time() - start_time) * 1000)
+    log_entry = SearchLog(
+        api_key_id=api_key.id, user_id=api_key.user_id, endpoint="research",
+        query=request.query, results_count=len(sources), cached=False,
+        latency_ms=latency, ip_address=http_request.client.host if http_request.client else None,
+        user_agent=http_request.headers.get("user-agent"), status_code=200
+    )
+    db.add(log_entry)
+    await db.commit()
+
+    return ResearchResponse(
+        query=request.query, summary=summary, sources=sources, source_count=len(sources)
+    )
+
+@router.post("/research/stream", tags=["Research"])
+async def research_stream(
+    request: ResearchRequest,
+    http_request: Request,
+    api_key: APIKey = Depends(get_current_api_key),
+    db: AsyncSession = Depends(get_db)
+):
+    if getattr(api_key.user, "plan", "free") != "enterprise":
+        raise HTTPException(status_code=403, detail="Deep research endpoint is reserved for Enterprise customers.")
+    await enforce_rate_limits(http_request, api_key, db)
+
+    queue: asyncio.Queue = asyncio.Queue()
+    emitter = ProgressEmitter(queue=queue)
+
+    async def run_pipeline():
+        await emitter.emit("started", {"endpoint": "research", "query": request.query})
+        try:
+            result = await perform_research_streaming(request, emitter, http_request, api_key, db)
+            await emitter.emit("complete", result.model_dump())
+        except asyncio.CancelledError:
+            raise
+        except Exception as e:
+            await emitter.emit("error", {"stage": "pipeline", "message": str(e)})
+        finally:
+            await emitter.close()
+
+    task = asyncio.create_task(run_pipeline())
+
+    async def event_stream():
+        try:
+            async for frame in queue_to_sse(queue):
+                if await http_request.is_disconnected():
+                    task.cancel()
+                    break
+                yield frame
+        finally:
+            if not task.done():
+                task.cancel()
+
+    return StreamingResponse(event_stream(), media_type="text/event-stream")
