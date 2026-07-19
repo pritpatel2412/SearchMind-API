@@ -1,11 +1,29 @@
 import React, { useState } from 'react'
 import { useLiveSearch } from '../hooks/useLiveSearch'
+import { describeEvent } from '../utils/describeEvent'
 import { 
   Play, Sparkles, AlertCircle, Clock, Database, ExternalLink, Copy, Check, 
   Download, Terminal, Search, Globe, Calendar, BookOpen, GitBranch, Sliders, Settings2, Cpu, Layers, X, Lock
 } from 'lucide-react'
 
 // Theme config for endpoints
+function FeedRow({ evt, index }) {
+  const desc = describeEvent(evt);
+  if (!desc) return null;
+
+  return (
+    <div className={`feed-row feed-row--${desc.tone}`}>
+      <span className="feed-index">{String(index + 1).padStart(2, '0')}</span>
+      <span className="feed-icon">{desc.icon}</span>
+      <span className="feed-text">{desc.text}</span>
+      <details className="feed-raw">
+        <summary>raw</summary>
+        <pre>{JSON.stringify(evt, null, 2)}</pre>
+      </details>
+    </div>
+  );
+}
+
 const configs = {
   '/v1/search': {
     name: 'AI Search',
@@ -731,24 +749,7 @@ export default function Playground({ token, user, setUser, apiKey }) {
                 {/* Event Feed */}
                 <div className="space-y-3">
                   {events.map((evt, idx) => (
-                    <div key={idx} className="flex items-start gap-3">
-                      <span className="text-steel select-none w-5 opacity-50 shrink-0">{(idx + 1).toString().padStart(2, '0')}</span>
-                      <div className="flex flex-col gap-1 w-full">
-                        <div className="flex gap-2 items-center">
-                          <span className={`px-1.5 py-0.5 text-[9px] uppercase font-bold rounded border ${
-                            evt.event === 'error' ? 'bg-accent-red/10 border-accent-red/20 text-accent-red' :
-                            evt.event === 'info' ? 'bg-[#3b9eff]/10 border-[#3b9eff]/20 text-[#3b9eff]' :
-                            evt.event === 'fetch' ? 'bg-[#a78bfa]/10 border-[#a78bfa]/20 text-[#a78bfa]' :
-                            evt.event === 'search' ? 'bg-orange-500/10 border-orange-500/20 text-orange-400' :
-                            'bg-surface-code border-hairline text-slate'
-                          }`}>{evt.event}</span>
-                          {evt.data.url && (
-                            <span className="text-[10px] text-steel truncate max-w-sm">{evt.data.url}</span>
-                          )}
-                        </div>
-                        <span className="text-ink leading-relaxed">{evt.data.message || JSON.stringify(evt.data)}</span>
-                      </div>
-                    </div>
+                    <FeedRow key={idx} evt={evt} index={idx} />
                   ))}
                   
                   {loading && (

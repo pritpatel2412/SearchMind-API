@@ -276,3 +276,48 @@
 ::-webkit-scrollbar-thumb:hover {
   background: rgba(255, 255, 255, 0.24);
 }
+
+.feed-row {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  padding: 10px 0;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+  font-family: 'Inter', system-ui, sans-serif;
+}
+
+.feed-index {
+  font-family: 'JetBrains Mono', monospace;
+  color: rgba(255,255,255,0.35);
+  font-size: 12px;
+  min-width: 20px;
+}
+
+.feed-icon { font-size: 15px; }
+
+.feed-text {
+  flex: 1;
+  color: rgba(255,255,255,0.85);
+  font-size: 14px;
+}
+
+.feed-row--success .feed-text { color: #4ade80; }
+.feed-row--error .feed-text { color: #f87171; }
+
+.feed-raw {
+  font-size: 11px;
+  color: rgba(255,255,255,0.3);
+}
+.feed-raw summary {
+  cursor: pointer;
+  list-style: none;
+}
+.feed-raw pre {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  background: rgba(0,0,0,0.4);
+  padding: 8px;
+  border-radius: 4px;
+  overflow-x: auto;
+  max-width: 480px;
+}
