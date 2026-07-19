@@ -4,7 +4,9 @@ import logging
 from typing import List, Optional
 from playwright.async_api import async_playwright
 
-from app.schemas.action import WebAction, ActionResponse
+import httpx
+from app.schemas.action import WebAction, ActionResponse, HITLConfig
+from app.services.hitl_manager import hitl_manager
 from app.services.extract_service import extract_content
 from app.services.vision_service import vision_service
 from app.config import settings
@@ -17,7 +19,7 @@ HEADERS = {
     "Accept-Language": "en-US,en;q=0.5",
 }
 
-async def execute_web_actions(url: str, actions: List[WebAction], extract_images: bool = False, return_screenshot: bool = False) -> ActionResponse:
+async def execute_web_actions(url: str, actions: List[WebAction], extract_images: bool = False, return_screenshot: bool = False, hitl_config: Optional[HITLConfig] = None) -> ActionResponse:
     logger.info(f"Executing {len(actions)} actions on {url}")
     try:
         async with async_playwright() as p:
@@ -31,6 +33,41 @@ async def execute_web_actions(url: str, actions: List[WebAction], extract_images
                 # 1. Goto initial URL
                 await page.goto(url, timeout=settings.PLAYWRIGHT_TIMEOUT_MS, wait_until="domcontentloaded")
                 await page.wait_for_timeout(1000)
+
+                # 1.5. Check HITL condition BEFORE actions
+                if hitl_config:
+                    try:
+                        # Wait briefly to see if selector appears
+                        element = await page.wait_for_selector(hitl_config.selector, timeout=3000)
+                        if element:
+                            logger.info(f"HITL selector '{hitl_config.selector}' found. Triggering HITL flow...")
+                            
+                            # Capture state for the human
+                            screenshot_bytes = await page.screenshot(type="jpeg", quality=60)
+                            b64_screenshot = base64.b64encode(screenshot_bytes).decode()
+                            
+                            session_id = hitl_manager.create_session()
+                            
+                            # Send webhook
+                            webhook_payload = {
+                                "session_id": session_id,
+                                "message": "Human intervention required",
+                                "url": page.url,
+                                "screenshot_base64": b64_screenshot
+                            }
+                            async with httpx.AsyncClient() as client:
+                                await client.post(str(hitl_config.webhook_url), json=webhook_payload)
+                                
+                            # Await human resolution
+                            human_value = await hitl_manager.wait_for_resume(session_id, hitl_config.timeout_ms)
+                            
+                            # Type the value and proceed
+                            await element.fill(human_value)
+                            await page.wait_for_timeout(500) # slight delay after typing
+                            
+                            logger.info("HITL resolved. Proceeding with configured actions.")
+                    except Exception as e:
+                        logger.debug(f"HITL selector not found or webhook failed: {e}")
 
                 # 2. Execute Actions Sequence
                 for action in actions:

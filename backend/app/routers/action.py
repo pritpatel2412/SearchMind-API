@@ -26,10 +26,27 @@ async def perform_action(
         url=str(request.url),
         actions=request.actions,
         extract_images=request.extract_images,
-        return_screenshot=request.return_screenshot
+        return_screenshot=request.return_screenshot,
+        hitl_config=request.hitl_config
     )
     
     if not response.success:
         raise HTTPException(status_code=500, detail=response.error)
         
     return response
+
+from app.services.hitl_manager import hitl_manager
+from app.schemas.action import HITLResumeRequest
+
+@router.post("/resume/{session_id}", tags=["Action"])
+async def resume_hitl_action(
+    session_id: str,
+    request: HITLResumeRequest,
+    api_key: APIKey = Depends(get_current_api_key)
+):
+    """Resume a paused HITL Playwright session by providing the required human input (e.g., Captcha/2FA code)."""
+    try:
+        hitl_manager.resume_session(session_id, request.value)
+        return {"status": "resumed", "session_id": session_id}
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
