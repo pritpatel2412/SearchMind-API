@@ -736,17 +736,78 @@ export default function Playground({ token, user, setUser, apiKey }) {
           {/* Response Console - Main Output Box */}
           <div className="bg-[#0e0e0d]/50 backdrop-blur-xl border border-hairline rounded-2xl min-h-[450px] overflow-hidden flex flex-col justify-between shadow-2xl relative">
             
-            {/* Loading state */}
-            {loading && !results && !error && (
-              <div className="flex flex-col items-center justify-center text-center p-12 flex-grow gap-5 bg-[#090908]/30">
-                <div className="relative">
-                  <div className="w-10 h-10 border-2 border-primary/20 rounded-full"></div>
-                  <div className="w-10 h-10 border-2 border-transparent border-t-primary border-r-primary rounded-full animate-spin absolute inset-0"></div>
-                </div>
-                <div className="space-y-2">
-                  <h4 className="font-mono text-xs text-primary uppercase font-bold tracking-wider animate-pulse">Executing Pipeline</h4>
-                  <p className="text-xs text-steel max-w-xs leading-relaxed">Awaiting final output. Watch the live logs below to see background agent progress...</p>
-                </div>
+            {/* Live Event Stream or Loading State */}
+            {!results && !error && (
+              <div className="flex flex-col flex-grow bg-[#090908]/50 h-[500px]">
+                {(events.length > 0 && showLogs) ? (
+                  <div className="p-6 font-mono text-xs text-slate space-y-3 flex-grow overflow-y-auto">
+                    <div className="flex items-center justify-between pb-2 border-b border-hairline mb-4">
+                      <div className="flex items-center gap-2 text-primary">
+                        <div className="w-2 h-2 bg-primary rounded-full animate-pulse"></div>
+                        <span className="font-bold uppercase tracking-wider">Live Pipeline Feed</span>
+                      </div>
+                      {loading && (
+                        <button onClick={cancel} className="text-accent-red hover:bg-accent-red/10 px-3 py-1 rounded text-[10px] uppercase font-bold border border-accent-red/20 transition-colors cursor-pointer">
+                          Cancel
+                        </button>
+                      )}
+                    </div>
+                    
+                    {/* Event Feed */}
+                    <div className="space-y-3">
+                      {events.map((evt, idx) => (
+                        <FeedRow key={idx} evt={evt} index={idx} />
+                      ))}
+                      
+                      {loading && (
+                        <div className="flex items-center gap-2.5 pt-4 opacity-70">
+                          <div className="w-4 h-4 border-2 border-primary/30 border-t-primary rounded-full animate-spin"></div>
+                          <span className="text-steel italic">Awaiting events...</span>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Screenshot Filmstrip */}
+                    {screenshots.length > 0 && (
+                      <div className="mt-6 pt-6 border-t border-hairline">
+                        <div className="text-[10px] font-bold uppercase tracking-wider text-steel mb-3 flex items-center gap-2">
+                          <Globe size={12} /> Live Browser Captures
+                        </div>
+                        <div className="flex gap-3 overflow-x-auto pb-2 snap-x">
+                          {screenshots.map((s, idx) => (
+                            <div key={idx} className="shrink-0 w-48 rounded-lg border border-hairline overflow-hidden bg-black snap-start group relative">
+                              <img src={`data:image/jpeg;base64,${s.b64}`} alt="Screenshot" className="w-full h-32 object-cover opacity-80 group-hover:opacity-100 transition-opacity" />
+                              <div className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-black/80 to-transparent p-2">
+                                <span className="text-[9px] text-white truncate block">{s.url}</span>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                ) : loading ? (
+                  <div className="flex flex-col items-center justify-center text-center p-12 flex-grow gap-5">
+                    <div className="relative">
+                      <div className="w-10 h-10 border-2 border-primary/20 rounded-full"></div>
+                      <div className="w-10 h-10 border-2 border-transparent border-t-primary border-r-primary rounded-full animate-spin absolute inset-0"></div>
+                    </div>
+                    <div className="space-y-2">
+                      <h4 className="font-mono text-xs text-primary uppercase font-bold tracking-wider animate-pulse">Executing Pipeline</h4>
+                      <p className="text-xs text-steel max-w-xs leading-relaxed">Initializing agent pipeline...</p>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="flex flex-col items-center justify-center text-center p-12 flex-grow gap-4">
+                    <div className="p-4 rounded-full bg-[#181816] border border-hairline text-slate shadow-inner">
+                      <Terminal size={24} />
+                    </div>
+                    <div className="space-y-1.5">
+                      <h4 className="font-mono text-xs text-slate uppercase font-bold tracking-wider">Console Ready</h4>
+                      <p className="text-xs text-steel max-w-xs leading-relaxed">Submit request parameters to trigger live API pipelines.</p>
+                    </div>
+                  </div>
+                )}
               </div>
             )}
 
@@ -763,18 +824,7 @@ export default function Playground({ token, user, setUser, apiKey }) {
               </div>
             )}
 
-            {/* Empty state */}
-            {!results && !loading && !error && (
-              <div className="flex flex-col items-center justify-center text-center p-12 flex-grow gap-4">
-                <div className="p-4 rounded-full bg-[#181816] border border-hairline text-slate shadow-inner">
-                  <Terminal size={24} />
-                </div>
-                <div className="space-y-1.5">
-                  <h4 className="font-mono text-xs text-slate uppercase font-bold tracking-wider">Console Ready</h4>
-                  <p className="text-xs text-steel max-w-xs leading-relaxed">Submit request parameters to trigger live API pipelines.</p>
-                </div>
-              </div>
-            )}
+
 
             {/* Success results viewer */}
             {results && !error && (
@@ -997,58 +1047,7 @@ export default function Playground({ token, user, setUser, apiKey }) {
 
           </div>
 
-          {/* Live Pipeline Logs (Shown below output box) */}
-          {showLogs && (loading || events.length > 0) && !error && (
-            <div className="bg-[#050505]/90 backdrop-blur-xl border border-hairline rounded-2xl flex flex-col shadow-inner overflow-hidden mt-6">
-              {/* Header */}
-              <div className="bg-[#0a0a09] border-b border-hairline px-5 py-3.5 flex justify-between items-center">
-                <div className="flex items-center gap-2.5 text-primary">
-                  <div className={`w-2 h-2 bg-primary rounded-full shadow-[0_0_8px_rgba(241,90,36,0.6)] ${loading ? 'animate-pulse' : ''}`}></div>
-                  <span className="font-mono text-[10px] font-bold uppercase tracking-wider text-primary/90">Live Pipeline Feed</span>
-                </div>
-                {loading && (
-                  <button onClick={cancel} className="text-accent-red hover:bg-accent-red/10 hover:text-white px-3 py-1 rounded text-[9px] uppercase font-bold border border-accent-red/20 transition-all cursor-pointer shadow-sm">
-                    Cancel Stream
-                  </button>
-                )}
-              </div>
-              
-              {/* Terminal Logs */}
-              <div className="p-5 overflow-y-auto max-h-[350px] flex flex-col font-mono text-xs bg-gradient-to-b from-transparent to-[#020202]/50">
-                <div className="space-y-1">
-                  {events.map((evt, idx) => (
-                    <FeedRow key={idx} evt={evt} index={idx} />
-                  ))}
-                  
-                  {loading && (
-                    <div className="flex items-center gap-3 pt-3 pb-2 opacity-60 pl-1">
-                      <div className="w-3.5 h-3.5 border-2 border-primary/30 border-t-primary rounded-full animate-spin"></div>
-                      <span className="text-steel italic tracking-wide">Awaiting next event...</span>
-                    </div>
-                  )}
-                </div>
-              </div>
 
-              {/* Screenshot Filmstrip */}
-              {screenshots.length > 0 && (
-                <div className="bg-[#080808] border-t border-hairline p-5">
-                  <div className="text-[9px] font-bold uppercase tracking-wider text-steel mb-3 flex items-center gap-2">
-                    <Globe size={11} className="opacity-70" /> Live Browser Captures
-                  </div>
-                  <div className="flex gap-4 overflow-x-auto pb-2 snap-x scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent">
-                    {screenshots.map((s, idx) => (
-                      <div key={idx} className="shrink-0 w-52 rounded-xl border border-hairline overflow-hidden bg-black snap-start group relative shadow-md">
-                        <img src={`data:image/jpeg;base64,${s.b64}`} alt="Screenshot" className="w-full h-32 object-cover opacity-75 group-hover:opacity-100 transition-opacity duration-300" />
-                        <div className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent pt-6 pb-2 px-3">
-                          <span className="text-[9px] text-white/90 truncate block tracking-wide">{s.url}</span>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
-          )}
 
         </div>
         

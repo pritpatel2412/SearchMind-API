@@ -21,11 +21,11 @@ function cap(s) {
  */
 export function describeEvent(evt) {
   if (evt.event === 'started') {
-    return { icon: '🚀', text: `Starting ${evt.data.endpoint} — "${evt.data.query}"`, tone: 'default' };
+    return { icon: '[INIT]', text: `Starting ${evt.data.endpoint} — "${evt.data.query}"`, tone: 'default' };
   }
 
   if (evt.event === 'error') {
-    return { icon: '⚠️', text: `Error at ${evt.data.stage}: ${evt.data.message}`, tone: 'error' };
+    return { icon: '[ERROR]', text: `Error at ${evt.data.stage}: ${evt.data.message}`, tone: 'error' };
   }
 
   if (evt.event === 'screenshot') {
@@ -36,29 +36,29 @@ export function describeEvent(evt) {
   const key = `${evt.data.stage}:${evt.data.status}`;
   switch (key) {
     case 'cache:hit':
-      return { icon: '⚡', text: 'Served from cache', tone: 'success' };
+      return { icon: '[CACHE]', text: 'Served from cache', tone: 'success' };
     case 'provider_query:start':
-      return { icon: '🔍', text: `Querying ${cap(evt.data.provider)} Search…`, tone: 'default' };
+      return { icon: '[QUERY]', text: `Querying ${cap(evt.data.provider)} Search…`, tone: 'default' };
     case 'provider_query:done':
-      return { icon: '✓', text: `Found ${evt.data.results_found} results`, tone: 'success' };
+      return { icon: '[OK]', text: `Found ${evt.data.results_found} results`, tone: 'success' };
     case 'fetch:start':
-      return { icon: '🌐', text: `Fetching ${shortUrl(evt.data.url)}…`, tone: 'default' };
+      return { icon: '[NET]', text: `Fetching ${shortUrl(evt.data.url)}…`, tone: 'default' };
     case 'fetch:done':
-      return { icon: '✓', text: `Fetched ${shortUrl(evt.data.url)} via ${evt.data.method}`, tone: 'success' };
+      return { icon: '[OK]', text: `Fetched ${shortUrl(evt.data.url)} via ${evt.data.method}`, tone: 'success' };
     case 'extract:start':
-      return { icon: '📄', text: `Extracting content from ${shortUrl(evt.data.url)}…`, tone: 'default' };
+      return { icon: '[EXTRAC]', text: `Extracting content from ${shortUrl(evt.data.url)}…`, tone: 'default' };
     case 'extract:done':
-      return { icon: '✓', text: `Extracted ${evt.data.word_count} words (${evt.data.method}) — ${shortUrl(evt.data.url)}`, tone: 'success' };
+      return { icon: '[OK]', text: `Extracted ${evt.data.word_count} words (${evt.data.method}) — ${shortUrl(evt.data.url)}`, tone: 'success' };
     case 'rank:start':
-      return { icon: '📊', text: 'Ranking results…', tone: 'default' };
+      return { icon: '[RANK]', text: 'Ranking results…', tone: 'default' };
     case 'rank:done':
-      return { icon: '✓', text: `Ranked ${evt.data.ranked_count} results`, tone: 'success' };
+      return { icon: '[OK]', text: `Ranked ${evt.data.ranked_count} results`, tone: 'success' };
     case 'synthesize:start':
-      return { icon: '🤖', text: 'Synthesizing answer…', tone: 'default' };
+      return { icon: '[SYNTH]', text: 'Synthesizing answer…', tone: 'default' };
     case 'synthesize:done':
-      return { icon: '✓', text: 'Answer synthesized', tone: 'success' };
+      return { icon: '[OK]', text: 'Answer synthesized', tone: 'success' };
     default:
-      if (!evt.data.stage) return { icon: 'ℹ️', text: evt.data.message || JSON.stringify(evt.data), tone: 'default' };
-      return { icon: '•', text: `${cap(evt.data.stage)}: ${evt.data.status}`, tone: 'default' };
+      if (!evt.data.stage) return { icon: '[INFO]', text: evt.data.message || JSON.stringify(evt.data), tone: 'default' };
+      return { icon: '[EXEC]', text: `${cap(evt.data.stage)}: ${evt.data.status}`, tone: 'default' };
   }
 }
