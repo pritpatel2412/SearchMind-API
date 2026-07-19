@@ -45,7 +45,7 @@ class Settings(BaseSettings):
 
     # Operations
     RUN_MIGRATIONS_ON_STARTUP: bool = True
-    REQUIRE_REDIS_FOR_RATE_LIMIT: bool = True
+    REQUIRE_REDIS_FOR_RATE_LIMIT: bool = False  # Fail-open when Redis absent (Render / serverless)
     PURGE_EXPIRED_CACHE_ON_STARTUP: bool = True
 
     class Config:
