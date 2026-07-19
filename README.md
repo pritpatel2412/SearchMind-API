@@ -67,7 +67,7 @@ Python SDK (httpx)             ----+         +---> Neon PostgreSQL (7 tables)
                                               +---> Brave Search API
                                               +---> SerpAPI (fallback)
                                               +---> DuckDuckGo (final fallover)
-                                              +---> Groq LLM (Llama 3.3 70B)
+                                              +---> Groq LLM (GPT-OSS 120B)
                                               +---> Celery Workers (crawl tasks)
 ```
 
@@ -79,7 +79,7 @@ Python SDK (httpx)             ----+         +---> Neon PostgreSQL (7 tables)
 | Database | PostgreSQL via Neon Serverless |
 | Cache and Rate Limiting | Redis (sliding window rate limits, in-memory cache) |
 | Background Tasks | Celery with Redis broker |
-| LLM Provider | Groq (Llama 3.3 70B Versatile) |
+| LLM Provider | Groq (GPT-OSS 120B) |
 | Search Providers | Brave Search (primary), SerpAPI (fallback), DuckDuckGo (final) |
 | Content Extraction | Trafilatura, Readability-lxml, Playwright (JS fallback) |
 | Frontend Framework | React 18 with Vite and Tailwind CSS |
@@ -617,7 +617,7 @@ All configuration is managed through environment variables. See `backend/.env.ex
 | `SERPAPI_KEY` | Optional | SerpAPI key (fallback provider) |
 | `LLM_PROVIDER` | Optional | LLM provider: groq, nvidia, or openai (default: groq) |
 | `LLM_API_KEY` | Optional | API key for the LLM provider |
-| `LLM_MODEL` | Optional | Model identifier (default: llama-3.3-70b-versatile) |
+| `LLM_MODEL` | Optional | Model identifier (default: openai/gpt-oss-120b) |
 | `LLM_BASE_URL` | Optional | LLM API base URL |
 | `DEBUG` | Optional | Enable debug logging (default: false) |
 | `RUN_MIGRATIONS_ON_STARTUP` | Optional | Auto-run Alembic migrations (default: true) |
