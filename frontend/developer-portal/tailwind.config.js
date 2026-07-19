@@ -68,9 +68,9 @@ export default {
         }
       },
       fontFamily: {
-        sans: ['Newsreader', 'Playfair Display', 'Georgia', 'serif'],
-        'sans-tight': ['Newsreader', 'Georgia', 'serif'],
-        display: ['Newsreader', 'Playfair Display', 'Georgia', 'serif'],
+        sans: ['Inter', 'sans-serif'],
+        'sans-tight': ['Inter', 'sans-serif'],
+        display: ['Outfit', 'sans-serif'],
         mono: ['JetBrains Mono', 'monospace']
       },
       borderRadius: {
