@@ -62,7 +62,7 @@ async def perform_search(req: SearchRequest, db: Optional[AsyncSession] = None) 
 
     # 5. Fetch + extract content (if advanced/deep search)
     if req.search_depth == "advanced":
-        tasks = [enrich_result(r) for r in raw_results[:req.num_results]]
+        tasks = [enrich_result(r, extract_images=req.extract_images) for r in raw_results[:req.num_results]]
         raw_results = await asyncio.gather(*tasks)
     else:
         for r in raw_results:
@@ -160,7 +160,7 @@ async def perform_search_streaming(req: SearchRequest, emitter: ProgressEmitter,
     raw_results = filter_safe_results(raw_results)
 
     if req.search_depth == "advanced":
-        tasks = [enrich_result(r, emitter, i) for i, r in enumerate(raw_results[:req.num_results])]
+        tasks = [enrich_result(r, emitter, i, extract_images=req.extract_images) for i, r in enumerate(raw_results[:req.num_results])]
         raw_results = await asyncio.gather(*tasks)
     else:
         for r in raw_results:
@@ -215,14 +215,14 @@ async def perform_search_streaming(req: SearchRequest, emitter: ProgressEmitter,
         
     return response
 
-async def enrich_result(result: dict, emitter: Optional["ProgressEmitter"] = None, index: int = 0) -> dict:
+async def enrich_result(result: dict, emitter: Optional["ProgressEmitter"] = None, index: int = 0, extract_images: bool = False) -> dict:
     """Same as enrich_result but forwards the emitter into fetch_url_content
     so Playwright-rendered pages can push a screenshot event."""
     if emitter:
         await asyncio.sleep(index * 0.15) # Stagger starts slightly for better UI feedback
         await emitter.emit("progress", {"stage": "fetch", "url": result["url"], "status": "start"})
     try:
-        html = await fetch_url_content(result["url"], emitter=emitter)
+        html = await fetch_url_content(result["url"], extract_images=extract_images, emitter=emitter)
         if not html:
             result["content"] = result.get("snippet", "")
             result["extraction_status"] = "fetch_failed"
