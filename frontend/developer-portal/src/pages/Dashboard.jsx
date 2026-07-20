@@ -25,7 +25,7 @@ const formatTime = (isoStr) => {
   }
 }
 
-export default function Dashboard({ token, user, apiKey, setApiKey }) {
+export default function Dashboard({ token, user, apiKey, setApiKey, onLogout }) {
   const apiUrl = (import.meta.env.VITE_API_URL || 'http://localhost:8000').replace(/\/$/, '')
   const [keys, setKeys] = useState([])
   const [usage, setUsage] = useState(null)
@@ -51,6 +51,10 @@ export default function Dashboard({ token, user, apiKey, setApiKey }) {
       const response = await fetch(`${apiUrl}/v1/logs?limit=4`, {
         headers: { 'Authorization': `Bearer ${token}` }
       })
+      if (response.status === 401 && onLogout) {
+        onLogout()
+        return
+      }
       if (!response.ok) throw new Error('Failed to load activity logs')
       const data = await response.json()
       setLogs(data)
@@ -76,6 +80,10 @@ export default function Dashboard({ token, user, apiKey, setApiKey }) {
       const response = await fetch(`${apiUrl}/v1/usage`, {
         headers: { 'Authorization': `Bearer ${token}` }
       })
+      if (response.status === 401 && onLogout) {
+        onLogout()
+        return
+      }
       if (!response.ok) throw new Error('Failed to load usage data')
       const data = await response.json()
       setUsage(data)
@@ -93,6 +101,10 @@ export default function Dashboard({ token, user, apiKey, setApiKey }) {
       const response = await fetch(`${apiUrl}/v1/api-keys`, {
         headers: { 'Authorization': `Bearer ${token}` }
       })
+      if (response.status === 401 && onLogout) {
+        onLogout()
+        return
+      }
       if (!response.ok) throw new Error('Failed to load API keys')
       const data = await response.json()
       setKeys(data)
@@ -129,6 +141,10 @@ export default function Dashboard({ token, user, apiKey, setApiKey }) {
         },
         body: JSON.stringify({ name: newKeyName })
       })
+      if (response.status === 401 && onLogout) {
+        onLogout()
+        return
+      }
       const data = await response.json()
       if (!response.ok) throw new Error(data.detail || 'Failed to create API key')
 
@@ -150,6 +166,10 @@ export default function Dashboard({ token, user, apiKey, setApiKey }) {
         method: 'DELETE',
         headers: { 'Authorization': `Bearer ${token}` }
       })
+      if (response.status === 401 && onLogout) {
+        onLogout()
+        return
+      }
       if (!response.ok) throw new Error('Failed to revoke API key')
       
       setKeys(prev => prev.filter(k => k.id !== keyId))

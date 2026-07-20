@@ -55,6 +55,10 @@ function AppContent({ token, setToken, user, setUser, apiKey, setApiKey, handleL
         }
       })
       .then(res => {
+        if (res.status === 401) {
+          handleLogout()
+          return null
+        }
         if (res.ok) return res.json()
         return null
       })
@@ -117,7 +121,7 @@ function AppContent({ token, setToken, user, setUser, apiKey, setApiKey, handleL
           <Route path="/" element={<Home token={token} />} />
           <Route 
             path="/dashboard" 
-            element={token ? <Dashboard token={token} user={user} apiKey={apiKey} setApiKey={setApiKey} /> : <Navigate to="/auth?mode=login" />} 
+            element={token ? <Dashboard token={token} user={user} apiKey={apiKey} setApiKey={setApiKey} onLogout={handleLogout} /> : <Navigate to="/auth?mode=login" />} 
           />
           <Route 
             path="/playground" 
