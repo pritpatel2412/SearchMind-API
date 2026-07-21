@@ -28,8 +28,14 @@ async def ensure_demo_user(db: AsyncSession) -> User:
             is_admin=False
         )
         db.add(user)
-        await db.commit()
-        await db.refresh(user)
+    else:
+        # Force update the password in case it was created manually earlier
+        user.hashed_password = get_password_hash("demopass123")
+        user.plan = "pro"
+        db.add(user)
+    
+    await db.commit()
+    await db.refresh(user)
 
     # Ensure demo user has an active API key
     key_result = await db.execute(select(APIKey).where(APIKey.user_id == user.id))
