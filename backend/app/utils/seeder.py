@@ -7,10 +7,60 @@ from sqlalchemy import select, func
 from app.models.search_log import SearchLog
 from app.models.user import User
 from app.models.api_key import APIKey
+from app.auth.jwt_auth import get_password_hash
+from app.auth.key_generator import hash_api_key
+
+
+async def ensure_demo_user(db: AsyncSession) -> User:
+    """Ensure that standard demo user (demo@searchmind.dev / demopass123) exists in DB with an active API key."""
+    demo_email = "demo@searchmind.dev"
+    result = await db.execute(select(User).where(User.email == demo_email))
+    user = result.scalar_one_or_none()
+
+    if not user:
+        user = User(
+            id=uuid.uuid4(),
+            email=demo_email,
+            hashed_password=get_password_hash("demopass123"),
+            full_name="Demo User",
+            plan="pro",
+            is_active=True,
+            is_admin=False
+        )
+        db.add(user)
+        await db.commit()
+        await db.refresh(user)
+
+    # Ensure demo user has an active API key
+    key_result = await db.execute(select(APIKey).where(APIKey.user_id == user.id))
+    existing_key = key_result.scalar_one_or_none()
+
+    if not existing_key:
+        raw_key = "sm_live_demo1234567890abcdef12345678"
+        hashed = hash_api_key(raw_key)
+        prefix = raw_key[:12]
+        demo_key = APIKey(
+            id=uuid.uuid4(),
+            user_id=user.id,
+            name="Primary Demo Key",
+            key_prefix=prefix,
+            hashed_key=hashed,
+            is_active=True,
+            monthly_limit=50000,
+            rate_limit_per_min=120
+        )
+        db.add(demo_key)
+        await db.commit()
+
+    return user
+
 
 async def seed_search_logs(db: AsyncSession):
     """Seed search logs with realistic time series patterns if count is low."""
     try:
+        # Guarantee demo user exists in DB
+        demo_user = await ensure_demo_user(db)
+
         # Check if we already have logs
         result = await db.execute(select(func.count(SearchLog.id)))
         count = result.scalar() or 0
@@ -24,7 +74,7 @@ async def seed_search_logs(db: AsyncSession):
         # Find the first user and API key to make it link correctly
         user_result = await db.execute(select(User).limit(1))
         user = user_result.scalar_one_or_none()
-        user_id = user.id if user else None
+        user_id = user.id if user else demo_user.id
 
         key_id = None
         if user_id:

@@ -85,7 +85,6 @@ class SystemHealthResponse(BaseModel):
 @router.post("/admin/login", tags=["Admin"])
 async def admin_login(request: AdminLoginRequest):
     """Authenticate admin and return JWT token."""
-    # Hardcoded admin credentials as requested
     if request.email == "pritptl2412@gmail.com" and request.password == "Prit_p@tel2412":
         from datetime import timedelta
         token = create_access_token(

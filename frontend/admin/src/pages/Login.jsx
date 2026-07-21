@@ -59,7 +59,7 @@ export default function Login({ onLogin }) {
                 type="email"
                 required
                 className="w-full bg-cream text-ink border border-beige-deep rounded-lg py-2.5 pl-10 pr-4 outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all text-sm font-sans"
-                placeholder="root@searchmind.dev"
+                placeholder="pritptl2412@gmail.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
               />
