@@ -11,6 +11,15 @@ The platform abstracts the complexities of search provider fallbacks, headless J
 - **Backend API:** [https://searchmind-api.onrender.com](https://searchmind-api.onrender.com)
 - **API Documentation:** [https://searchmind-api.onrender.com/docs](https://searchmind-api.onrender.com/docs)
 
+### ✨ What's New (Recent Updates)
+- **Phase 5: Human-in-the-Loop (HITL):** Added 2FA interventions for pausing and approving sensitive agent actions via webhooks.
+- **Phase 4: Interactive Agent API:** Autonomous browser agent execution with action chains and session tracking.
+- **Phase 3: Scheduled Watch Webhooks:** Cron-based background web tracking with webhook notifications for automated updates.
+- **Phase 2: Vision Extraction:** Multi-modal content extraction to interpret and summarize images embedded in web pages.
+- **Phase 1: Vector Embeddings:** Integrated dense vector embedding generation for instant RAG pipeline support.
+- **UI & Security Updates:** Upgraded Developer Portal with premium Outfit/Inter typography, graceful 401 token expiration handling, updated demo user seeding, and strict admin credential enforcement.
+- **Model Context Protocol (MCP):** Added an official MCP server enabling seamless integration of SearchMind tools directly into Cursor, Claude Desktop, and other MCP clients.
+
 ---
 
 ## Table of Contents
@@ -23,6 +32,7 @@ The platform abstracts the complexities of search provider fallbacks, headless J
 - [User Analytics and Session Telemetry](#user-analytics-and-session-telemetry)
 - [Developer Portal](#developer-portal)
 - [Admin Console](#admin-console)
+- [Model Context Protocol (MCP) Server](#model-context-protocol-mcp-server)
 - [Python SDK and Agent Integration](#python-sdk-and-agent-integration)
 - [Quick Start (Docker)](#quick-start-docker)
 - [Local Development (Without Docker)](#local-development-without-docker)
@@ -44,6 +54,14 @@ The platform abstracts the complexities of search provider fallbacks, headless J
 - **Background Domain Crawling** (`POST /v1/crawl`): Triggers asynchronous Celery-based crawl jobs for specified URL domains. Supports configurable max depth and max pages. Results are retrieved by polling a task status endpoint (`GET /v1/crawl/{task_id}`).
 
 - **Deep Research Pipelines** (`POST /v1/research`): Orchestrates multi-angle research by dynamically generating sub-queries via LLM, executing parallel searches, fetching and extracting content from top sources, ranking results by relevance, and synthesizing a comprehensive research summary.
+
+- **Interactive Agent API** (`POST /v1/action`): Execute autonomous headless browser actions, navigate complex single-page apps, and interact with dynamic DOM elements.
+
+- **Human-in-the-Loop (HITL) Interventions**: Trigger 2FA and manual approvals securely via webhooks when agents hit captchas or sensitive operations (`POST /v1/action/resume/{session_id}`).
+
+- **Scheduled Watch Webhooks** (`POST /v1/watch`): Set up cron-based periodic search/extraction jobs that push continuous background intelligence to your custom webhook endpoints.
+
+- **Vision Extraction & Embeddings**: Seamlessly extract AI summaries of on-page images (Vision) and generate vector embeddings on the fly for ready-to-use RAG contexts.
 
 - **Python SDK**: Native Python client with synchronous and asynchronous interfaces. Includes built-in LangGraph and LangChain tool adapters for direct agent integration.
 
@@ -111,10 +129,20 @@ All endpoints are prefixed with `/v1`.
 | Method | Path | Description | Auth | Plan |
 |--------|------|-------------|------|------|
 | POST | `/v1/search` | AI-optimized web search with optional answer synthesis | API Key | All |
-| POST | `/v1/extract` | Extract clean text and metadata from URLs | API Key | Pro+ |
+| POST | `/v1/extract` | Extract clean text and metadata from URLs (supports Vision & Embeddings) | API Key | Pro+ |
 | POST | `/v1/crawl` | Trigger background domain crawl job | API Key | Pro+ |
 | GET | `/v1/crawl/{task_id}` | Poll crawl task status and retrieve results | API Key | Pro+ |
 | POST | `/v1/research` | Deep multi-source research with LLM synthesis | API Key | Enterprise |
+
+### Agents & Automation
+
+| Method | Path | Description | Auth | Plan |
+|--------|------|-------------|------|------|
+| POST | `/v1/action` | Execute autonomous interactive agent steps | API Key | Enterprise |
+| POST | `/v1/action/resume/{session_id}`| Resume an agent action paused by Human-in-the-Loop (HITL) | API Key | Enterprise |
+| POST | `/v1/watch` | Schedule recurring search tasks via cron and webhook | API Key | Pro+ |
+| GET | `/v1/watch` | List all scheduled watch jobs | API Key | Pro+ |
+| DELETE | `/v1/watch/{job_id}` | Cancel an active scheduled watch job | API Key | Pro+ |
 
 ### Key and Usage Management
 
@@ -289,6 +317,32 @@ The Admin Console is a React single-page application served at `http://localhost
 - Sidebar navigation with live system health indicator (auto-polls every 15 seconds).
 - Responsive design with mobile bottom navigation bar.
 - Undefined routes are caught and redirected to the 404 page.
+
+---
+
+## Model Context Protocol (MCP) Server
+
+SearchMind includes an official [Model Context Protocol (MCP)](https://modelcontextprotocol.io/) server built with FastMCP. This enables you to integrate SearchMind's capabilities directly into modern IDEs like Cursor or applications like Claude Desktop.
+
+### Features
+The MCP server exposes the following tools:
+- `search_web`: Fast AI-optimized web searches with snippet and content retrieval.
+- `deep_research`: Parallelized research tasks summarizing information from multiple top sources.
+- `extract_page`: Cleanly scrape body content, bypassing paywalls and JS-rendered single-page apps.
+- `crawl_domain`: Trigger asynchronous background domain crawling tasks.
+
+### Usage
+Configure your MCP client to start the SearchMind server. For example, in Cursor, add the following to your MCP settings:
+
+```json
+{
+  "command": "python",
+  "args": ["/path/to/SearchMind-API/mcp-server/server.py"],
+  "env": {
+    "SEARCHMIND_API_KEY": "sm_live_your_api_key_here"
+  }
+}
+```
 
 ---
 
