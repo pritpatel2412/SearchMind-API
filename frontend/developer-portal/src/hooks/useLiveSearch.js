@@ -1,7 +1,7 @@
 import { useState, useRef, useCallback } from 'react';
 import { fetchEventSource } from '@microsoft/fetch-event-source';
 
-export function useLiveSearch(apiBaseUrl, endpoint, token, apiKey) {
+export function useLiveSearch(apiBaseUrl, endpoint, token, apiKey, onLogout) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [results, setResults] = useState(null);
@@ -37,12 +37,49 @@ export function useLiveSearch(apiBaseUrl, endpoint, token, apiKey) {
     abortControllerRef.current = new AbortController();
 
     const headers = {
-      'X-API-Key': apiKey || 'sm_live_YOUR_KEY',
       'Content-Type': 'application/json'
     };
+    if (apiKey) {
+      headers['X-API-Key'] = apiKey;
+    }
     if (token) {
       headers['Authorization'] = `Bearer ${token}`;
     }
+
+    const handleStreamOpen = async (response) => {
+      const contentType = response.headers.get('content-type') || '';
+      if (response.ok && contentType.includes('text/event-stream')) {
+        return; // Valid SSE stream
+      }
+
+      let detailMsg = `Request failed (${response.status})`;
+      try {
+        const data = await response.json();
+        if (typeof data.detail === 'string') {
+          detailMsg = data.detail;
+        } else if (Array.isArray(data.detail)) {
+          detailMsg = data.detail.map(d => d.msg || d.message || JSON.stringify(d)).join('; ');
+        } else if (data.message) {
+          detailMsg = data.message;
+        } else if (data.error) {
+          detailMsg = data.error;
+        }
+      } catch {
+        try {
+          const text = await response.text();
+          if (text) detailMsg = text.slice(0, 300);
+        } catch {}
+      }
+
+      if (response.status === 401) {
+        if (onLogout) {
+          onLogout();
+        }
+        throw new Error(`Session expired or unauthorized (${detailMsg}). Please log in again.`);
+      }
+
+      throw new Error(detailMsg);
+    };
 
     try {
       if (isCrawl) {
@@ -55,8 +92,11 @@ export function useLiveSearch(apiBaseUrl, endpoint, token, apiKey) {
         });
         
         if (!response.ok) {
-          const data = await response.json();
-          throw new Error(data.detail || 'API request failed');
+          if (response.status === 401 && onLogout) {
+            onLogout();
+          }
+          const data = await response.json().catch(() => ({}));
+          throw new Error(data.detail || `Crawl request failed with status ${response.status}`);
         }
         
         const data = await response.json();
@@ -68,10 +108,11 @@ export function useLiveSearch(apiBaseUrl, endpoint, token, apiKey) {
         await fetchEventSource(`${apiBaseUrl}/v1/crawl/${taskId}/stream`, {
           method: 'GET',
           headers: {
-            'X-API-Key': headers['X-API-Key'],
-            ...(token && { 'Authorization': headers['Authorization'] })
+            ...(apiKey && { 'X-API-Key': apiKey }),
+            ...(token && { 'Authorization': `Bearer ${token}` })
           },
           signal: abortControllerRef.current.signal,
+          onopen: handleStreamOpen,
           onmessage(msg) {
             if (msg.event === 'screenshot') {
               const data = JSON.parse(msg.data);
@@ -102,6 +143,7 @@ export function useLiveSearch(apiBaseUrl, endpoint, token, apiKey) {
           headers,
           body: JSON.stringify(payload),
           signal: abortControllerRef.current.signal,
+          onopen: handleStreamOpen,
           onmessage(msg) {
             if (msg.event === 'screenshot') {
               const data = JSON.parse(msg.data);
@@ -133,7 +175,7 @@ export function useLiveSearch(apiBaseUrl, endpoint, token, apiKey) {
         setLoading(false);
       }
     }
-  }, [apiBaseUrl, endpoint, token, apiKey, cancel]);
+  }, [apiBaseUrl, endpoint, token, apiKey, onLogout, cancel]);
 
   return { loading, error, results, events, screenshots, latency, runPipeline, cancel, reset };
 }

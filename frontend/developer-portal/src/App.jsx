@@ -125,7 +125,7 @@ function AppContent({ token, setToken, user, setUser, apiKey, setApiKey, handleL
           />
           <Route 
             path="/playground" 
-            element={token ? <Playground token={token} user={user} setUser={setUser} apiKey={apiKey} /> : <Navigate to="/auth?mode=login" />} 
+            element={token ? <Playground token={token} user={user} setUser={setUser} apiKey={apiKey} onLogout={handleLogout} /> : <Navigate to="/auth?mode=login" />} 
           />
           <Route 
             path="/auth" 

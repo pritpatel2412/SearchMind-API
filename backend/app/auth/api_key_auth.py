@@ -51,6 +51,8 @@ async def get_current_api_key(
                     )
                 )
                 key_obj = result.scalars().first()
+                if key_obj and not key_obj.user:
+                    key_obj.user = user
                 
                 # If no active key exists for the user, create a default playground key on the fly
                 if not key_obj:
@@ -70,6 +72,8 @@ async def get_current_api_key(
                     await db.refresh(key_obj)
                     # Manually set user object to avoid secondary db query
                     key_obj.user = user
+        except HTTPException:
+            raise
         except Exception:
             pass
 

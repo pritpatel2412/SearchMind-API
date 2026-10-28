@@ -95,7 +95,7 @@ const Toggle = ({ checked, onChange, label, description, icon: Icon }) => (
   </button>
 )
 
-export default function Playground({ token, user, setUser, apiKey }) {
+export default function Playground({ token, user, setUser, apiKey, onLogout }) {
   const [endpoint, setEndpoint] = useState('/v1/search')
   
   // Search parameters
@@ -123,7 +123,7 @@ export default function Playground({ token, user, setUser, apiKey }) {
 
   // System states
   const apiUrl = (import.meta.env.VITE_API_URL || 'http://localhost:8000').replace(/\/$/, '')
-  const { loading, error, results, events, screenshots, latency, runPipeline, cancel, reset } = useLiveSearch(apiUrl, endpoint, token, apiKey)
+  const { loading, error, results, events, screenshots, latency, runPipeline, cancel, reset } = useLiveSearch(apiUrl, endpoint, token, apiKey, onLogout)
 
   const [copiedResponse, setCopiedResponse] = useState(false)
   const [responseTab, setResponseTab] = useState('json')
@@ -819,6 +819,15 @@ export default function Playground({ token, user, setUser, apiKey }) {
                   <div className="space-y-1">
                     <h5 className="font-bold uppercase tracking-wider text-accent-red">Pipeline Exception Raised</h5>
                     <p className="text-slate whitespace-pre-wrap">{error}</p>
+                    {onLogout && (error.toLowerCase().includes('session') || error.toLowerCase().includes('log in') || error.toLowerCase().includes('unauthorized') || error.toLowerCase().includes('401')) && (
+                      <button
+                        type="button"
+                        onClick={onLogout}
+                        className="mt-3 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-accent-red/20 hover:bg-accent-red/30 text-accent-red text-xs font-mono transition-colors cursor-pointer"
+                      >
+                        Log in again
+                      </button>
+                    )}
                   </div>
                 </div>
               </div>

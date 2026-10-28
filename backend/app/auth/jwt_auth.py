@@ -14,7 +14,7 @@ from app.database import get_db
 from app.models.user import User
 
 ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24  # 1 day
+ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24 * 30  # 30 days
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/v1/auth/login", auto_error=False)
 oauth2_admin_scheme = OAuth2PasswordBearer(tokenUrl="/v1/admin/login", auto_error=False)
