@@ -1,16 +1,26 @@
 import trafilatura
 from readability import Document
 from bs4 import BeautifulSoup
-from typing import Optional
+from typing import Optional, List
 from app.utils.html_cleaner import clean_text
 from app.utils.date_parser import extract_published_date
+from app.services.highlight_service import extract_dynamic_highlights
 
-def extract_content(html: str, url: str) -> dict:
+def extract_content(
+    html: str, 
+    url: str,
+    query: Optional[str] = None,
+    highlights: bool = False,
+    max_highlights: int = 3,
+    highlight_strategy: str = "dynamic"
+) -> dict:
     """
     Extract clean readable main text content and metadata from HTML source code.
     Fallback chain: Trafilatura -> Readability-lxml -> BeautifulSoup4 parsing.
+    Optionally extracts dynamic query-conditioned passage highlights.
     """
     
+    res = None
     # 1. Primary extractor: trafilatura
     try:
         extracted = trafilatura.extract(
@@ -25,7 +35,7 @@ def extract_content(html: str, url: str) -> dict:
 
         if extracted and len(extracted.strip()) > 100:
             metadata = trafilatura.extract_metadata(html, default_url=url)
-            return {
+            res = {
                 "content": clean_text(extracted),
                 "title": metadata.title if (metadata and metadata.title) else "",
                 "author": metadata.author if (metadata and metadata.author) else None,
@@ -37,47 +47,65 @@ def extract_content(html: str, url: str) -> dict:
         pass
 
     # 2. Fallback extractor: readability-lxml
-    try:
-        doc = Document(html)
-        soup = BeautifulSoup(doc.summary(), "html.parser")
-        text = soup.get_text(separator="\n", strip=True)
-        if text and len(text.strip()) > 100:
-            return {
-                "content": clean_text(text),
-                "title": doc.title() or "",
+    if not res:
+        try:
+            doc = Document(html)
+            soup = BeautifulSoup(doc.summary(), "html.parser")
+            text = soup.get_text(separator="\n", strip=True)
+            if text and len(text.strip()) > 100:
+                res = {
+                    "content": clean_text(text),
+                    "title": doc.title() or "",
+                    "author": None,
+                    "published_date": extract_published_date(html),
+                    "language": None,
+                    "extraction_method": "readability"
+                }
+        except Exception:
+            pass
+
+    # 3. Final fallback: BeautifulSoup raw parsing
+    if not res:
+        try:
+            soup = BeautifulSoup(html, "html.parser")
+            for tag in soup(["script", "style", "nav", "footer", "header", "aside"]):
+                tag.decompose()
+            text = soup.get_text(separator="\n", strip=True)
+
+            title = ""
+            if soup.title and soup.title.string:
+                title = soup.title.string.strip()
+
+            res = {
+                "content": clean_text(text[:8000]) if text else "",
+                "title": title,
                 "author": None,
                 "published_date": extract_published_date(html),
                 "language": None,
-                "extraction_method": "readability"
+                "extraction_method": "beautifulsoup_fallback"
             }
-    except Exception:
-        pass
+        except Exception as e:
+            res = {
+                "content": "",
+                "title": "",
+                "author": None,
+                "published_date": None,
+                "language": None,
+                "extraction_method": f"error: {str(e)}"
+            }
 
-    # 3. Final fallback: BeautifulSoup raw parsing
-    try:
-        soup = BeautifulSoup(html, "html.parser")
-        for tag in soup(["script", "style", "nav", "footer", "header", "aside"]):
-            tag.decompose()
-        text = soup.get_text(separator="\n", strip=True)
+    # 4. Dynamic Passage Highlights
+    if highlights and query and res and res.get("content"):
+        h_list, savings = extract_dynamic_highlights(
+            content=res["content"],
+            query=query,
+            max_highlights=max_highlights,
+            strategy=highlight_strategy
+        )
+        res["highlights"] = h_list
+        res["token_savings_percentage"] = savings
+    else:
+        res["highlights"] = None
+        res["token_savings_percentage"] = None
 
-        title = ""
-        if soup.title and soup.title.string:
-            title = soup.title.string.strip()
-
-        return {
-            "content": clean_text(text[:8000]) if text else "",
-            "title": title,
-            "author": None,
-            "published_date": extract_published_date(html),
-            "language": None,
-            "extraction_method": "beautifulsoup_fallback"
-        }
-    except Exception as e:
-        return {
-            "content": "",
-            "title": "",
-            "author": None,
-            "published_date": None,
-            "language": None,
-            "extraction_method": f"error: {str(e)}"
-        }
+    return res

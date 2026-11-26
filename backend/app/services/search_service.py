@@ -16,6 +16,7 @@ from app.services.ai_service import synthesize_answer
 from app.services.cache_service import get_cached, set_cached
 from app.services.safety_service import filter_safe_results
 from app.services.embedding_service import embedding_service
+from app.services.highlight_service import extract_dynamic_highlights
 from app.schemas.search import SearchRequest, SearchResponse, SearchResult
 from app.config import settings
 
@@ -32,7 +33,10 @@ async def perform_search(req: SearchRequest, db: Optional[AsyncSession] = None) 
         "include_domains": req.include_domains,
         "exclude_domains": req.exclude_domains, 
         "topic": req.topic,
-        "vectorize": req.vectorize
+        "vectorize": req.vectorize,
+        "highlights": req.highlights,
+        "highlight_strategy": req.highlight_strategy,
+        "max_highlights": req.max_highlights
     }
     cache_key = "search:" + hashlib.sha256(json.dumps(cache_payload, sort_keys=True).encode()).hexdigest()
 
@@ -95,6 +99,19 @@ async def perform_search(req: SearchRequest, db: Optional[AsyncSession] = None) 
         for i, r in enumerate(ranked):
             r["vectors"] = vectors_results[i]
 
+    # 8.6 Extract dynamic highlights if requested
+    if req.highlights:
+        for r in ranked:
+            text_to_highlight = r.get("content", "") or r.get("snippet", "")
+            h_list, savings = extract_dynamic_highlights(
+                content=text_to_highlight,
+                query=req.query,
+                max_highlights=req.max_highlights,
+                strategy=req.highlight_strategy
+            )
+            r["highlights"] = h_list
+            r["token_savings_percentage"] = savings
+
     # 9. Assemble response model
     search_results = [
         SearchResult(
@@ -106,7 +123,9 @@ async def perform_search(req: SearchRequest, db: Optional[AsyncSession] = None) 
             source_type=r.get("source_type", "webpage"),
             author=r.get("author"),
             extraction_status=r.get("extraction_status", "ok"),
-            vectors=r.get("vectors")
+            vectors=r.get("vectors"),
+            highlights=r.get("highlights"),
+            token_savings_percentage=r.get("token_savings_percentage")
         )
         for r in ranked
     ]
@@ -138,7 +157,10 @@ async def perform_search_streaming(req: SearchRequest, emitter: ProgressEmitter,
         "query": req.query, "num_results": req.num_results,
         "search_depth": req.search_depth, "include_domains": req.include_domains,
         "exclude_domains": req.exclude_domains, "topic": req.topic,
-        "vectorize": req.vectorize
+        "vectorize": req.vectorize,
+        "highlights": req.highlights,
+        "highlight_strategy": req.highlight_strategy,
+        "max_highlights": req.max_highlights
     }
     cache_key = "search:" + hashlib.sha256(json.dumps(cache_payload, sort_keys=True).encode()).hexdigest()
 
@@ -192,13 +214,27 @@ async def perform_search_streaming(req: SearchRequest, emitter: ProgressEmitter,
             r["vectors"] = vectors_results[i]
         await emitter.emit("progress", {"stage": "vectorize", "status": "done"})
 
+    if req.highlights:
+        for r in ranked:
+            text_to_highlight = r.get("content", "") or r.get("snippet", "")
+            h_list, savings = extract_dynamic_highlights(
+                content=text_to_highlight,
+                query=req.query,
+                max_highlights=req.max_highlights,
+                strategy=req.highlight_strategy
+            )
+            r["highlights"] = h_list
+            r["token_savings_percentage"] = savings
+
     search_results = [
         SearchResult(
             title=r.get("title", ""), url=r.get("url", ""), content=r.get("content", ""),
             score=r.get("score", 0.5), published_date=r.get("published_date"),
             source_type=r.get("source_type", "webpage"), author=r.get("author"),
             extraction_status=r.get("extraction_status", "ok"),
-            vectors=r.get("vectors")
+            vectors=r.get("vectors"),
+            highlights=r.get("highlights"),
+            token_savings_percentage=r.get("token_savings_percentage")
         )
         for r in ranked
     ]

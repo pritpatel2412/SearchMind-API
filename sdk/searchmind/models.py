@@ -1,6 +1,15 @@
 from pydantic import BaseModel, Field
 from typing import List, Optional
 
+# --- Shared Models ---
+
+class PassageHighlight(BaseModel):
+    text: str
+    relevance_score: float
+    section_header: Optional[str] = None
+    char_start: Optional[int] = None
+    char_end: Optional[int] = None
+
 # --- Search Models ---
 
 class SearchResult(BaseModel):
@@ -11,6 +20,8 @@ class SearchResult(BaseModel):
     published_date: Optional[str] = None
     source_type: str = "webpage"
     author: Optional[str] = None
+    highlights: Optional[List[PassageHighlight]] = None
+    token_savings_percentage: Optional[float] = None
 
 
 class Citation(BaseModel):
@@ -44,6 +55,8 @@ class ExtractedPage(BaseModel):
     extraction_method: str
     success: bool
     error: Optional[str] = None
+    highlights: Optional[List[PassageHighlight]] = None
+    token_savings_percentage: Optional[float] = None
 
 
 class ExtractResponse(BaseModel):
