@@ -65,6 +65,16 @@ class ExtractResponse(BaseModel):
     failed_count: int
 
 
+class SchemaExtractResponse(BaseModel):
+    url: Optional[str] = None
+    data: dict
+    validation_status: str = "valid"
+    validation_errors: Optional[List[str]] = None
+    execution_time_ms: int
+    tokens_used: int = 0
+    cached: bool = False
+
+
 # --- Research Models ---
 
 class ResearchSource(BaseModel):

@@ -1,6 +1,6 @@
 import httpx
 from typing import Optional, List, Any, Dict
-from .models import SearchResponse, ExtractResponse, ResearchResponse, UsageResponse
+from .models import SearchResponse, ExtractResponse, SchemaExtractResponse, ResearchResponse, UsageResponse
 from .exceptions import SearchMindError, AuthError, RateLimitError, QuotaExceededError
 
 class SearchMindClient:
@@ -111,6 +111,29 @@ class SearchMindClient:
         response = self._client.post(f"{self.base_url}/extract", json=payload)
         return ExtractResponse(**self._handle_response(response))
 
+    def extract_schema(
+        self,
+        schema: dict,
+        url: Optional[str] = None,
+        html: Optional[str] = None,
+        system_prompt: Optional[str] = None,
+        use_js_rendering: bool = False,
+        temperature: float = 0.0
+    ) -> SchemaExtractResponse:
+        payload = {
+            "schema": schema,
+            "use_js_rendering": use_js_rendering,
+            "temperature": temperature
+        }
+        if url:
+            payload["url"] = url
+        if html:
+            payload["html"] = html
+        if system_prompt:
+            payload["system_prompt"] = system_prompt
+        response = self._client.post(f"{self.base_url}/extract/schema", json=payload)
+        return SchemaExtractResponse(**self._handle_response(response))
+
     def research(
         self,
         query: str,
@@ -199,6 +222,30 @@ class SearchMindClient:
         }
         response = await client.post(f"{self.base_url}/extract", json=payload)
         return ExtractResponse(**self._handle_response(response))
+
+    async def async_extract_schema(
+        self,
+        schema: dict,
+        url: Optional[str] = None,
+        html: Optional[str] = None,
+        system_prompt: Optional[str] = None,
+        use_js_rendering: bool = False,
+        temperature: float = 0.0
+    ) -> SchemaExtractResponse:
+        client = await self._get_async_client()
+        payload = {
+            "schema": schema,
+            "use_js_rendering": use_js_rendering,
+            "temperature": temperature
+        }
+        if url:
+            payload["url"] = url
+        if html:
+            payload["html"] = html
+        if system_prompt:
+            payload["system_prompt"] = system_prompt
+        response = await client.post(f"{self.base_url}/extract/schema", json=payload)
+        return SchemaExtractResponse(**self._handle_response(response))
 
     async def async_research(
         self,

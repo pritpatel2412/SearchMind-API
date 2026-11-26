@@ -1,4 +1,5 @@
 import json
+import asyncio
 import logging
 from datetime import datetime, timedelta, timezone
 from typing import Any, Dict, Optional
@@ -33,40 +34,49 @@ async def get_cached(
 
     try:
         redis = await get_redis()
-        data = await redis.get(cache_key)
-        if data:
-            return json.loads(data)
+        if redis:
+            data = await asyncio.wait_for(redis.get(cache_key), timeout=1.0)
+            if data:
+                return json.loads(data)
     except Exception as e:
         logger.warning("Redis cache read failed for %s: %s", cache_key, e)
 
     try:
         now = datetime.now(timezone.utc)
-        async with SessionLocal() as session:
-            result = await session.execute(
-                select(CachedResult).where(
-                    CachedResult.cache_key == cache_key,
-                    CachedResult.expires_at > now,
+        async def _query_pg():
+            async with SessionLocal() as session:
+                result = await session.execute(
+                    select(CachedResult).where(
+                        CachedResult.cache_key == cache_key,
+                        CachedResult.expires_at > now,
+                    )
                 )
-            )
-            row = result.scalar_one_or_none()
-            if not row:
-                return None
+                row = result.scalar_one_or_none()
+                if not row:
+                    return None
 
-            row.hit_count = (row.hit_count or 0) + 1
-            payload = row.response_json
-            expires_at = row.expires_at
-            await session.commit()
+                row.hit_count = (row.hit_count or 0) + 1
+                payload = row.response_json
+                expires_at = row.expires_at
+                await session.commit()
+                return payload, expires_at
+
+        pg_res = await asyncio.wait_for(_query_pg(), timeout=2.0)
+        if not pg_res:
+            return None
+        payload, expires_at = pg_res
 
         if isinstance(payload, dict):
             try:
                 redis = await get_redis()
-                ttl = max(int((expires_at - now).total_seconds()), 1)
-                await redis.setex(cache_key, ttl, json.dumps(payload))
+                if redis:
+                    ttl = max(int((expires_at - now).total_seconds()), 1)
+                    await redis.setex(cache_key, ttl, json.dumps(payload))
             except Exception as e:
                 logger.debug("Could not warm Redis for %s: %s", cache_key, e)
             return payload
     except Exception as e:
-        logger.error("PostgreSQL cache read failed for %s: %s", cache_key, e)
+        logger.warning("PostgreSQL cache read failed for %s: %s", cache_key, e)
 
     return None
 
@@ -85,34 +95,37 @@ async def set_cached(
 
     try:
         redis = await get_redis()
-        await redis.setex(cache_key, ttl, json.dumps(response_data))
+        if redis:
+            await asyncio.wait_for(redis.setex(cache_key, ttl, json.dumps(response_data)), timeout=1.0)
     except Exception as e:
         logger.warning("Redis cache write failed for %s: %s", cache_key, e)
 
     try:
-        async with SessionLocal() as session:
-            stmt = (
-                insert(CachedResult)
-                .values(
-                    cache_key=cache_key,
-                    endpoint=endpoint,
-                    response_json=response_data,
-                    hit_count=0,
-                    expires_at=expires_at,
+        async def _write_pg():
+            async with SessionLocal() as session:
+                stmt = (
+                    insert(CachedResult)
+                    .values(
+                        cache_key=cache_key,
+                        endpoint=endpoint,
+                        response_json=response_data,
+                        hit_count=0,
+                        expires_at=expires_at,
+                    )
+                    .on_conflict_do_update(
+                        index_elements=["cache_key"],
+                        set_={
+                            "endpoint": endpoint,
+                            "response_json": response_data,
+                            "expires_at": expires_at,
+                        },
+                    )
                 )
-                .on_conflict_do_update(
-                    index_elements=["cache_key"],
-                    set_={
-                        "endpoint": endpoint,
-                        "response_json": response_data,
-                        "expires_at": expires_at,
-                    },
-                )
-            )
-            await session.execute(stmt)
-            await session.commit()
+                await session.execute(stmt)
+                await session.commit()
+        await asyncio.wait_for(_write_pg(), timeout=2.0)
     except Exception as e:
-        logger.error("PostgreSQL cache write failed for %s: %s", cache_key, e)
+        logger.warning("PostgreSQL cache write failed for %s: %s", cache_key, e)
 
 
 async def purge_expired_cached_results(db: AsyncSession) -> int:
