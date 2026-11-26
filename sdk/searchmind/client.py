@@ -63,7 +63,10 @@ class SearchMindClient:
         include_domains: Optional[List[str]] = None,
         exclude_domains: Optional[List[str]] = None,
         time_range: Optional[str] = None,
-        max_content_length: int = 2000
+        max_content_length: int = 2000,
+        highlights: bool = False,
+        highlight_strategy: str = "dynamic",
+        max_highlights: int = 3
     ) -> SearchResponse:
         payload = {
             "query": query,
@@ -71,7 +74,10 @@ class SearchMindClient:
             "search_depth": search_depth,
             "include_answer": include_answer,
             "topic": topic,
-            "max_content_length": max_content_length
+            "max_content_length": max_content_length,
+            "highlights": highlights,
+            "highlight_strategy": highlight_strategy,
+            "max_highlights": max_highlights
         }
         if include_domains:
             payload["include_domains"] = include_domains
@@ -87,12 +93,20 @@ class SearchMindClient:
         self,
         urls: List[str],
         use_js_rendering: bool = False,
-        max_content_length: int = 5000
+        max_content_length: int = 5000,
+        query: Optional[str] = None,
+        highlights: bool = False,
+        highlight_strategy: str = "dynamic",
+        max_highlights: int = 3
     ) -> ExtractResponse:
         payload = {
             "urls": urls,
             "use_js_rendering": use_js_rendering,
-            "max_content_length": max_content_length
+            "max_content_length": max_content_length,
+            "query": query,
+            "highlights": highlights,
+            "highlight_strategy": highlight_strategy,
+            "max_highlights": max_highlights
         }
         response = self._client.post(f"{self.base_url}/extract", json=payload)
         return ExtractResponse(**self._handle_response(response))
@@ -136,7 +150,10 @@ class SearchMindClient:
         include_domains: Optional[List[str]] = None,
         exclude_domains: Optional[List[str]] = None,
         time_range: Optional[str] = None,
-        max_content_length: int = 2000
+        max_content_length: int = 2000,
+        highlights: bool = False,
+        highlight_strategy: str = "dynamic",
+        max_highlights: int = 3
     ) -> SearchResponse:
         client = await self._get_async_client()
         payload = {
@@ -145,7 +162,10 @@ class SearchMindClient:
             "search_depth": search_depth,
             "include_answer": include_answer,
             "topic": topic,
-            "max_content_length": max_content_length
+            "max_content_length": max_content_length,
+            "highlights": highlights,
+            "highlight_strategy": highlight_strategy,
+            "max_highlights": max_highlights
         }
         if include_domains:
             payload["include_domains"] = include_domains
@@ -161,13 +181,21 @@ class SearchMindClient:
         self,
         urls: List[str],
         use_js_rendering: bool = False,
-        max_content_length: int = 5000
+        max_content_length: int = 5000,
+        query: Optional[str] = None,
+        highlights: bool = False,
+        highlight_strategy: str = "dynamic",
+        max_highlights: int = 3
     ) -> ExtractResponse:
         client = await self._get_async_client()
         payload = {
             "urls": urls,
             "use_js_rendering": use_js_rendering,
-            "max_content_length": max_content_length
+            "max_content_length": max_content_length,
+            "query": query,
+            "highlights": highlights,
+            "highlight_strategy": highlight_strategy,
+            "max_highlights": max_highlights
         }
         response = await client.post(f"{self.base_url}/extract", json=payload)
         return ExtractResponse(**self._handle_response(response))

@@ -26,6 +26,16 @@ class SearchRequest(BaseModel):
     max_content_length: int = Field(default=2000, ge=100, le=10000)
     vectorize: bool = Field(default=False, description="If true, returns semantic chunks and embeddings")
     extract_images: bool = Field(default=False, description="If true, uses Vision models to transcribe images into text")
+    highlights: bool = Field(default=False, description="If true, extracts query-relevant dynamic passage highlights")
+    highlight_strategy: str = Field(default="dynamic", description="Highlight strategy: 'dynamic' or 'fixed'")
+    max_highlights: int = Field(default=3, ge=1, le=10, description="Maximum number of passage highlights per document")
+
+class PassageHighlight(BaseModel):
+    text: str
+    relevance_score: float
+    section_header: Optional[str] = None
+    char_start: Optional[int] = None
+    char_end: Optional[int] = None
 
 class SearchResult(BaseModel):
     title: str
@@ -37,6 +47,8 @@ class SearchResult(BaseModel):
     author: Optional[str] = None
     extraction_status: str = "ok"
     vectors: Optional[List[dict]] = None
+    highlights: Optional[List[PassageHighlight]] = None
+    token_savings_percentage: Optional[float] = None
 
 class Citation(BaseModel):
     index: int
