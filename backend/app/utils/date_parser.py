@@ -1,6 +1,9 @@
 import re
 from typing import Optional
-from bs4 import BeautifulSoup
+try:
+    from bs4 import BeautifulSoup
+except ImportError:
+    BeautifulSoup = None
 
 
 def extract_published_date(html: str) -> Optional[str]:
@@ -10,6 +13,12 @@ def extract_published_date(html: str) -> Optional[str]:
     """
     if not html:
         return None
+
+    if not BeautifulSoup:
+        m = re.search(r'<meta\s+[^>]*property=["\']article:published_time["\'][^>]*content=["\']([^"\']+)["\']', html, re.I)
+        if not m:
+            m = re.search(r'<meta\s+[^>]*name=["\'](?:pubdate|publishdate|date)["\'][^>]*content=["\']([^"\']+)["\']', html, re.I)
+        return m.group(1) if m else None
 
     try:
         soup = BeautifulSoup(html, "html.parser")

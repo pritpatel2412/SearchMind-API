@@ -2,7 +2,10 @@ import httpx
 import logging
 import base64
 from typing import Optional
-from playwright.async_api import async_playwright
+try:
+    from playwright.async_api import async_playwright
+except ImportError:
+    async_playwright = None
 from app.config import settings
 
 from app.http_client import get_http_client
@@ -43,6 +46,9 @@ async def fetch_url_content(url: str, use_js: bool = False, extract_images: bool
 
 async def fetch_with_playwright(url: str, extract_images: bool = False, emitter=None) -> Optional[str]:
     """Uses headless Playwright Chromium browser to render and fetch URL contents."""
+    if not async_playwright:
+        logger.warning("Playwright is not installed. Skipping headless browser rendering.")
+        return None
     try:
         async with async_playwright() as p:
             browser = await p.chromium.launch(

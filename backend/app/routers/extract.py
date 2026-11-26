@@ -6,9 +6,13 @@ from fastapi import APIRouter, Depends, Request, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from typing import List, Optional
 
-from app.schemas.extract import ExtractRequest, ExtractedPage, ExtractResponse
+from app.schemas.extract import (
+    ExtractRequest, ExtractedPage, ExtractResponse,
+    SchemaExtractRequest, SchemaExtractResponse
+)
 from app.services.fetch_service import fetch_url_content
 from app.services.extract_service import extract_content
+from app.services.schema_extract_service import extract_with_schema
 from app.auth.api_key_auth import get_current_api_key
 from app.services.progress_emitter import ProgressEmitter
 from app.services.embedding_service import embedding_service
@@ -267,4 +271,44 @@ async def extract_stream(
             "X-Accel-Buffering": "no"
         }
     )
+
+@router.post("/extract/schema", response_model=SchemaExtractResponse, tags=["Extract"])
+async def extract_schema_endpoint(
+    request: SchemaExtractRequest,
+    http_request: Request,
+    api_key: APIKey = Depends(get_current_api_key),
+    db: AsyncSession = Depends(get_db)
+):
+    """
+    Extract type-safe structured JSON entities from a URL or raw HTML directly conforming
+    to a client-provided JSON Schema specification. Eliminates downstream LLM token costs.
+    """
+    if getattr(api_key.user, "plan", "free") == "free":
+        raise HTTPException(status_code=403, detail="Schema extraction requires a Pro or Enterprise plan.")
+
+    await enforce_rate_limits(http_request, api_key, db)
+    
+    if not request.url and not request.html:
+        raise HTTPException(status_code=400, detail="Either 'url' or 'html' must be provided for schema extraction.")
+
+    response = await extract_with_schema(request, db=db)
+    
+    # Usage tracking and logging
+    await track_usage(db, api_key, "extract_schema", result_count=1)
+    log_entry = SearchLog(
+        api_key_id=api_key.id,
+        user_id=api_key.user_id,
+        endpoint="extract/schema",
+        query=request.url or "raw_html",
+        results_count=1,
+        cached=response.cached,
+        latency_ms=response.execution_time_ms,
+        ip_address=http_request.client.host if http_request.client else None,
+        user_agent=http_request.headers.get("user-agent"),
+        status_code=200
+    )
+    db.add(log_entry)
+    await db.commit()
+
+    return response
 

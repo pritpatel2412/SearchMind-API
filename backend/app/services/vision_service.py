@@ -1,6 +1,9 @@
 import logging
 from typing import Optional
-from openai import AsyncOpenAI
+try:
+    from openai import AsyncOpenAI
+except ImportError:
+    AsyncOpenAI = None
 from app.config import settings
 
 logger = logging.getLogger("searchmind.vision")
@@ -9,10 +12,10 @@ class VisionService:
     def __init__(self):
         self.api_key = settings.OPENAI_API_KEY
         self.client = None
-        if self.api_key:
+        if self.api_key and AsyncOpenAI:
             self.client = AsyncOpenAI(api_key=self.api_key)
         else:
-            logger.warning("OPENAI_API_KEY not set. Vision extraction will not function.")
+            logger.warning("OPENAI_API_KEY not set or openai not installed. Vision extraction will not function.")
 
     async def describe_image(self, base64_image: str, mime_type: str = "image/jpeg") -> str:
         """
