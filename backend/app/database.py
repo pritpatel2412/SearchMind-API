@@ -5,8 +5,8 @@ from app.config import settings
 
 
 def _connect_args(database_url: str) -> dict:
-    """SSL and connection timeouts for Neon and managed Postgres hosts (asyncpg)."""
-    args = {"timeout": 2.0, "command_timeout": 2.0}
+    """SSL for Neon and other managed Postgres hosts (asyncpg)."""
+    args = {"timeout": 15.0}
     url_lower = database_url.lower()
     if "neon.tech" in url_lower or "ssl=require" in url_lower or "sslmode=require" in url_lower:
         args["ssl"] = True

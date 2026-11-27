@@ -3,7 +3,10 @@ import json
 import hashlib
 import logging
 from typing import Dict, Any, Optional, List, Tuple
-import jsonschema
+try:
+    import jsonschema
+except ImportError:
+    jsonschema = None
 
 from app.config import settings
 from app.http_client import get_http_client
@@ -145,16 +148,19 @@ Instructions:
         validation_status = "heuristic_fallback"
 
     # 6. Validate against JSON Schema
-    try:
-        jsonschema.validate(instance=extracted_data, schema=req.schema_definition)
-    except jsonschema.exceptions.ValidationError as val_err:
-        validation_status = "validation_warning"
-        validation_errors.append(f"Schema validation error at path '{'/'.join(str(p) for p in val_err.path)}': {val_err.message}")
-        # Soft type coercion for common discrepancies (e.g. string numbers to float/int)
+    if jsonschema:
+        try:
+            jsonschema.validate(instance=extracted_data, schema=req.schema_definition)
+        except jsonschema.exceptions.ValidationError as val_err:
+            validation_status = "validation_warning"
+            validation_errors.append(f"Schema validation error at path '{'/'.join(str(p) for p in val_err.path)}': {val_err.message}")
+            # Soft type coercion for common discrepancies (e.g. string numbers to float/int)
+            extracted_data = _attempt_soft_coercion(extracted_data, req.schema_definition)
+        except Exception as e:
+            validation_status = "validation_warning"
+            validation_errors.append(str(e))
+    else:
         extracted_data = _attempt_soft_coercion(extracted_data, req.schema_definition)
-    except Exception as e:
-        validation_status = "validation_warning"
-        validation_errors.append(str(e))
 
     execution_time = int((time.time() - start_time) * 1000)
 

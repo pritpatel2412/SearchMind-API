@@ -1,7 +1,16 @@
 import logging
 from typing import List, Dict, Optional
-from langchain_text_splitters import RecursiveCharacterTextSplitter
-from openai import AsyncOpenAI
+
+try:
+    from langchain_text_splitters import RecursiveCharacterTextSplitter
+except ImportError:
+    RecursiveCharacterTextSplitter = None
+
+try:
+    from openai import AsyncOpenAI
+except ImportError:
+    AsyncOpenAI = None
+
 from app.config import settings
 
 logger = logging.getLogger("searchmind.embedding")
@@ -10,17 +19,20 @@ class EmbeddingService:
     def __init__(self):
         self.api_key = settings.OPENAI_API_KEY
         self.client = None
-        if self.api_key:
+        if self.api_key and AsyncOpenAI:
             self.client = AsyncOpenAI(api_key=self.api_key)
         else:
-            logger.warning("OPENAI_API_KEY not set. Embeddings will not be generated.")
+            logger.warning("OPENAI_API_KEY not set or openai not installed. Embeddings will not be generated.")
 
-        self.text_splitter = RecursiveCharacterTextSplitter(
-            chunk_size=1000,
-            chunk_overlap=150,
-            length_function=len,
-            is_separator_regex=False,
-        )
+        if RecursiveCharacterTextSplitter:
+            self.text_splitter = RecursiveCharacterTextSplitter(
+                chunk_size=1000,
+                chunk_overlap=150,
+                length_function=len,
+                is_separator_regex=False,
+            )
+        else:
+            self.text_splitter = None
 
     async def vectorize_text(self, text: str) -> Optional[List[Dict]]:
         """
