@@ -18,6 +18,7 @@ class ActionRequest(BaseModel):
     extract_images: bool = False
     return_screenshot: bool = False
     hitl_config: Optional[HITLConfig] = None
+    session_id: Optional[str] = Field(None, description="Optional active persistent browser session ID to execute within.")
 
 class HITLResumeRequest(BaseModel):
     value: str = Field(..., description="The value to type into the blocked input (e.g. 2FA code).")
@@ -29,3 +30,4 @@ class ActionResponse(BaseModel):
     screenshot_base64: Optional[str] = None
     success: bool
     error: Optional[str] = None
+    session_id: Optional[str] = None
