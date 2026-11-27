@@ -112,6 +112,46 @@ class MapResponse(BaseModel):
     cached: bool = False
 
 
+# --- Session & Action Models ---
+
+class SessionCookie(BaseModel):
+    name: str
+    value: str
+    domain: Optional[str] = None
+    path: str = "/"
+    expires: Optional[float] = None
+    http_only: bool = False
+    secure: bool = False
+    same_site: Optional[str] = "Lax"
+
+
+class SessionResponse(BaseModel):
+    session_id: str
+    status: str = "active"
+    created_at: str
+    expires_at: str
+    current_url: Optional[str] = None
+    cookies_count: int = 0
+    active: bool = True
+
+
+class SessionDetailResponse(SessionResponse):
+    cookies: List[SessionCookie] = []
+    history: List[str] = []
+    user_agent: Optional[str] = None
+    viewport: Optional[dict] = None
+
+
+class ActionResponse(BaseModel):
+    url: str
+    final_html: str
+    extracted_content: Optional[str] = None
+    screenshot_base64: Optional[str] = None
+    success: bool
+    error: Optional[str] = None
+    session_id: Optional[str] = None
+
+
 # --- Usage Models ---
 
 class UsageResponse(BaseModel):

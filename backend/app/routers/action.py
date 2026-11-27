@@ -27,7 +27,8 @@ async def perform_action(
         actions=request.actions,
         extract_images=request.extract_images,
         return_screenshot=request.return_screenshot,
-        hitl_config=request.hitl_config
+        hitl_config=request.hitl_config,
+        session_id=request.session_id
     )
     
     if not response.success:

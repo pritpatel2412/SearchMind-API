@@ -1,6 +1,17 @@
 import httpx
 from typing import Optional, List, Any, Dict
-from .models import SearchResponse, ExtractResponse, SchemaExtractResponse, MapResponse, ResearchResponse, UsageResponse
+from .models import (
+    SearchResponse,
+    ExtractResponse,
+    SchemaExtractResponse,
+    MapResponse,
+    SessionResponse,
+    SessionDetailResponse,
+    SessionCookie,
+    ActionResponse,
+    ResearchResponse,
+    UsageResponse,
+)
 from .exceptions import SearchMindError, AuthError, RateLimitError, QuotaExceededError
 
 class SearchMindClient:
@@ -157,6 +168,72 @@ class SearchMindClient:
         response = self._client.post(f"{self.base_url}/map", json=payload)
         return MapResponse(**self._handle_response(response))
 
+    def create_session(
+        self,
+        initial_url: Optional[str] = None,
+        cookies: Optional[List[dict]] = None,
+        user_agent: Optional[str] = None,
+        viewport: Optional[dict] = None,
+        ttl_seconds: int = 1800
+    ) -> SessionDetailResponse:
+        """Create a persistent stateful browser session with an isolated cookie vault."""
+        payload: Dict[str, Any] = {"ttl_seconds": ttl_seconds}
+        if initial_url:
+            payload["initial_url"] = initial_url
+        if cookies:
+            payload["cookies"] = cookies
+        if user_agent:
+            payload["user_agent"] = user_agent
+        if viewport:
+            payload["viewport"] = viewport
+        response = self._client.post(f"{self.base_url}/sessions", json=payload)
+        return SessionDetailResponse(**self._handle_response(response))
+
+    def list_sessions(self) -> List[SessionResponse]:
+        """List active persistent browser sessions."""
+        response = self._client.get(f"{self.base_url}/sessions")
+        return [SessionResponse(**s) for s in self._handle_response(response)]
+
+    def get_session(self, session_id: str) -> SessionDetailResponse:
+        """Get live status and cookie vault state of a persistent session."""
+        response = self._client.get(f"{self.base_url}/sessions/{session_id}")
+        return SessionDetailResponse(**self._handle_response(response))
+
+    def delete_session(self, session_id: str) -> dict:
+        """Terminate a persistent browser session."""
+        response = self._client.delete(f"{self.base_url}/sessions/{session_id}")
+        return self._handle_response(response)
+
+    def inject_cookies(self, session_id: str, cookies: List[dict]) -> dict:
+        """Inject authentication or session cookies into the session vault."""
+        response = self._client.post(f"{self.base_url}/sessions/{session_id}/cookies", json={"cookies": cookies})
+        return self._handle_response(response)
+
+    def get_cookies(self, session_id: str) -> List[SessionCookie]:
+        """Export cookies from the session vault."""
+        response = self._client.get(f"{self.base_url}/sessions/{session_id}/cookies")
+        return [SessionCookie(**c) for c in self._handle_response(response)]
+
+    def action(
+        self,
+        url: str,
+        actions: List[dict],
+        session_id: Optional[str] = None,
+        return_screenshot: bool = False,
+        extract_images: bool = False
+    ) -> ActionResponse:
+        """Execute interactive web actions, optionally inside a persistent browser session."""
+        payload = {
+            "url": url,
+            "actions": actions,
+            "return_screenshot": return_screenshot,
+            "extract_images": extract_images
+        }
+        if session_id:
+            payload["session_id"] = session_id
+        response = self._client.post(f"{self.base_url}/action", json=payload)
+        return ActionResponse(**self._handle_response(response))
+
     def research(
         self,
         query: str,
@@ -292,6 +369,79 @@ class SearchMindClient:
             payload["search"] = search
         response = await client.post(f"{self.base_url}/map", json=payload)
         return MapResponse(**self._handle_response(response))
+
+    async def async_create_session(
+        self,
+        initial_url: Optional[str] = None,
+        cookies: Optional[List[dict]] = None,
+        user_agent: Optional[str] = None,
+        viewport: Optional[dict] = None,
+        ttl_seconds: int = 1800
+    ) -> SessionDetailResponse:
+        """Asynchronously create a persistent browser session."""
+        client = await self._get_async_client()
+        payload: Dict[str, Any] = {"ttl_seconds": ttl_seconds}
+        if initial_url:
+            payload["initial_url"] = initial_url
+        if cookies:
+            payload["cookies"] = cookies
+        if user_agent:
+            payload["user_agent"] = user_agent
+        if viewport:
+            payload["viewport"] = viewport
+        response = await client.post(f"{self.base_url}/sessions", json=payload)
+        return SessionDetailResponse(**self._handle_response(response))
+
+    async def async_list_sessions(self) -> List[SessionResponse]:
+        """Asynchronously list active sessions."""
+        client = await self._get_async_client()
+        response = await client.get(f"{self.base_url}/sessions")
+        return [SessionResponse(**s) for s in self._handle_response(response)]
+
+    async def async_get_session(self, session_id: str) -> SessionDetailResponse:
+        """Asynchronously get state of a persistent session."""
+        client = await self._get_async_client()
+        response = await client.get(f"{self.base_url}/sessions/{session_id}")
+        return SessionDetailResponse(**self._handle_response(response))
+
+    async def async_delete_session(self, session_id: str) -> dict:
+        """Asynchronously terminate a persistent browser session."""
+        client = await self._get_async_client()
+        response = await client.delete(f"{self.base_url}/sessions/{session_id}")
+        return self._handle_response(response)
+
+    async def async_inject_cookies(self, session_id: str, cookies: List[dict]) -> dict:
+        """Asynchronously inject cookies into a persistent session vault."""
+        client = await self._get_async_client()
+        response = await client.post(f"{self.base_url}/sessions/{session_id}/cookies", json={"cookies": cookies})
+        return self._handle_response(response)
+
+    async def async_get_cookies(self, session_id: str) -> List[SessionCookie]:
+        """Asynchronously export cookies from session vault."""
+        client = await self._get_async_client()
+        response = await client.get(f"{self.base_url}/sessions/{session_id}/cookies")
+        return [SessionCookie(**c) for c in self._handle_response(response)]
+
+    async def async_action(
+        self,
+        url: str,
+        actions: List[dict],
+        session_id: Optional[str] = None,
+        return_screenshot: bool = False,
+        extract_images: bool = False
+    ) -> ActionResponse:
+        """Asynchronously execute actions within an optional persistent browser session."""
+        client = await self._get_async_client()
+        payload = {
+            "url": url,
+            "actions": actions,
+            "return_screenshot": return_screenshot,
+            "extract_images": extract_images
+        }
+        if session_id:
+            payload["session_id"] = session_id
+        response = await client.post(f"{self.base_url}/action", json=payload)
+        return ActionResponse(**self._handle_response(response))
 
     async def async_research(
         self,
