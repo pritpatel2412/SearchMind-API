@@ -152,6 +152,21 @@ class ActionResponse(BaseModel):
     session_id: Optional[str] = None
 
 
+class InstructActionResponse(BaseModel):
+    url: str
+    instruction: str
+    action_type: str
+    target_selector: Optional[str] = None
+    target_description: Optional[str] = None
+    final_html: str
+    extracted_content: Optional[str] = None
+    screenshot_base64: Optional[str] = None
+    session_id: Optional[str] = None
+    success: bool
+    error: Optional[str] = None
+    self_healed: bool = False
+
+
 # --- Usage Models ---
 
 class UsageResponse(BaseModel):
