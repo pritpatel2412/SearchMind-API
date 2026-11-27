@@ -5,8 +5,9 @@ from typing import Optional
 from app.database import get_db
 from app.auth.api_key_auth import get_current_api_key
 from app.models.api_key import APIKey
-from app.schemas.action import ActionRequest, ActionResponse
+from app.schemas.action import ActionRequest, ActionResponse, InstructActionRequest, InstructActionResponse
 from app.services.action_service import execute_web_actions
+from app.services.instruct_action_service import execute_instruct_action
 
 router = APIRouter()
 
@@ -51,3 +52,19 @@ async def resume_hitl_action(
         return {"status": "resumed", "session_id": session_id}
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
+
+
+@router.post("/instruct", response_model=InstructActionResponse, tags=["Action"])
+async def perform_instruct_action(
+    request: InstructActionRequest,
+    api_key: APIKey = Depends(get_current_api_key)
+):
+    """
+    Execute a natural language self-healing browser action.
+    Compresses page DOM into an Accessibility Tree representation, grounds user intent,
+    and self-heals dynamically if layout or selector mutations occur.
+    """
+    response = await execute_instruct_action(request)
+    if not response.success:
+        raise HTTPException(status_code=500, detail=response.error)
+    return response

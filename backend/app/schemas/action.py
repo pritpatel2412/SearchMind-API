@@ -31,3 +31,25 @@ class ActionResponse(BaseModel):
     success: bool
     error: Optional[str] = None
     session_id: Optional[str] = None
+
+class InstructActionRequest(BaseModel):
+    url: Optional[str] = Field(None, description="Target URL (optional if executing inside an existing session with an active page)")
+    instruction: str = Field(..., description="Natural language intent (e.g. 'Click the blue Sign In button', 'Type hello into the search box')")
+    session_id: Optional[str] = Field(None, description="Optional active persistent browser session ID to execute within")
+    return_screenshot: bool = Field(default=False, description="Whether to capture and return base64 screenshot of the post-action page")
+    max_retries: int = Field(default=2, ge=0, le=5, description="Self-healing retry budget if element interaction fails")
+
+class InstructActionResponse(BaseModel):
+    url: str
+    instruction: str
+    action_type: str
+    target_selector: Optional[str] = None
+    target_description: Optional[str] = None
+    final_html: str
+    extracted_content: Optional[str] = None
+    screenshot_base64: Optional[str] = None
+    session_id: Optional[str] = None
+    success: bool
+    error: Optional[str] = None
+    self_healed: bool = False
+

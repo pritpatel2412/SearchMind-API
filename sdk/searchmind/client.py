@@ -9,6 +9,7 @@ from .models import (
     SessionDetailResponse,
     SessionCookie,
     ActionResponse,
+    InstructActionResponse,
     ResearchResponse,
     UsageResponse,
 )
@@ -234,6 +235,27 @@ class SearchMindClient:
         response = self._client.post(f"{self.base_url}/action", json=payload)
         return ActionResponse(**self._handle_response(response))
 
+    def instruct(
+        self,
+        instruction: str,
+        url: Optional[str] = None,
+        session_id: Optional[str] = None,
+        return_screenshot: bool = False,
+        max_retries: int = 2
+    ) -> InstructActionResponse:
+        """Execute a natural language self-healing action via compressed Accessibility Tree grounding."""
+        payload: Dict[str, Any] = {
+            "instruction": instruction,
+            "return_screenshot": return_screenshot,
+            "max_retries": max_retries
+        }
+        if url:
+            payload["url"] = url
+        if session_id:
+            payload["session_id"] = session_id
+        response = self._client.post(f"{self.base_url}/action/instruct", json=payload)
+        return InstructActionResponse(**self._handle_response(response))
+
     def research(
         self,
         query: str,
@@ -442,6 +464,28 @@ class SearchMindClient:
             payload["session_id"] = session_id
         response = await client.post(f"{self.base_url}/action", json=payload)
         return ActionResponse(**self._handle_response(response))
+
+    async def async_instruct(
+        self,
+        instruction: str,
+        url: Optional[str] = None,
+        session_id: Optional[str] = None,
+        return_screenshot: bool = False,
+        max_retries: int = 2
+    ) -> InstructActionResponse:
+        """Asynchronously execute a natural language self-healing action."""
+        client = await self._get_async_client()
+        payload: Dict[str, Any] = {
+            "instruction": instruction,
+            "return_screenshot": return_screenshot,
+            "max_retries": max_retries
+        }
+        if url:
+            payload["url"] = url
+        if session_id:
+            payload["session_id"] = session_id
+        response = await client.post(f"{self.base_url}/action/instruct", json=payload)
+        return InstructActionResponse(**self._handle_response(response))
 
     async def async_research(
         self,
