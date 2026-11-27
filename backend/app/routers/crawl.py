@@ -349,7 +349,7 @@ async def map_site_endpoint(
 ):
     """Zero-crawl website topological mapping endpoint."""
     # 1. Rate limiter check
-    await enforce_rate_limits(api_key, request=http_request)
+    await enforce_rate_limits(http_request, api_key, db)
 
     # 2. Execute site mapping
     start_time = time.time()
@@ -361,23 +361,22 @@ async def map_site_endpoint(
 
     duration_ms = int((time.time() - start_time) * 1000)
 
-    # 3. Usage tracking (1 credit for fast topological map)
-    await track_usage(
-        api_key=api_key,
-        endpoint="map",
-        units=1,
-        request=http_request,
-        metadata={"url": request.url, "total_links": response.total_links, "cached": response.cached},
-    )
+    # 3. Usage tracking
+    await track_usage(db, api_key, "crawl", result_count=response.total_links)
 
     # 4. Telemetry logging
     try:
         log_entry = SearchLog(
+            api_key_id=api_key.id,
             user_id=api_key.user_id,
+            endpoint="crawl/map",
             query=f"map:{request.url}",
             results_count=response.total_links,
             latency_ms=duration_ms,
-            endpoint="map",
+            cached=response.cached,
+            ip_address=http_request.client.host if http_request.client else None,
+            user_agent=http_request.headers.get("user-agent"),
+            status_code=200,
         )
         db.add(log_entry)
         await db.commit()

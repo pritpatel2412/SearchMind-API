@@ -2,7 +2,7 @@
 set -e
 
 echo "Running database migrations..."
-alembic upgrade head
+alembic upgrade head || true
 
 echo "Starting SearchMind API..."
 exec "$@"

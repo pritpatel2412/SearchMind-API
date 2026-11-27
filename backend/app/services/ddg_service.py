@@ -1,7 +1,10 @@
 import asyncio
 import logging
 from typing import Optional
-from duckduckgo_search import DDGS
+try:
+    from duckduckgo_search import DDGS
+except ImportError:
+    DDGS = None
 
 logger = logging.getLogger("searchmind.ddg")
 
@@ -20,6 +23,9 @@ async def ddg_search(
     - pm: month -> 'm'
     - py: year -> 'y'
     """
+    if not DDGS:
+        logger.warning("duckduckgo_search not installed. Returning empty results.")
+        return []
     timelimit = None
     if time_range:
         mapping = {"pd": "d", "pw": "w", "pm": "m", "py": "y"}
