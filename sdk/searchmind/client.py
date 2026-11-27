@@ -1,6 +1,6 @@
 import httpx
 from typing import Optional, List, Any, Dict
-from .models import SearchResponse, ExtractResponse, SchemaExtractResponse, ResearchResponse, UsageResponse
+from .models import SearchResponse, ExtractResponse, SchemaExtractResponse, MapResponse, ResearchResponse, UsageResponse
 from .exceptions import SearchMindError, AuthError, RateLimitError, QuotaExceededError
 
 class SearchMindClient:
@@ -134,6 +134,29 @@ class SearchMindClient:
         response = self._client.post(f"{self.base_url}/extract/schema", json=payload)
         return SchemaExtractResponse(**self._handle_response(response))
 
+    def map(
+        self,
+        url: str,
+        search: Optional[str] = None,
+        ignore_sitemap: bool = False,
+        include_subdomains: bool = False,
+        limit: int = 5000
+    ) -> MapResponse:
+        """
+        Zero-crawl website topological mapping.
+        Rapidly maps and resolves the complete URL graph and sitemap hierarchy of a target domain.
+        """
+        payload = {
+            "url": url,
+            "ignore_sitemap": ignore_sitemap,
+            "include_subdomains": include_subdomains,
+            "limit": limit
+        }
+        if search:
+            payload["search"] = search
+        response = self._client.post(f"{self.base_url}/map", json=payload)
+        return MapResponse(**self._handle_response(response))
+
     def research(
         self,
         query: str,
@@ -246,6 +269,29 @@ class SearchMindClient:
             payload["system_prompt"] = system_prompt
         response = await client.post(f"{self.base_url}/extract/schema", json=payload)
         return SchemaExtractResponse(**self._handle_response(response))
+
+    async def async_map(
+        self,
+        url: str,
+        search: Optional[str] = None,
+        ignore_sitemap: bool = False,
+        include_subdomains: bool = False,
+        limit: int = 5000
+    ) -> MapResponse:
+        """
+        Asynchronously map website topology and sitemap hierarchy.
+        """
+        client = await self._get_async_client()
+        payload = {
+            "url": url,
+            "ignore_sitemap": ignore_sitemap,
+            "include_subdomains": include_subdomains,
+            "limit": limit
+        }
+        if search:
+            payload["search"] = search
+        response = await client.post(f"{self.base_url}/map", json=payload)
+        return MapResponse(**self._handle_response(response))
 
     async def async_research(
         self,

@@ -11,7 +11,10 @@ from app.schemas.crawl import (
     CrawlResponse,
     CrawlPageResult,
     CrawlTaskStatusResponse,
+    MapRequest,
+    MapResponse,
 )
+from app.services.map_service import map_website
 from app.auth.api_key_auth import get_current_api_key
 from app.middleware.rate_limiter import enforce_rate_limits
 from app.middleware.usage_tracker import track_usage
@@ -325,4 +328,62 @@ async def get_crawl_stream(
             "X-Accel-Buffering": "no"
         }
     )
+
+
+@router.post(
+    "/map",
+    response_model=MapResponse,
+    tags=["Crawl"],
+    summary="Zero-Crawl Topological Site Mapping",
+    description=(
+        "Rapidly resolve the entire URL topology and sitemap hierarchy of a target domain "
+        "without recursively executing heavyweight browser crawls. Supports robots.txt resolution, "
+        "nested sitemap indexes, change frequency detection, and regex/subpath filtering."
+    ),
+)
+async def map_site_endpoint(
+    request: MapRequest,
+    http_request: Request,
+    api_key: APIKey = Depends(get_current_api_key),
+    db: AsyncSession = Depends(get_db),
+):
+    """Zero-crawl website topological mapping endpoint."""
+    # 1. Rate limiter check
+    await enforce_rate_limits(api_key, request=http_request)
+
+    # 2. Execute site mapping
+    start_time = time.time()
+    try:
+        response = await map_website(request, db=db)
+    except Exception as e:
+        logger.error("Site mapping failed for %s: %s", request.url, e, exc_info=True)
+        raise HTTPException(status_code=500, detail=f"Topological site mapping failed: {str(e)}")
+
+    duration_ms = int((time.time() - start_time) * 1000)
+
+    # 3. Usage tracking (1 credit for fast topological map)
+    await track_usage(
+        api_key=api_key,
+        endpoint="map",
+        units=1,
+        request=http_request,
+        metadata={"url": request.url, "total_links": response.total_links, "cached": response.cached},
+    )
+
+    # 4. Telemetry logging
+    try:
+        log_entry = SearchLog(
+            user_id=api_key.user_id,
+            query=f"map:{request.url}",
+            results_count=response.total_links,
+            latency_ms=duration_ms,
+            endpoint="map",
+        )
+        db.add(log_entry)
+        await db.commit()
+    except Exception as e:
+        logger.warning("Failed to record telemetry for map: %s", e)
+
+    return response
+
 
