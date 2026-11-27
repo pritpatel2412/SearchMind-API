@@ -32,3 +32,28 @@ class CrawlTaskStatusResponse(BaseModel):
     results: Optional[List[CrawlPageResult]] = None
     error: Optional[str] = None
     result: Optional[Any] = Field(default=None, description="Raw Celery result payload when successful")
+
+
+class MapLinkMetadata(BaseModel):
+    url: str
+    lastmod: Optional[str] = None
+    changefreq: Optional[str] = None
+    priority: Optional[float] = None
+
+
+class MapRequest(BaseModel):
+    url: str = Field(..., description="Target domain or base URL to map (e.g. 'https://docs.stripe.com')")
+    search: Optional[str] = Field(default=None, description="Optional regex or keyword filter to select only matching URLs")
+    ignore_sitemap: bool = Field(default=False, description="Whether to bypass sitemap discovery and crawl topological link graph directly")
+    include_subdomains: bool = Field(default=False, description="Whether to include links pointing to sibling subdomains")
+    limit: int = Field(default=5000, ge=1, le=25000, description="Maximum links to extract and return")
+
+
+class MapResponse(BaseModel):
+    success: bool = True
+    links: List[str] = Field(..., description="List of resolved distinct URLs in site topology")
+    links_metadata: Optional[List[MapLinkMetadata]] = Field(default=None, description="Detailed sitemap metadata (lastmod, changefreq, priority)")
+    total_links: int
+    sitemap_found: bool
+    execution_time_ms: int
+    cached: bool = False

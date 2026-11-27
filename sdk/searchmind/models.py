@@ -93,6 +93,25 @@ class ResearchResponse(BaseModel):
     source_count: int
 
 
+# --- Map Models ---
+
+class MapLinkMetadata(BaseModel):
+    url: str
+    lastmod: Optional[str] = None
+    changefreq: Optional[str] = None
+    priority: Optional[float] = None
+
+
+class MapResponse(BaseModel):
+    success: bool = True
+    links: List[str]
+    links_metadata: Optional[List[MapLinkMetadata]] = None
+    total_links: int
+    sitemap_found: bool
+    execution_time_ms: int
+    cached: bool = False
+
+
 # --- Usage Models ---
 
 class UsageResponse(BaseModel):
