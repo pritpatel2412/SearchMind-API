@@ -1,345 +1,246 @@
 # SearchMind API Platform
 
-SearchMind is a production-grade, AI-native web search API platform engineered for LLM agent pipelines, LangChain, LangGraph, and Retrieval-Augmented Generation (RAG) workflows. It provides structured, LLM-ready context through multi-provider web search, clean HTML content extraction, background domain crawling, and parallelized deep research synthesis.
+SearchMind is an enterprise-grade, AI-native web search and browser execution platform engineered for autonomous agent pipelines, LangGraph, LangChain, and Retrieval-Augmented Generation (RAG) architectures. It provides structured, deterministic, LLM-ready context through multi-provider web search, schema-driven content extraction, zero-crawl topological site mapping, stateful persistent browser sessions, and natural language web action synthesis.
 
-The platform abstracts the complexities of search provider fallbacks, headless JavaScript rendering, asynchronous domain crawling, dual-tier caching, rate limiting, and monetization plan enforcement -- delivering sanitized, ranked results with high throughput and low latency.
-
-**Status:** Beta (under active development)
-
-### 🚀 Live Deployment
-- **Developer Portal:** [https://searchmind-api.vercel.app/](https://searchmind-api.vercel.app/)
-- **Backend API:** [https://searchmind-api.onrender.com](https://searchmind-api.onrender.com)
-- **API Documentation:** [https://searchmind-api.onrender.com/docs](https://searchmind-api.onrender.com/docs)
-
-### ✨ What's New (Recent Updates)
-- **Phase 5: Human-in-the-Loop (HITL):** Added 2FA interventions for pausing and approving sensitive agent actions via webhooks.
-- **Phase 4: Interactive Agent API:** Autonomous browser agent execution with action chains and session tracking.
-- **Phase 3: Scheduled Watch Webhooks:** Cron-based background web tracking with webhook notifications for automated updates.
-- **Phase 2: Vision Extraction:** Multi-modal content extraction to interpret and summarize images embedded in web pages.
-- **Phase 1: Vector Embeddings:** Integrated dense vector embedding generation for instant RAG pipeline support.
-- **UI & Security Updates:** Upgraded Developer Portal with premium Outfit/Inter typography, graceful 401 token expiration handling, updated demo user seeding, and strict admin credential enforcement.
-- **Model Context Protocol (MCP):** Added an official MCP server enabling seamless integration of SearchMind tools directly into Cursor, Claude Desktop, and other MCP clients.
+The platform eliminates the operational complexity of upstream search provider outages, headless browser lifecycle management, accessibility tree grounding, dual-tier caching, rate limiting, and metered plan governance—delivering sanitized, structured outputs with high concurrency and sub-second latency.
 
 ---
 
-## Table of Contents
+## Deployment and Public Interfaces
 
-- [Core Capabilities](#core-capabilities)
-- [System Architecture](#system-architecture)
-- [API Endpoints](#api-endpoints)
-- [Monetization and Plan Tiers](#monetization-and-plan-tiers)
-- [Coupon and Promotional System](#coupon-and-promotional-system)
-- [User Analytics and Session Telemetry](#user-analytics-and-session-telemetry)
-- [Developer Portal](#developer-portal)
-- [Admin Console](#admin-console)
-- [Model Context Protocol (MCP) Server](#model-context-protocol-mcp-server)
-- [Python SDK and Agent Integration](#python-sdk-and-agent-integration)
-- [Quick Start (Docker)](#quick-start-docker)
-- [Local Development (Without Docker)](#local-development-without-docker)
-- [Project Structure](#project-structure)
-- [Authentication and Security](#authentication-and-security)
-- [Database Schema](#database-schema)
-- [Environment Variables](#environment-variables)
-- [Testing](#testing)
-- [License](#license)
+- Developer Portal: [https://searchmind-api.vercel.app/](https://searchmind-api.vercel.app/)
+- Production API Gateway: [https://searchmind-api.onrender.com](https://searchmind-api.onrender.com)
+- Interactive OpenAPI Documentation: [https://searchmind-api.onrender.com/docs](https://searchmind-api.onrender.com/docs)
+- Alternative API Specification (ReDoc): [https://searchmind-api.onrender.com/redoc](https://searchmind-api.onrender.com/redoc)
 
 ---
 
-## Core Capabilities
+## Platform Capabilities
 
-- **Intelligent Search** (`POST /v1/search`): Executes web queries through a resilient multi-provider fallback chain (Brave Search, SerpAPI, DuckDuckGo). Supports `basic` (snippet-only) and `advanced` (full page content extraction) depth modes, with optional LLM-powered answer synthesis and citation indexing.
+### 1. Intelligent Multi-Provider Web Search
+- Route queries dynamically through an upstream fallback chain (Brave Search, SerpAPI, and DuckDuckGo).
+- Supports snippet-only retrieval (`basic`) and comprehensive page content extraction (`advanced`).
+- Dynamic LLM-synthesized answers with precise citation attribution and source credibility scoring.
 
-- **Content Extraction** (`POST /v1/extract`): Parses and sanitizes raw HTML from one or more URLs. Uses Trafilatura and Readability for fast heuristic extraction, with automatic Playwright headless Chromium fallback for JavaScript-rendered single-page applications. Supports batch processing of up to 10 URLs concurrently.
+### 2. Semantic Passage Highlighting
+- Automatically isolates and highlights the most relevant sub-segments of web pages matching a user query.
+- Leverages BM25 scoring and semantic chunk extraction to minimize downstream context window bloat and token consumption.
 
-- **Background Domain Crawling** (`POST /v1/crawl`): Triggers asynchronous Celery-based crawl jobs for specified URL domains. Supports configurable max depth and max pages. Results are retrieved by polling a task status endpoint (`GET /v1/crawl/{task_id}`).
+### 3. Schema-Driven Structured Extraction
+- Extracts type-safe, validated JSON entities directly from web pages conforming to any client-provided JSON Schema.
+- Features self-repair logic to correct structural formatting anomalies without requiring external LLM post-processing.
 
-- **Deep Research Pipelines** (`POST /v1/research`): Orchestrates multi-angle research by dynamically generating sub-queries via LLM, executing parallel searches, fetching and extracting content from top sources, ranking results by relevance, and synthesizing a comprehensive research summary.
+### 4. Zero-Crawl Topological Site Mapping
+- Discovers the complete architectural route hierarchy of target domains without executing heavy recursive crawlers.
+- Parses hierarchical XML sitemap indexes, adheres to `robots.txt` compliance policies, and applies semantic path filtering.
 
-- **Interactive Agent API** (`POST /v1/action`): Execute autonomous headless browser actions, navigate complex single-page apps, and interact with dynamic DOM elements.
+### 5. Persistent Stateful Browser Sessions and Cookie Vault
+- Maintains isolated, long-lived browser contexts across multi-step agent interactions.
+- Provides a centralized Cookie Vault for programmatic injection and extraction of authenticated session credentials.
+- Includes automatic resource reaping and lease renewal mechanisms.
 
-- **Human-in-the-Loop (HITL) Interventions**: Trigger 2FA and manual approvals securely via webhooks when agents hit captchas or sensitive operations (`POST /v1/action/resume/{session_id}`).
+### 6. Natural Language ARIA-Grounded Actions
+- Executes autonomous browser actions directed by plain-English user instructions.
+- Compresses DOM state into deterministic Accessibility (ARIA) trees for robust target grounding.
+- Incorporates dynamic self-healing selectors that gracefully recover from front-end layout mutations.
 
-- **Scheduled Watch Webhooks** (`POST /v1/watch`): Set up cron-based periodic search/extraction jobs that push continuous background intelligence to your custom webhook endpoints.
+### 7. Human-in-the-Loop (HITL) Interventions
+- Securely pauses automated browser flows when encountering anti-bot challenges or multi-factor authentication (2FA).
+- Dispatches webhook notifications to external operators and provides a resume endpoint to continue execution.
 
-- **Vision Extraction & Embeddings**: Seamlessly extract AI summaries of on-page images (Vision) and generate vector embeddings on the fly for ready-to-use RAG contexts.
+### 8. Parallelized Deep Research Synthesis
+- Recursively decomposes complex topics into focused sub-queries, executes concurrent searches across independent domains, extracts core findings, and compiles a comprehensive research brief.
 
-- **Python SDK**: Native Python client with synchronous and asynchronous interfaces. Includes built-in LangGraph and LangChain tool adapters for direct agent integration.
+### 9. Dense Vector Embeddings and Multi-Modal Vision
+- Generates vector embeddings for extracted web content directly within the pipeline for immediate vector store ingestion.
+- Automatically processes and summarizes embedded page images for multi-modal comprehension.
 
-- **Developer Portal**: React-based dashboard for user registration, API key lifecycle management, usage monitoring, interactive API playground, documentation, pricing, coupon redemption, and a project roadmap timeline.
+---
 
-- **Admin Console**: React-based administrative interface for user account management, platform analytics, promotional coupon management, and real-time system health monitoring.
+## Enterprise Security and Hardening
+
+The platform adheres to OWASP Top 10 recommendations and enforces strict zero-trust boundaries:
+
+- **Server-Side Request Forgery (SSRF) Defense**: All incoming target URLs undergo DNS resolution and address validation. Access to loopback addresses (`127.0.0.0/8`, `::1`), private RFC 1918 subnets (`10.0.0.0/8`, `172.16.0.0/12`, `192.168.0.0/16`), link-local metadata interfaces (`169.254.169.254`), and internal cloud hostnames is strictly blocked at the gateway.
+- **HTTP Security Headers**: Enforces `X-Content-Type-Options: nosniff`, `X-Frame-Options: DENY`, `X-XSS-Protection: 1; mode=block`, `Strict-Transport-Security: max-age=31536000; includeSubDomains; preload`, `Referrer-Policy: strict-origin-when-cross-origin`, and strict `Content-Security-Policy` directives. Server identification headers are masked.
+- **Sliding-Window IP Rate Limiting**: Authentication and administrative login endpoints are shielded by an IP-based sliding window limiter backed by Redis with in-memory fallbacks, mitigating brute force and credential-stuffing attacks.
+- **Timing-Attack Resistance**: Administrative authentication evaluates sensitive credentials using constant-time byte comparisons via `hmac.compare_digest`.
+- **Exception Masking**: Production environments return generic error payloads (`{"detail": "Internal Server Error"}`), suppressing internal stack traces and database schema specifics.
 
 ---
 
 ## System Architecture
 
-SearchMind is built on a modern asynchronous microservices stack designed for high availability and low latency.
+SearchMind is constructed as a decoupled asynchronous architecture engineered for horizontal scalability:
 
 ```
-Developer Portal (React/Vite)  ----+
-                                    |
-Admin Console (React/Vite)     ----+----> FastAPI Backend (Python 3.11+)
-                                    |         |
-Python SDK (httpx)             ----+         +---> Neon PostgreSQL (7 tables)
-                                              +---> Redis (cache + rate limits)
-                                              +---> Brave Search API
-                                              +---> SerpAPI (fallback)
-                                              +---> DuckDuckGo (final fallover)
-                                              +---> Groq LLM (GPT-OSS 120B)
-                                              +---> Celery Workers (crawl tasks)
+Developer Portal (React 18 / Vite)  ----+
+                                         |
+Administrative Console (React 18)   ----+----> FastAPI Gateway (Python 3.11+)
+                                         |         |
+Python SDK / LangGraph Adapters     ----+         +---> Neon PostgreSQL (7 tables)
+                                                   +---> Redis (L1 cache + sliding rate limits)
+                                                   +---> Brave Search / SerpAPI / DuckDuckGo
+                                                   +---> Groq / OpenAI LLM Inference Engine
+                                                   +---> Headless Playwright Chromium Pool
+                                                   +---> Celery Worker Cluster (async crawling)
 ```
 
-### Technology Stack
+### Technology Matrix
 
-| Layer | Technology |
-|-------|-----------|
-| API Framework | FastAPI with async SQLAlchemy |
-| Database | PostgreSQL via Neon Serverless |
-| Cache and Rate Limiting | Redis (sliding window rate limits, in-memory cache) |
-| Background Tasks | Celery with Redis broker |
-| LLM Provider | Groq (GPT-OSS 120B) |
-| Search Providers | Brave Search (primary), SerpAPI (fallback), DuckDuckGo (final) |
-| Content Extraction | Trafilatura, Readability-lxml, Playwright (JS fallback) |
-| Frontend Framework | React 18 with Vite and Tailwind CSS |
-| Authentication | JWT (Bearer tokens) for portal sessions, SHA-256 hashed API keys for programmatic access |
+| Layer | Component | Description |
+|---|---|---|
+| Gateway & API | FastAPI (Python 3.11+) | Asynchronous HTTP engine with Pydantic v2 data validation |
+| Persistence | PostgreSQL (Neon Serverless) | Relational store for users, API keys, usage, audit logs, and durable cache |
+| In-Memory Cache | Redis 7+ | L1 sub-10ms response caching and sliding window rate limiting |
+| Browser Automation | Playwright (Chromium) | Headless browser execution for SPA rendering and ARIA grounding |
+| Task Queue | Celery with Redis broker | Asynchronous domain crawling and distributed worker execution |
+| Language Model | Groq / OpenAI API | High-throughput synthesis, research planning, and schema repair |
+| Front-End Applications | React 18, Vite, Tailwind CSS | Responsive interfaces for developer self-service and platform administration |
 
-### Caching Architecture
+### Dual-Tier Caching Pipeline
 
-SearchMind uses a dual-tier caching strategy:
-
-- **Tier 1 (Redis)**: In-memory cache for sub-10ms reads. Used for search results, extracted content, and rate limit counters.
-- **Tier 2 (PostgreSQL)**: Durable `cached_results` table for queryable, persistent cache storage. Expired entries are automatically purged on startup.
-- Cache misses hydrate both tiers simultaneously.
+1. **Tier 1 (Redis)**: High-speed, in-memory cache for hot queries, rate limit windows, and ephemeral task state.
+2. **Tier 2 (PostgreSQL)**: Durable `cached_results` storage providing cross-restart resilience for frequent search and extraction payloads. Expired records are pruned systematically.
 
 ---
 
-## API Endpoints
+## API Reference
 
-All endpoints are prefixed with `/v1`.
+All application endpoints are versioned under the `/v1` namespace.
 
-### Authentication
+### Authentication Endpoints
 
-| Method | Path | Description | Auth |
-|--------|------|-------------|------|
-| POST | `/v1/auth/register` | Create a new user account and receive a JWT token plus an initial API key | None |
-| POST | `/v1/auth/login` | Authenticate and receive a JWT token | None |
+| Method | Path | Description | Access |
+|---|---|---|---|
+| POST | `/v1/auth/register` | Register a new user account; returns JWT and default API key | Public (IP Rate Limited) |
+| POST | `/v1/auth/login` | Authenticate with credentials; returns JWT session token | Public (IP Rate Limited) |
 
-### Core Search
+### Core Search and Intelligence
 
-| Method | Path | Description | Auth | Plan |
-|--------|------|-------------|------|------|
-| POST | `/v1/search` | AI-optimized web search with optional answer synthesis | API Key | All |
-| POST | `/v1/extract` | Extract clean text and metadata from URLs (supports Vision & Embeddings) | API Key | Pro+ |
-| POST | `/v1/crawl` | Trigger background domain crawl job | API Key | Pro+ |
-| GET | `/v1/crawl/{task_id}` | Poll crawl task status and retrieve results | API Key | Pro+ |
-| POST | `/v1/research` | Deep multi-source research with LLM synthesis | API Key | Enterprise |
+| Method | Path | Description | Access | Plan Requirement |
+|---|---|---|---|---|
+| POST | `/v1/search` | AI-optimized web search with dynamic passage highlighting | API Key | Free+ |
+| POST | `/v1/extract` | Clean HTML content extraction, multi-modal vision, and embeddings | API Key | Pro+ |
+| POST | `/v1/extract/schema` | Type-safe structured extraction conforming to a target JSON Schema | API Key | Pro+ |
+| POST | `/v1/crawl` | Initiate asynchronous recursive domain crawler task | API Key | Pro+ |
+| GET | `/v1/crawl/{task_id}` | Poll asynchronous crawl task status and retrieve indexed pages | API Key | Pro+ |
+| POST | `/v1/map` | Zero-crawl topological site route discovery and sitemap parsing | API Key | Free+ |
+| POST | `/v1/research` | Multi-query research synthesis and comprehensive topic brief | API Key | Enterprise |
 
-### Agents & Automation
+### Autonomous Agent Primitives
 
-| Method | Path | Description | Auth | Plan |
-|--------|------|-------------|------|------|
-| POST | `/v1/action` | Execute autonomous interactive agent steps | API Key | Enterprise |
-| POST | `/v1/action/resume/{session_id}`| Resume an agent action paused by Human-in-the-Loop (HITL) | API Key | Enterprise |
-| POST | `/v1/watch` | Schedule recurring search tasks via cron and webhook | API Key | Pro+ |
-| GET | `/v1/watch` | List all scheduled watch jobs | API Key | Pro+ |
-| DELETE | `/v1/watch/{job_id}` | Cancel an active scheduled watch job | API Key | Pro+ |
+| Method | Path | Description | Access | Plan Requirement |
+|---|---|---|---|---|
+| POST | `/v1/sessions` | Provision a persistent stateful browser session | API Key | Pro+ |
+| GET | `/v1/sessions` | List active persistent browser sessions for current user | API Key | Pro+ |
+| GET | `/v1/sessions/{id}` | Inspect browser state, active URL, and history for a session | API Key | Pro+ |
+| DELETE | `/v1/sessions/{id}` | Terminate an active browser session and release resources | API Key | Pro+ |
+| POST | `/v1/sessions/{id}/cookies` | Inject authentication cookies into the session Cookie Vault | API Key | Pro+ |
+| GET | `/v1/sessions/{id}/cookies` | Export all active cookies from the session Cookie Vault | API Key | Pro+ |
+| POST | `/v1/action` | Execute deterministic interactive browser actions (click, type, wait) | API Key | Enterprise |
+| POST | `/v1/action/instruct` | Natural language browser actions with ARIA grounding and self-healing | API Key | Enterprise |
+| POST | `/v1/action/resume/{id}` | Resume an action paused by Human-in-the-Loop intervention | API Key | Enterprise |
 
-### Key and Usage Management
+### Automated Webhooks and Tasks
 
-| Method | Path | Description | Auth |
-|--------|------|-------------|------|
-| POST | `/v1/api-keys` | Create a new API key | JWT |
-| GET | `/v1/api-keys` | List all active API keys with usage stats | JWT |
-| DELETE | `/v1/api-keys/{key_id}` | Revoke an API key | JWT |
-| GET | `/v1/usage` | Get current period usage statistics | JWT or API Key |
-| GET | `/v1/logs` | Retrieve recent API activity logs | JWT or API Key |
+| Method | Path | Description | Access | Plan Requirement |
+|---|---|---|---|---|
+| POST | `/v1/watch` | Create a recurring scheduled web monitoring task with webhook dispatch | API Key | Pro+ |
+| GET | `/v1/watch` | List all scheduled monitoring jobs for current user | API Key | Pro+ |
+| DELETE | `/v1/watch/{job_id}` | Cancel and delete an active scheduled monitoring task | API Key | Pro+ |
 
-### Coupon System
+### Key Management and Telemetry
 
-| Method | Path | Description | Auth |
-|--------|------|-------------|------|
-| POST | `/v1/coupons/redeem` | Redeem a promotional coupon code | JWT |
-| GET | `/v1/coupons/active` | Check if user has an active coupon promotion | JWT |
+| Method | Path | Description | Access |
+|---|---|---|---|
+| POST | `/v1/api-keys` | Provision a new API key with custom name and rate limits | JWT |
+| GET | `/v1/api-keys` | List all provisioned keys with associated utilization stats | JWT |
+| DELETE | `/v1/api-keys/{id}` | Revoke an existing API key | JWT |
+| GET | `/v1/usage` | Retrieve current billing cycle consumption metrics | JWT / API Key |
+| GET | `/v1/logs` | Fetch real-time API execution audit logs | JWT / API Key |
 
-### Admin Endpoints
+### Promotional Engine
 
-| Method | Path | Description |
-|--------|------|-------------|
-| GET | `/v1/admin/users` | List all users with telemetry data |
-| PUT | `/v1/admin/users/{id}/plan` | Update a user's subscription plan |
-| PUT | `/v1/admin/users/{id}/status` | Enable or disable a user account |
-| GET | `/v1/admin/analytics` | Platform analytics with time range selection |
-| GET | `/v1/admin/health` | System health for API, database, and Redis |
-| GET | `/v1/admin/coupons` | List all promotional coupons |
-| POST | `/v1/admin/coupons` | Create a new coupon code |
-| DELETE | `/v1/admin/coupons/{id}` | Delete a coupon |
+| Method | Path | Description | Access |
+|---|---|---|---|
+| POST | `/v1/coupons/redeem` | Apply a promotional code to upgrade user plan limits | JWT |
+| GET | `/v1/coupons/active` | Inspect status and expiration of currently applied coupon | JWT |
 
-### System
+### Platform Administration
 
-| Method | Path | Description |
-|--------|------|-------------|
-| GET | `/health` | Liveness probe with database and Redis checks |
-| GET | `/` | API root metadata |
-| GET | `/docs` | Interactive OpenAPI (Swagger) documentation |
-| GET | `/redoc` | ReDoc API documentation |
+| Method | Path | Description | Access |
+|---|---|---|---|
+| POST | `/v1/admin/login` | Authenticate administrative user with brute-force defense | Public (Rate Limited) |
+| GET | `/v1/admin/users` | List platform users with geo-telemetry and cumulative usage | Root Admin JWT |
+| PUT | `/v1/admin/users/{id}/plan` | Manually adjust a user's subscription tier | Root Admin JWT |
+| PUT | `/v1/admin/users/{id}/status` | Activate or suspend a user account | Root Admin JWT |
+| GET | `/v1/admin/analytics` | Aggregate platform latency, error rates, and provider distributions | Root Admin JWT |
+| GET | `/v1/admin/health` | Comprehensive system health check across database, cache, and agents | Root Admin JWT |
+| GET | `/v1/admin/sessions` | Monitor all active stateful browser sessions across all tenants | Root Admin JWT |
+| DELETE | `/v1/admin/sessions/{id}` | Forcefully terminate a browser session from the oversight console | Root Admin JWT |
+| POST | `/v1/admin/sessions/clean` | Trigger bulk garbage collection of expired browser sessions | Root Admin JWT |
+| GET | `/v1/admin/coupons` | List all promotional coupon campaigns | Root Admin JWT |
+| POST | `/v1/admin/coupons` | Create a new promotional coupon campaign | Root Admin JWT |
+| DELETE | `/v1/admin/coupons/{id}` | Deactivate and delete a coupon campaign | Root Admin JWT |
 
 ---
 
 ## Monetization and Plan Tiers
 
-SearchMind implements a four-tier monetization model. Rate limits and monthly quotas are enforced at the middleware layer.
+The platform enforces quota boundaries and requests-per-minute rate limits at the middleware layer:
 
-| Plan | Monthly Requests | Rate Limit | Endpoints Available |
-|------|-----------------|------------|---------------------|
-| Free | 500 | 5 req/min | Search |
-| Starter | 10,000 | 30 req/min | Search |
-| Pro | 100,000 | 100 req/min | Search, Extract, Crawl |
-| Enterprise | 10,000,000 | 1,000 req/min | Search, Extract, Crawl, Research |
-
-- Rate limits are enforced via sliding window counters in Redis.
-- Monthly quotas are tracked in PostgreSQL `usage_records` with per-endpoint breakdowns (search, extract, crawl, research).
-- API keys inherit their plan's limits at creation time and are updated automatically when plans change (including through coupon redemptions).
+| Plan | Monthly Quota | Rate Limit | Available Capabilities |
+|---|---|---|---|
+| Free | 500 requests | 5 req/min | Web Search, Topological Site Mapping |
+| Starter | 10,000 requests | 30 req/min | Web Search, Topological Site Mapping |
+| Pro | 100,000 requests | 100 req/min | Search, Extract, Schema Extraction, Crawl, Sessions, Watch Tasks |
+| Enterprise | 10,000,000 requests | 1,000 req/min | Full Platform Access, Deep Research, Autonomous Actions, HITL |
 
 ---
 
-## Coupon and Promotional System
+## User Interfaces
 
-SearchMind includes a complete promotional coupon system for running time-limited plan upgrades.
+### Developer Portal
+The Developer Portal (`frontend/developer-portal`) is a production single-page application built with React 18, Vite, and Tailwind CSS. It provides self-service management:
+- **Interactive Playground**: Real-time parameter configuration and execution for `/search`, `/extract`, `/crawl`, and `/research` with formatted card views and raw JSON payload inspection.
+- **Key Lifecycle Management**: Self-service API key provisioning, naming, and revocation.
+- **Consumption Analytics**: Real-time progress indicators detailing quota consumption, endpoint breakdowns, and request latency sparklines.
+- **Interactive Documentation**: Comprehensive parameter tables, cURL command generators, and Python SDK integration snippets.
+- **Roadmap & Changelog**: Chronological release timeline tracking architectural phases.
 
-### Admin Side
-
-- Create coupons with: code, duration (days), maximum redemption count, validity window (from/to dates), and target plan (e.g., "pro").
-- View all coupons with real-time redemption counts and status.
-- Delete coupons when no longer needed.
-
-### User Side
-
-- Users redeem coupons from the Pricing page in the Developer Portal.
-- The system enforces the following rules strictly:
-  - Coupon must exist and be active.
-  - Current date must be within the coupon's validity window.
-  - Redemption count must not have reached the maximum limit.
-  - The user must not have already redeemed this specific coupon.
-  - The user must not have another active coupon promotion running.
-- On successful redemption, the user's plan is upgraded and all active API key limits are adjusted to match the new plan tier.
-
-### Auto-Expiration
-
-- Every API request checks if the user's active coupon has expired.
-- When a coupon expires, the user's plan and API key limits are automatically reverted to their original values.
-- The redemption record is marked with status "expired".
-
-### Active Coupon Banner
-
-- When a user has an active coupon, a notification banner appears above the navigation bar showing the coupon code and remaining days.
-- The banner is dismissible by the user if more than 7 days remain.
-- During the last 7 days, the banner becomes non-dismissible and displays an "Ending Soon" indicator.
-
----
-
-## User Analytics and Session Telemetry
-
-SearchMind captures detailed session telemetry on every registration and login event.
-
-### Data Captured
-
-| Field | Source |
-|-------|--------|
-| IP Address | Request headers (X-Forwarded-For or client host) |
-| Country, Region, City | ip-api.com GeoIP service |
-| ISP | ip-api.com GeoIP service |
-| Browser | User-Agent header parsing |
-| Operating System | User-Agent header parsing |
-| Device Type | User-Agent header parsing (Desktop/Mobile/Tablet) |
-| Screen Resolution | Client-side capture (sent in auth request body) |
-| Language | Client-side capture (navigator.language) |
-| Timezone | Client-side capture (Intl.DateTimeFormat) |
-| Last Login | Server timestamp |
-
-### Localhost Handling
-
-When the application is accessed from a local or loopback address (127.0.0.1, ::1, private ranges), the system fetches the server's public IP using api.ipify.org as a fallback before performing geolocation, ensuring real telemetry data in development environments.
-
-### Admin Telemetry View
-
-The Admin Console displays a Vercel-inspired telemetry overlay modal when clicking on any user in the User Accounts table. This modal presents all captured session data in a structured format.
-
----
-
-## Developer Portal
-
-The Developer Portal is a React single-page application served at `http://localhost:5173`.
-
-### Pages
-
-| Page | Path | Description |
-|------|------|-------------|
-| Landing Page | `/` | Product overview with feature highlights and BETA badge |
-| Authentication | `/auth` | Login and registration with client-side telemetry capture |
-| Dashboard | `/dashboard` | API key management, usage statistics, and activity logs |
-| Playground | `/playground` | Interactive API testing for search, extract, crawl, and research endpoints |
-| API Documentation | `/docs` | Full endpoint reference with request/response examples |
-| Pricing | `/pricing` | Four-tier pricing cards, FAQ accordion, and coupon redemption section |
-| Features | `/features` | Feature showcase |
-| Reliability | `/reliability` | Multi-provider fallback architecture explanation |
-| Latency | `/latency` | Performance metrics and latency visualization |
-| Caching | `/caching` | Caching architecture explanation |
-| Use Cases | `/use-cases` | Agent, RAG, and chatbot integration examples |
-| Python SDK | `/python-sdk` | SDK installation and usage documentation |
-| System Status | `/status` | Real-time system health display |
-| Roadmap | `/roadmap` | Project timeline with animated scroll effects |
-| Terms of Service | `/terms` | Legal terms with beta disclaimer |
-| Privacy Policy | `/privacy` | Privacy policy with beta disclaimer |
-| 404 Not Found | `/404` | Canyon-themed parallax error page with SVG artwork |
-
-### Error Handling
-
-All undefined routes are redirected to a custom 404 error page featuring an interactive canyon landscape with parallax SVG cacti and mouse-tracking effects. The page includes a "Return Home" button to navigate back to the landing page.
-
----
-
-## Admin Console
-
-The Admin Console is a React single-page application served at `http://localhost:3001`.
-
-### Pages
-
-| Page | Path | Description |
-|------|------|-------------|
-| User Accounts | `/users` | User table with plan management, enable/disable controls, and telemetry modal |
-| Platform Analytics | `/analytics` | KPI cards, query volume and latency sparkline charts, provider share breakdown, time range selector (1h/12h/24h/7d) |
-| Promo Coupons | `/coupons` | Create, list, and delete promotional coupons with real-time redemption tracking |
-| System Health | `/system` | API server, database, and Redis health dashboard with uptime, latency, connection, and memory metrics |
-| 404 Not Found | `/404` | Same canyon-themed error page as the Developer Portal |
-
-### Features
-
-- Sidebar navigation with live system health indicator (auto-polls every 15 seconds).
-- Responsive design with mobile bottom navigation bar.
-- Undefined routes are caught and redirected to the 404 page.
+### Administrative Console
+The Administrative Console (`frontend/admin`) is a restricted operational portal offering deep system oversight:
+- **Tenant Management**: User directory with search, subscription controls, account suspension toggles, and detailed geo-telemetry inspection (IP, city, country, browser, OS, and client metadata).
+- **Session Oversight Dashboard**: Live table tracking all active browser sessions, user IDs, active cookie counts, creation timestamps, remaining lease countdowns, and instant termination controls.
+- **System Health Diagnostics**: Real-time monitoring cards reporting status for core infrastructure (PostgreSQL, Redis, API Gateway) alongside autonomous agent primitives (Highlighter, Schema Extractor, Topological Mapper, Session Pool, and Action Synthesis Engine).
+- **Promotional Campaign Manager**: Coupon creation, redemption limits, validity date enforcement, and real-time usage metrics.
 
 ---
 
 ## Model Context Protocol (MCP) Server
 
-SearchMind includes an official [Model Context Protocol (MCP)](https://modelcontextprotocol.io/) server built with FastMCP. This enables you to integrate SearchMind's capabilities directly into modern IDEs like Cursor or applications like Claude Desktop.
+SearchMind incorporates a native [Model Context Protocol (MCP)](https://modelcontextprotocol.io/) server built on FastMCP. This enables IDEs such as Cursor and AI desktop clients (e.g., Claude Desktop) to invoke SearchMind tools directly:
 
-### Features
-The MCP server exposes the following tools:
-- `search_web`: Fast AI-optimized web searches with snippet and content retrieval.
-- `deep_research`: Parallelized research tasks summarizing information from multiple top sources.
-- `extract_page`: Cleanly scrape body content, bypassing paywalls and JS-rendered single-page apps.
-- `crawl_domain`: Trigger asynchronous background domain crawling tasks.
+### Exposed Tools
+- `search_web`: Fast AI-optimized web queries with structured snippet attribution.
+- `deep_research`: Parallelized multi-query research synthesis across diverse domains.
+- `extract_page`: Clean Markdown and metadata extraction from complex web pages.
+- `crawl_domain`: Background domain crawler invocation.
 
-### Usage
-Configure your MCP client to start the SearchMind server. For example, in Cursor, add the following to your MCP settings:
+### Client Configuration Example
+Add the following block to your client configuration (e.g., `cursor.json` or `claude_desktop_config.json`):
 
 ```json
 {
-  "command": "python",
-  "args": ["/path/to/SearchMind-API/mcp-server/server.py"],
-  "env": {
-    "SEARCHMIND_API_KEY": "sm_live_your_api_key_here"
+  "mcpServers": {
+    "searchmind": {
+      "command": "python",
+      "args": ["/path/to/SearchMind-API/mcp-server/server.py"],
+      "env": {
+        "SEARCHMIND_API_KEY": "sm_live_your_api_key_here"
+      }
+    }
   }
 }
 ```
@@ -348,7 +249,7 @@ Configure your MCP client to start the SearchMind server. For example, in Cursor
 
 ## Python SDK and Agent Integration
 
-The SearchMind Python SDK provides a native client with both synchronous and asynchronous interfaces. For complete SDK documentation, refer to [sdk/README.md](sdk/README.md).
+The platform includes an official Python SDK with native asynchronous support, standard error handling, and dedicated tool wrappers for LangGraph and LangChain.
 
 ### Installation
 
@@ -357,54 +258,35 @@ cd sdk
 pip install -e .
 ```
 
-Or install with LangChain support:
+To install with LangChain and LangGraph adapters:
 
 ```bash
 pip install -e ".[langchain]"
 ```
 
-### Basic Usage
+### Basic Invocation
 
 ```python
 from searchmind import SearchMindClient
 
 client = SearchMindClient(api_key="sm_live_...")
 
-# Basic search
-result = client.search("latest LangGraph tutorials", num_results=5)
-print(result.answer)
-for r in result.results:
-    print(f"  {r.title} -- {r.url} (score: {r.score:.2f})")
+# Perform web search with passage highlighting
+response = client.search("FastAPI production deployment best practices", num_results=5)
+print(response.answer)
+for item in response.results:
+    print(f"[{item.score:.2f}] {item.title}: {item.url}")
 
-# Content extraction (requires Pro plan)
-extracted = client.extract(["https://example.com/article"])
-print(extracted.results[0].content)
+# Extract structured content from target URL
+extract_result = client.extract(["https://example.com/article"])
+print(extract_result.results[0].content)
 
-# Deep research (requires Enterprise plan)
-research = client.research("Compare vector databases in 2026")
+# Deep multi-source research synthesis
+research = client.research("State of autonomous web agents in 2026")
 print(research.summary)
-
-# Usage statistics
-usage = client.get_usage()
-print(f"Used: {usage.total_requests}/{usage.monthly_limit}")
 ```
 
-### Async Usage
-
-```python
-import asyncio
-from searchmind import SearchMindClient
-
-async def main():
-    client = SearchMindClient(api_key="sm_live_...")
-    result = await client.async_search("Python 3.13 new features")
-    print(result.answer)
-    await client.aclose()
-
-asyncio.run(main())
-```
-
-### LangGraph Agent Integration
+### LangGraph ReAct Agent Integration
 
 ```python
 import os
@@ -419,98 +301,61 @@ tools = create_searchmind_tools(client)
 llm = ChatOpenAI(model="gpt-4o-mini", temperature=0)
 agent = create_react_agent(llm, tools)
 
-result = agent.invoke({"messages": [("user", "Compare modern vector databases")]})
-```
-
-### LangChain Tool Integration
-
-```python
-from searchmind import SearchMindClient
-from searchmind.langchain_tool import SearchMindSearchTool
-
-client = SearchMindClient(api_key="sm_live_...")
-tool = SearchMindSearchTool(client=client)
-
-# Use as a standalone tool
-result = tool.invoke("latest FastAPI best practices")
+result = agent.invoke({"messages": [("user", "What are the latest developments in quantum computing?")]})
 ```
 
 ---
 
-## Quick Start (Docker)
+## Deployment and Setup
 
-The fastest method to deploy the complete SearchMind platform is via Docker Compose.
+### Option 1: Docker Compose (Recommended)
 
-### 1. Clone and Configure
+1. Clone the repository and prepare the configuration:
+   ```bash
+   git clone https://github.com/pritpatel2412/SearchMind-API.git
+   cd SearchMind-API
+   cp backend/.env.example backend/.env
+   ```
 
-```bash
-git clone https://github.com/pritpatel2412/SearchMind-API.git
-cd SearchMind-API
-cp backend/.env.example backend/.env
-```
+2. Configure environment variables in `backend/.env`.
 
-### 2. Environment Variables
+3. Launch all services:
+   ```bash
+   docker compose up --build
+   ```
+   Alembic database migrations execute automatically on startup.
 
-Edit `backend/.env` with your connection strings and API keys:
+### Option 2: Native Local Development
 
-```env
-DATABASE_URL=postgresql+asyncpg://user:pass@ep-xxx.region.aws.neon.tech/neondb?ssl=require
-SECRET_KEY=your-secure-jwt-secret-min-32-characters
-BRAVE_API_KEY=your-brave-search-api-key
-LLM_API_KEY=your-groq-api-key
-REDIS_URL=redis://redis:6379/0
-```
-
-### 3. Deploy Services
-
-```bash
-docker compose up --build
-```
-
-Database migrations are executed automatically on container startup.
-
-### 4. Access Points
-
-| Service | URL |
-|---------|-----|
-| API Server | http://localhost:8000 |
-| OpenAPI Docs (Swagger) | http://localhost:8000/docs |
-| ReDoc Documentation | http://localhost:8000/redoc |
-| Developer Portal | http://localhost:5173 |
-| Admin Console | http://localhost:3001 |
-
----
-
-## Local Development (Without Docker)
-
-### 1. Backend API and Celery Workers
-
+#### Backend Gateway and Celery Workers
 ```bash
 cd backend
 python -m venv .venv
-source .venv/bin/activate       # Linux/macOS
-# .venv\Scripts\activate        # Windows
+
+# Activate virtual environment
+# Linux/macOS:
+source .venv/bin/activate
+# Windows:
+.venv\Scripts\activate
 
 pip install -r requirements.txt
 playwright install chromium
 
-# Start the API server
-uvicorn app.main:app --reload
+# Launch the API server
+uvicorn app.main:app --reload --port 8000
 
-# In a separate terminal, start Celery workers for crawl tasks
+# Launch Celery worker (in a separate terminal)
 celery -A app.workers.celery_app worker --loglevel=info
 ```
 
-### 2. Developer Portal
-
+#### Developer Portal
 ```bash
 cd frontend/developer-portal
 npm install
 npm run dev
 ```
 
-### 3. Admin Console
-
+#### Administrative Console
 ```bash
 cd frontend/admin
 npm install
@@ -525,191 +370,75 @@ npm run dev
 SearchMind-API/
 |-- backend/
 |   |-- app/
-|   |   |-- auth/              # JWT and API key authentication
-|   |   |   |-- api_key_auth.py
-|   |   |   |-- jwt_auth.py
-|   |   |   |-- key_generator.py
-|   |   |-- middleware/         # CORS, rate limiting, usage tracking
-|   |   |   |-- cors.py
-|   |   |   |-- rate_limiter.py
-|   |   |   |-- usage_tracker.py
-|   |   |-- models/            # SQLAlchemy ORM models (7 tables)
-|   |   |   |-- user.py
-|   |   |   |-- api_key.py
-|   |   |   |-- search_log.py
-|   |   |   |-- usage.py
-|   |   |   |-- cached_results.py
-|   |   |   |-- coupon.py       # Coupon + CouponRedemption models
-|   |   |-- routers/           # API route handlers
-|   |   |   |-- auth.py         # Register, login, session telemetry
-|   |   |   |-- search.py       # Web search endpoint
-|   |   |   |-- extract.py      # Content extraction endpoint
-|   |   |   |-- crawl.py        # Background crawl endpoint
-|   |   |   |-- research.py     # Deep research endpoint
-|   |   |   |-- api_keys.py     # API key CRUD
-|   |   |   |-- usage.py        # Usage stats and logs
-|   |   |   |-- admin.py        # Admin: users, analytics, health, coupons
-|   |   |   |-- coupons.py      # User coupon redemption
-|   |   |-- schemas/           # Pydantic request/response schemas
-|   |   |-- services/          # Business logic layer (15 services)
-|   |   |   |-- search_service.py
-|   |   |   |-- brave_service.py
-|   |   |   |-- serpapi_service.py
-|   |   |   |-- ddg_service.py
-|   |   |   |-- search_provider.py
-|   |   |   |-- fetch_service.py
-|   |   |   |-- extract_service.py
-|   |   |   |-- ai_service.py
-|   |   |   |-- cache_service.py
-|   |   |   |-- rank_service.py
-|   |   |   |-- safety_service.py
-|   |   |   |-- credibility_service.py
-|   |   |   |-- quota_service.py
-|   |   |   |-- plan_service.py
-|   |   |   |-- coupon_service.py
-|   |   |-- utils/             # Seeder, HTML cleaner, URL utils
-|   |   |-- workers/           # Celery task definitions
-|   |   |-- config.py          # Settings via pydantic-settings
-|   |   |-- database.py        # Async SQLAlchemy engine
-|   |   |-- main.py            # FastAPI application entry point
-|   |-- alembic/               # Database migration scripts
+|   |   |-- auth/               # JWT token and hashed API key validation
+|   |   |-- middleware/         # Security headers, CORS, rate limiting, and usage tracking
+|   |   |-- models/             # SQLAlchemy ORM database models
+|   |   |-- routers/            # Versioned API routes (/search, /extract, /crawl, /sessions, etc.)
+|   |   |-- schemas/            # Pydantic validation schemas
+|   |   |-- services/           # Core business logic and external provider integrations
+|   |   |-- utils/              # SSRF URL validation, HTML sanitization, and seeders
+|   |   |-- workers/            # Distributed Celery task definitions
+|   |   |-- config.py           # Application settings and environment definitions
+|   |   |-- database.py         # Asynchronous SQLAlchemy database engine
+|   |   |-- main.py             # Application factory and lifecycle orchestration
+|   |-- alembic/                # Relational schema migration scripts
+|   |-- tests/                  # Automated integration and unit test suite
 |   |-- requirements.txt
 |   |-- Dockerfile
 |   |-- .env.example
 |-- frontend/
-|   |-- developer-portal/      # Developer-facing React SPA (17 pages)
-|   |   |-- src/
-|   |   |   |-- pages/         # Home, Auth, Dashboard, Playground, Docs, etc.
-|   |   |   |-- components/    # Navbar, ApiKeyCard, UsageChart, etc.
-|   |   |   |-- App.jsx        # Router, coupon banner, footer
-|   |-- admin/                 # Admin React SPA (5 pages)
-|   |   |-- src/
-|   |   |   |-- pages/         # Users, Analytics, Coupons, SystemHealth, 404
-|   |   |   |-- App.jsx        # Admin layout, sidebar, mobile nav
-|-- sdk/                       # Python SDK package
-|   |-- searchmind/
-|   |   |-- client.py          # Sync + async HTTP client
-|   |   |-- models.py          # Response data models
-|   |   |-- exceptions.py      # Custom exception classes
-|   |   |-- langchain_tool.py  # LangChain tool adapter
-|   |   |-- langgraph_tool.py  # LangGraph tool adapter
-|   |-- pyproject.toml
-|   |-- README.md
-|-- e2e_tests/                 # End-to-end test suite
-|-- scripts/                   # Test scripts (PowerShell)
+|   |-- developer-portal/       # Developer-facing React SPA (Playground, Docs, Keys)
+|   |-- admin/                  # Administrative React SPA (Users, Sessions, Health)
+|-- sdk/                        # Official Python SDK with LangGraph tool wrappers
+|-- mcp-server/                 # Model Context Protocol server for AI clients
 |-- docker-compose.yml
-|-- docker-compose.dev.yml
 ```
 
 ---
 
-## Authentication and Security
+## Configuration Reference
 
-SearchMind is a multi-tenant platform with two authentication mechanisms:
+Key configuration settings managed through environment variables:
 
-### API Key Authentication
-
-Used for programmatic access to search, extract, crawl, and research endpoints.
-
-```http
-X-API-Key: sm_live_...
-```
-
-- Keys are generated with a `sm_live_` prefix for identification.
-- The full key is displayed only once at creation time.
-- Keys are stored as SHA-256 hashes in the database.
-- Each key has independent monthly quota and per-minute rate limits.
-
-### JWT Token Authentication
-
-Used for Developer Portal sessions and user-scoped operations (key management, usage stats).
-
-```http
-Authorization: Bearer <jwt_token>
-```
-
-- Tokens are issued on login/registration with configurable expiry.
-- Used for API key CRUD, usage reporting, and coupon redemption endpoints.
-
-### Abuse Protection
-
-- Maximum 3 accounts per IP address (enforced at registration).
-- Per-key rate limiting via Redis sliding window.
-- Monthly quota enforcement via PostgreSQL usage records.
-- Plan-gated endpoint access (Extract, Crawl, Research).
+| Variable | Requirement | Description |
+|---|---|---|
+| `DATABASE_URL` | Required | PostgreSQL connection string (`postgresql+asyncpg://...`) |
+| `SECRET_KEY` | Required | Cryptographic secret for signing JWT tokens |
+| `REDIS_URL` | Required | Redis connection string for caching and rate limiting |
+| `BRAVE_API_KEY` | Recommended | Primary search provider API key |
+| `SERPAPI_KEY` | Optional | Secondary search provider fallback key |
+| `LLM_PROVIDER` | Optional | LLM provider selection (`groq`, `openai`, `nvidia`) |
+| `LLM_API_KEY` | Optional | API key for selected LLM provider |
+| `LLM_MODEL` | Optional | Model identifier (default: `openai/gpt-oss-120b`) |
+| `ADMIN_EMAIL` | Optional | Administrative login identity |
+| `ADMIN_PASSWORD` | Optional | Administrative login secret |
+| `ALLOWED_ORIGINS` | Optional | Comma-delimited list of permitted CORS origins |
+| `ALLOW_INTERNAL_NETWORKS`| Optional | Boolean override to permit private IP access during testing |
+| `RUN_MIGRATIONS_ON_STARTUP` | Optional | Automatically apply Alembic migrations on startup (default: `true`) |
 
 ---
 
-## Database Schema
+## Verification and Testing
 
-SearchMind uses 7 PostgreSQL tables managed by Alembic migrations:
-
-| Table | Description |
-|-------|-------------|
-| `users` | User accounts with plan, credentials, and 12+ telemetry columns |
-| `api_keys` | SHA-256 hashed API keys with per-key rate limits and quotas |
-| `search_logs` | Audit trail for every API request (endpoint, query, latency, status) |
-| `usage_records` | Monthly per-key usage counters by endpoint type |
-| `cached_results` | Durable cache tier for search and extraction results |
-| `coupons` | Promotional coupon definitions (code, duration, max redemptions, validity) |
-| `coupon_redemptions` | User-coupon redemption records with expiry and status tracking |
-
-Migrations run automatically on application startup when `RUN_MIGRATIONS_ON_STARTUP=true`.
-
----
-
-## Environment Variables
-
-All configuration is managed through environment variables. See `backend/.env.example` for the complete reference.
-
-| Variable | Required | Description |
-|----------|----------|-------------|
-| `DATABASE_URL` | Yes | PostgreSQL connection string (asyncpg driver) |
-| `SECRET_KEY` | Yes | JWT signing secret (minimum 32 characters) |
-| `REDIS_URL` | Yes | Redis connection string |
-| `BRAVE_API_KEY` | Recommended | Brave Search API key (primary provider) |
-| `SERPAPI_KEY` | Optional | SerpAPI key (fallback provider) |
-| `LLM_PROVIDER` | Optional | LLM provider: groq, nvidia, or openai (default: groq) |
-| `LLM_API_KEY` | Optional | API key for the LLM provider |
-| `LLM_MODEL` | Optional | Model identifier (default: openai/gpt-oss-120b) |
-| `LLM_BASE_URL` | Optional | LLM API base URL |
-| `DEBUG` | Optional | Enable debug logging (default: false) |
-| `RUN_MIGRATIONS_ON_STARTUP` | Optional | Auto-run Alembic migrations (default: true) |
-
----
-
-## Testing
-
-### End-to-End Tests
+Execute the test suites to ensure operational readiness:
 
 ```bash
-cd e2e_tests
-pytest test_backend.py -v
-pytest test_frontend.py -v
-```
+# Execute security verification (SSRF, Security Headers, IP Rate Limiting)
+python backend/tests/test_owasp_security.py
 
-### Manual API Testing (PowerShell)
+# Execute administrative sessions test
+python backend/tests/test_admin_sessions.py
 
-```bash
-cd scripts
-./test-search.ps1
-./test-usage.ps1
-```
-
-### Build Verification
-
-```bash
-# Developer Portal
-cd frontend/developer-portal
-npm run build
-
-# Admin Console
-cd frontend/admin
-npm run build
+# Execute core agent primitive tests
+python backend/tests/test_dynamic_highlights.py
+python backend/tests/test_schema_extraction.py
+python backend/tests/test_topological_map.py
+python backend/tests/test_browser_sessions.py
+python backend/tests/test_instruct_action.py
 ```
 
 ---
 
 ## License
 
-Proprietary -- All rights reserved. Refer to the repository owner for licensing terms and distribution rights.
+Proprietary. All rights reserved. Refer to the organization repository administrator for licensing terms, commercial redistribution rights, and custom deployment inquiries.
