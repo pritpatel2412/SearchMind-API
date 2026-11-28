@@ -13,6 +13,15 @@ logger = logging.getLogger("searchmind.rate_limiter")
 
 # In-memory per-minute sliding window fallback when Redis is absent/down
 _in_memory_rate_cache: dict[str, tuple[int, int]] = {}
+_in_memory_ip_cache: dict[str, tuple[int, int]] = {}
+
+
+def get_client_ip(request: Request) -> str:
+    """Extract reliable client IP from headers (X-Forwarded-For) or client host."""
+    forwarded = request.headers.get("x-forwarded-for")
+    if forwarded:
+        return forwarded.split(",")[0].strip()
+    return request.client.host if request.client else "127.0.0.1"
 
 
 def _check_in_memory_rate(key_id: str) -> int:
@@ -58,6 +67,50 @@ async def _check_per_minute_rate(api_key: APIKey) -> None:
                 "X-RateLimit-Limit": str(limit),
                 "X-RateLimit-Remaining": "0",
             },
+        )
+
+
+async def check_ip_rate_limit(
+    request: Request,
+    scope: str = "auth_login",
+    max_requests: int = 10,
+    window_seconds: int = 60,
+) -> None:
+    """
+    Sliding window rate limit by client IP address.
+    Defends against credential stuffing, login brute forcing, and resource exhaustion.
+    Uses Redis when reachable; falls back to in-memory sliding window when Redis is offline.
+    """
+    client_ip = get_client_ip(request)
+    window_idx = int(time.time() // window_seconds)
+    cache_key = f"{scope}:{client_ip}"
+    redis_key = f"ip_rate:{scope}:{client_ip}:{window_idx}"
+
+    try:
+        redis = await get_redis()
+        count = await redis.incr(redis_key)
+        if count == 1:
+            await redis.expire(redis_key, window_seconds)
+    except Exception as e:
+        logger.debug("Redis IP rate limit fallback to memory (%s)", e)
+        if len(_in_memory_ip_cache) > 2000:
+            expired = [k for k, (w, _) in _in_memory_ip_cache.items() if w < window_idx]
+            for k in expired:
+                _in_memory_ip_cache.pop(k, None)
+
+        cached_win, cached_cnt = _in_memory_ip_cache.get(cache_key, (window_idx, 0))
+        if cached_win != window_idx:
+            cached_cnt = 0
+            cached_win = window_idx
+        cached_cnt += 1
+        _in_memory_ip_cache[cache_key] = (cached_win, cached_cnt)
+        count = cached_cnt
+
+    if count > max_requests:
+        raise HTTPException(
+            status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+            detail=f"Too many requests for {scope}. Please retry in a few moments.",
+            headers={"Retry-After": str(window_seconds)},
         )
 
 

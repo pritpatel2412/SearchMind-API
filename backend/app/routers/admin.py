@@ -1,12 +1,14 @@
 import uuid
 import datetime
 import time
+import hmac
 from fastapi import APIRouter, Depends, HTTPException, status, Request
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func, text
 from typing import List, Optional
 from pydantic import BaseModel
 
+from app.config import settings
 from app.database import get_db
 from app.models.user import User
 from app.models.api_key import APIKey
@@ -16,6 +18,7 @@ from app.models.coupon import Coupon, CouponRedemption
 from app.redis_client import get_redis
 from app.auth.jwt_auth import get_current_admin, create_access_token, ACCESS_TOKEN_EXPIRE_MINUTES
 from app.services.session_service import session_manager
+from app.middleware.rate_limiter import check_ip_rate_limit
 
 
 router = APIRouter()
@@ -85,9 +88,17 @@ class SystemHealthResponse(BaseModel):
     subsystems: Optional[dict] = None
 
 @router.post("/admin/login", tags=["Admin"])
-async def admin_login(request: AdminLoginRequest):
-    """Authenticate admin and return JWT token."""
-    if request.email == "pritptl2412@gmail.com" and request.password == "Prit_p@tel2412":
+async def admin_login(request: AdminLoginRequest, http_request: Request):
+    """Authenticate admin and return JWT token with brute force rate limiting."""
+    await check_ip_rate_limit(http_request, scope="admin_login", max_requests=10, window_seconds=60)
+
+    admin_email = getattr(settings, "ADMIN_EMAIL", "pritptl2412@gmail.com")
+    admin_password = getattr(settings, "ADMIN_PASSWORD", "Prit_p@tel2412")
+
+    email_match = hmac.compare_digest(request.email.strip().lower(), admin_email.strip().lower())
+    password_match = hmac.compare_digest(request.password, admin_password)
+
+    if email_match and password_match:
         from datetime import timedelta
         token = create_access_token(
             data={"sub": "admin", "role": "root_admin"},

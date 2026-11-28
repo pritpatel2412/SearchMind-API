@@ -11,6 +11,7 @@ from app.config import settings
 from app.database import SessionLocal, engine, get_db
 from app.db_migrate import run_migrations
 from app.middleware.cors import setup_cors
+from app.middleware.security import SecurityHeadersMiddleware
 from app.redis_client import close_redis, get_redis
 from app.routers import search, extract, crawl, research, usage, api_keys, admin, coupons, watch, action, session
 from app.routers.auth import router as auth_router
@@ -79,6 +80,7 @@ app = FastAPI(
 )
 
 setup_cors(app)
+app.add_middleware(SecurityHeadersMiddleware)
 
 app.include_router(auth_router, prefix="/v1")
 app.include_router(search.router, prefix="/v1")
@@ -96,10 +98,13 @@ app.include_router(coupons.router, prefix="/v1")
 
 @app.exception_handler(Exception)
 async def global_exception_handler(request: Request, exc: Exception):
-    logger.error("Unhandled exception: %s", exc, exc_info=True)
+    logger.exception("Unhandled application exception on %s %s: %s", request.method, request.url.path, exc)
+    content = {"detail": "Internal Server Error"}
+    if settings.DEBUG:
+        content["error"] = str(exc)
     return JSONResponse(
         status_code=500,
-        content={"detail": "Internal Server Error", "error": str(exc)},
+        content=content,
         headers={"Access-Control-Allow-Origin": "*"}
     )
 

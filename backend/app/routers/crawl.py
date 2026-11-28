@@ -22,6 +22,7 @@ from app.database import get_db
 from app.models.api_key import APIKey
 from app.models.search_log import SearchLog
 from app.redis_client import get_redis
+from app.utils.url_utils import validate_safe_url
 
 logger = logging.getLogger("searchmind.crawl")
 
@@ -194,6 +195,7 @@ async def crawl(
         raise HTTPException(status_code=403, detail="Crawl endpoint requires a Pro or Enterprise plan.")
 
     await enforce_rate_limits(http_request, api_key, db)
+    validate_safe_url(str(request.url))
 
     start_time = time.time()
 
@@ -350,6 +352,7 @@ async def map_site_endpoint(
     """Zero-crawl website topological mapping endpoint."""
     # 1. Rate limiter check
     await enforce_rate_limits(http_request, api_key, db)
+    validate_safe_url(str(request.url))
 
     # 2. Execute site mapping
     start_time = time.time()

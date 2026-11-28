@@ -9,6 +9,7 @@ from app.auth.api_key_auth import get_current_api_key
 from app.models.api_key import APIKey
 from app.models.watch_task import WatchTask
 from app.schemas.watch import WatchTaskCreate, WatchTaskResponse
+from app.utils.url_utils import validate_safe_url
 
 router = APIRouter()
 
@@ -21,6 +22,8 @@ async def create_watch_task(
     """Create a new proactive search watch task."""
     if getattr(api_key.user, "plan", "free") == "free":
         raise HTTPException(status_code=403, detail="Watch endpoints require a Pro or Enterprise plan.")
+
+    validate_safe_url(str(request.webhook_url))
 
     new_task = WatchTask(
         user_id=api_key.user_id,

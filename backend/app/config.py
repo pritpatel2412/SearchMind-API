@@ -8,6 +8,12 @@ class Settings(BaseSettings):
     DEBUG: bool = False
     SECRET_KEY: str = "dev_secret_key_must_be_long_for_security_reasons_123"
 
+    # Security & Administration
+    ADMIN_EMAIL: str = "pritptl2412@gmail.com"
+    ADMIN_PASSWORD: str = "Prit_p@tel2412"
+    ALLOWED_ORIGINS: str = "*"
+    ALLOW_INTERNAL_NETWORKS: bool = False
+
     # Database Settings — set DATABASE_URL in .env (Neon: postgresql+asyncpg://...?ssl=require)
     DATABASE_URL: str = "postgresql+asyncpg://searchmind:searchmindpass@localhost:5432/searchmind"
 
