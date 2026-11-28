@@ -2,6 +2,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { CheckCircle2, Activity, Clock, Sparkles, Compass, Terminal, Cpu, ArrowUpRight } from 'lucide-react';
 import { motion } from 'framer-motion';
+import SEO from '../components/SEO.jsx';
 
 const timelineEvents = [
   {
@@ -95,6 +96,12 @@ const timelineEvents = [
 export default function Roadmap() {
   return (
     <div className="min-h-screen bg-canvas text-ink relative py-16 md:py-24 px-4 sm:px-6 lg:px-8 font-sans overflow-hidden">
+      <SEO 
+        title="Engineering Roadmap & Architecture Timeline"
+        description="SearchMind product roadmap and technical timeline. Follow our journey from FastAPI search orchestration to distributed edge browser workers and cognitive graph synthesis."
+        keywords="searchmind roadmap, ai search architecture, agentic crawler engineering, distributed edge scraping, web graph synthesis"
+        canonicalUrl="https://searchmind-api.vercel.app/#/roadmap"
+      />
       
       {/* Background radial accent glow */}
       <div className="absolute top-[-10%] left-[-15%] w-[50%] h-[50%] rounded-full bg-primary/5 blur-[120px] pointer-events-none"></div>

@@ -1,0 +1,69 @@
+# SearchMind API
+
+> SearchMind is an enterprise-grade AI-native web search, structured schema extraction, and autonomous browser execution platform engineered for LLM agents, LangGraph, and RAG pipelines.
+
+SearchMind abstracts search provider failovers (Brave, SerpAPI, DuckDuckGo), headless Playwright browser execution, accessibility tree grounding, dual-tier caching (Redis + PostgreSQL), and monetization plan quotas.
+
+## Key Capabilities
+
+- **Intelligent Multi-Provider Search** (`POST /v1/search`): Web queries routed across Brave, SerpAPI, and DuckDuckGo with sub-250ms p95 latency and dynamic passage highlighting.
+- **Schema-Driven Extraction** (`POST /v1/extract/schema`): Deterministic JSON entity extraction conforming to any user-supplied JSON Schema specification with built-in self-healing.
+- **Zero-Crawl Topological Site Mapping** (`POST /v1/map`): Instant route hierarchy discovery parsing robots.txt and sitemaps without executing heavy crawlers.
+- **Stateful Browser Sessions & Cookie Vault** (`POST /v1/sessions`): In-memory Playwright contexts retaining session cookies and authenticated state across multi-step agent actions.
+- **Natural Language ARIA Actions** (`POST /v1/action/instruct`): Plain-English browser actions grounded in compressed accessibility trees with layout-resilient self-healing selectors.
+- **Deep Research Synthesis** (`POST /v1/research`): Recursive multi-angle query expansion, parallel search, and comprehensive citation-backed research briefs.
+- **Dense Vector Embeddings & Vision** (`POST /v1/extract`): Simultaneous text vectorization and embedded image summarization.
+
+## Quick Start (Python SDK)
+
+```python
+from searchmind import SearchMindClient
+
+client = SearchMindClient(api_key="sm_live_...")
+
+# AI Web Search with passage highlights
+res = client.search("LangGraph multi-agent systems 2026", depth="advanced")
+print(res.answer)
+for r in res.results:
+    print(f"[{r.score:.2f}] {r.title}: {r.url}")
+
+# Structured schema extraction
+extracted = client.extract(["https://example.com/product"])
+print(extracted.results[0].content)
+```
+
+## LangGraph Multi-Agent Integration
+
+```python
+import os
+from langgraph.prebuilt import create_react_agent
+from langchain_openai import ChatOpenAI
+from searchmind import SearchMindClient
+from searchmind.langgraph_tool import create_searchmind_tools
+
+client = SearchMindClient(api_key=os.environ["SEARCHMIND_API_KEY"])
+tools = create_searchmind_tools(client)
+
+llm = ChatOpenAI(model="gpt-4o-mini", temperature=0)
+agent = create_react_agent(llm, tools)
+result = agent.invoke({"messages": [("user", "What are the latest developments in quantum computing?")]})
+```
+
+## Competitive Advantages Over Alternatives
+
+| Capability | SearchMind API | Tavily | Firecrawl | Exa AI |
+|---|---|---|---|---|
+| Multi-Provider Search Failover | Yes (Brave + SerpAPI + DDG) | Single upstream | No (Scraper only) | Proprietary index |
+| Schema-Driven JSON Extraction | Yes (JSON Schema + Auto-Repair) | No | Limited | No |
+| Zero-Crawl Topological Mapping | Yes (`/v1/map`) | No | Full crawl required | No |
+| Stateful Browser Sessions | Yes (Cookie Vault + Leasing) | No | No | No |
+| Natural Language ARIA Actions | Yes (Self-Healing Selectors) | No | No | No |
+| Docker / Self-Hostable | Yes (`docker compose up`) | No (Cloud only) | Partial | No (Cloud only) |
+| Latency (p95) | < 250ms | ~450ms | ~2,500ms | ~600ms |
+
+## Documentation and Resources
+
+- Developer Portal: https://searchmind-api.vercel.app/
+- API Reference: https://searchmind-api.vercel.app/#/docs
+- Full LLM Specification: https://searchmind-api.vercel.app/llms-full.txt
+- GitHub Repository: https://github.com/pritpatel2412/SearchMind-API

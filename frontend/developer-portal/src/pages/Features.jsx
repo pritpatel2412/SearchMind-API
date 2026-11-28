@@ -1,6 +1,7 @@
 import React from 'react';
 import { Cpu, Database, Code, ShieldCheck, Zap, Layers, Server, Compass, MousePointerClick, Highlighter, Code2 } from 'lucide-react';
 import { motion } from 'framer-motion';
+import SEO from '../components/SEO.jsx';
 
 export default function Features() {
   const containerVars = {
@@ -18,6 +19,12 @@ export default function Features() {
 
   return (
     <div className="w-full min-h-screen bg-canvas text-ink py-20 px-6 md:px-8 relative overflow-hidden glow-red">
+      <SEO 
+        title="Platform Architecture & Autonomous Agent Primitives"
+        description="Explore SearchMind's sub-250ms p95 search latency, two-tier Redis/Postgres caching, Trafilatura markdown parsing, persistent browser sessions, and schema extraction."
+        keywords="ai search features, agent primitives, rag optimization, trafilatura markdown, low latency search, browser automation for llms"
+        canonicalUrl="https://searchmind-api.vercel.app/#/features"
+      />
       {/* Background Orbs */}
       <motion.div 
         initial={{ opacity: 0, scale: 0.8 }}

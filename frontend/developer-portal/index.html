@@ -1,17 +1,194 @@
 <!doctype html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2300D4FF' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z'%3E%3C/path%3E%3Cpolyline points='3.29 7 12 12 20.71 7'%3E%3C/polyline%3E%3Cline x1='12' y1='22' x2='12' y2='12'%3E%3C/line%3E%3C/svg%3E" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>SearchMind API Developer Portal</title>
-    <!-- Fonts -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=JetBrains+Mono:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-  </head>
-  <body class="bg-brand-dark text-brand-white min-h-screen">
-    <div id="root"></div>
-    <script type="module" src="/src/main.jsx"></script>
-  </body>
+<html lang="en" prefix="og: https://ogp.me/ns#">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <!-- Primary SEO Metadata -->
+  <title>SearchMind API — AI Search & Autonomous Web Agent Execution Platform</title>
+  <meta name="title" content="SearchMind API — AI Search & Autonomous Web Agent Execution Platform" />
+  <meta name="description"
+    content="Production-grade AI web search and autonomous browser execution API for LLM agents, LangGraph, and RAG pipelines. Multi-provider search, zero-crawl topological site mapping, schema-driven structured extraction, and persistent browser sessions with sub-250ms p95 latency." />
+  <meta name="keywords"
+    content="AI search API, web search API, LLM web search, LangGraph web search tool, LangChain search, autonomous agent browser, schema extraction API, Firecrawl alternative, Tavily alternative, Perplexity API alternative, RAG search API, web scraping API for AI, topological site mapping, browser automation API" />
+  <meta name="author" content="SearchMind Technologies" />
+  <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1" />
+  <meta name="theme-color" content="#0A0D14" />
+  <link rel="canonical" href="https://searchmind-api.vercel.app/" />
+
+  <!-- Open Graph / Facebook -->
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://searchmind-api.vercel.app/" />
+  <meta property="og:site_name" content="SearchMind API" />
+  <meta property="og:locale" content="en_US" />
+  <meta property="og:title" content="SearchMind API — AI Search & Autonomous Web Agent Execution Platform" />
+  <meta property="og:description"
+    content="Production-grade AI web search, schema-driven structured extraction, and persistent browser sessions for LLM agents with sub-250ms p95 latency." />
+  <meta property="og:image" content="https://searchmind-api.vercel.app/logo-new.png" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="og:image:alt" content="SearchMind API Platform Architecture" />
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:url" content="https://searchmind-api.vercel.app/" />
+  <meta name="twitter:site" content="@searchmind_api" />
+  <meta name="twitter:creator" content="@searchmind_api" />
+  <meta name="twitter:title" content="SearchMind API — AI Search & Autonomous Web Agent Execution Platform" />
+  <meta name="twitter:description"
+    content="Sub-250ms web search, zero-crawl sitemap mapping, and stateful browser sessions for LangGraph and LangChain." />
+  <meta name="twitter:image" content="https://searchmind-api.vercel.app/logo-new.png" />
+
+  <!-- Favicon & Icons -->
+  <link rel="icon" type="image/svg+xml"
+    href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23F15A24' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z'%3E%3C/path%3E%3Cpolyline points='3.29 7 12 12 20.71 7'%3E%3C/polyline%3E%3Cline x1='12' y1='22' x2='12' y2='12'%3E%3C/line%3E%3C/svg%3E" />
+  <link rel="apple-touch-icon" href="/logo-dark.png" />
+  <link rel="manifest" href="/site.webmanifest" />
+
+  <!-- Preconnect Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=JetBrains+Mono:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap"
+    rel="stylesheet" />
+
+  <!-- AEO / GEO Structured Data (JSON-LD) -->
+  <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@graph": [
+        {
+          "@type": "Organization",
+          "@id": "https://searchmind-api.vercel.app/#organization",
+          "name": "SearchMind Technologies",
+          "url": "https://searchmind-api.vercel.app/",
+          "logo": "https://searchmind-api.vercel.app/logo-new.png",
+          "description": "Enterprise AI search infrastructure and autonomous browser agent execution platform.",
+          "contactPoint": {
+            "@type": "ContactPoint",
+            "email": "support@searchmind.dev",
+            "contactType": "technical support"
+          }
+        },
+        {
+          "@type": "WebSite",
+          "@id": "https://searchmind-api.vercel.app/#website",
+          "url": "https://searchmind-api.vercel.app/",
+          "name": "SearchMind API",
+          "publisher": { "@id": "https://searchmind-api.vercel.app/#organization" },
+          "potentialAction": {
+            "@type": "SearchAction",
+            "target": "https://searchmind-api.vercel.app/#/docs?q={search_term_string}",
+            "query-input": "required name=search_term_string"
+          }
+        },
+        {
+          "@type": "SoftwareApplication",
+          "@id": "https://searchmind-api.vercel.app/#application",
+          "name": "SearchMind API",
+          "applicationCategory": "DeveloperApplication",
+          "operatingSystem": "Cloud / Platform Independent",
+          "offers": [
+            {
+              "@type": "Offer",
+              "price": "0",
+              "priceCurrency": "USD",
+              "name": "Free Sandbox",
+              "description": "500 requests per month with basic web search and topological site mapping"
+            },
+            {
+              "@type": "Offer",
+              "price": "29",
+              "priceCurrency": "USD",
+              "name": "Starter Plan",
+              "description": "10,000 requests per month with high throughput search"
+            },
+            {
+              "@type": "Offer",
+              "price": "99",
+              "priceCurrency": "USD",
+              "name": "Developer Pro",
+              "description": "100,000 requests per month with Schema Extraction, Crawling, and Stateful Sessions"
+            },
+            {
+              "@type": "Offer",
+              "price": "499",
+              "priceCurrency": "USD",
+              "name": "Scale Enterprise",
+              "description": "10,000,000 requests per month with Deep Research, Autonomous Actions, and HITL"
+            }
+          ],
+          "aggregateRating": {
+            "@type": "AggregateRating",
+            "ratingValue": "4.9",
+            "ratingCount": "184",
+            "bestRating": "5",
+            "worstRating": "1"
+          }
+        },
+        {
+          "@type": "FAQPage",
+          "@id": "https://searchmind-api.vercel.app/#faq",
+          "mainEntity": [
+            {
+              "@type": "Question",
+              "name": "What is SearchMind API?",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "SearchMind API is an enterprise AI-native search and browser execution engine designed specifically for LLM pipelines, autonomous agents, and RAG architectures. It provides multi-provider web search, passage highlights, schema-driven JSON entity extraction, zero-crawl topological site mapping, and persistent stateful browser sessions."
+              }
+            },
+            {
+              "@type": "Question",
+              "name": "How does SearchMind compare to Tavily and Firecrawl?",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "Unlike Tavily (which focuses solely on search snippets) or Firecrawl (which specializes primarily in scraping and markdown conversion), SearchMind combines multi-provider resilient search, zero-crawl sitemap discovery, deterministic JSON Schema extraction with self-repair, persistent browser session leasing with cookie vaults, and natural language ARIA-grounded browser actions in a single unified API with sub-250ms p95 latency."
+              }
+            },
+            {
+              "@type": "Question",
+              "name": "Does SearchMind integrate with LangGraph and LangChain?",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "Yes. The official SearchMind Python SDK (`searchmind`) ships with native pre-built tool adapters for LangGraph and LangChain (`from searchmind.langgraph_tool import create_searchmind_tools`), enabling one-line integration into multi-agent systems."
+              }
+            },
+            {
+              "@type": "Question",
+              "name": "What is Schema-Driven Extraction in SearchMind?",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "Schema-Driven Extraction (`POST /v1/extract/schema`) allows developers to provide an arbitrary JSON Schema specification alongside a URL. SearchMind extracts and validates structured entities conforming exactly to that schema, eliminating downstream LLM parsing tokens and schema drift."
+              }
+            },
+            {
+              "@type": "Question",
+              "name": "How does Persistent Browser Session state work?",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "SearchMind provides stateful browser sessions (`POST /v1/sessions`) where headless Playwright contexts are retained in memory. Developers can inject authenticated session cookies into the cookie vault, navigate complex single-page apps, and execute sequential actions without losing session state."
+              }
+            },
+            {
+              "@type": "Question",
+              "name": "Is there a free tier for SearchMind API?",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "Yes. SearchMind provides a Free Sandbox plan offering 500 requests per month with basic web search and topological site mapping. No credit card is required to sign up and obtain an API key."
+              }
+            }
+          ]
+        }
+      ]
+    }
+    </script>
+</head>
+
+<body class="bg-brand-dark text-brand-white min-h-screen">
+  <div id="root"></div>
+  <script type="module" src="/src/main.jsx"></script>
+</body>
+
 </html>
