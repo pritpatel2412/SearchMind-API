@@ -8,6 +8,7 @@ from app.models.api_key import APIKey
 from app.database import get_db
 from app.middleware.rate_limiter import enforce_rate_limits
 from app.middleware.usage_tracker import track_usage
+from app.utils.url_utils import validate_safe_url
 from app.schemas.session import (
     SessionCookie,
     CreateSessionRequest,
@@ -34,6 +35,8 @@ async def create_browser_session(
     isolated storage state, and optional starting URL.
     """
     await enforce_rate_limits(http_request, api_key, db)
+    if request.initial_url:
+        validate_safe_url(str(request.initial_url))
     session = await session_manager.create_session(request, user_id=api_key.user_id)
     await track_usage(db, api_key, "action", result_count=1)
     return session

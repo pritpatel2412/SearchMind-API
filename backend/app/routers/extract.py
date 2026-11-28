@@ -25,6 +25,7 @@ from app.database import get_db
 from app.config import settings
 from app.models.api_key import APIKey
 from app.models.search_log import SearchLog
+from app.utils.url_utils import validate_safe_url
 
 router = APIRouter()
 
@@ -48,6 +49,17 @@ async def process_single_url(
         "max_highlights": max_highlights,
         "highlight_strategy": highlight_strategy
     }
+
+    try:
+        validate_safe_url(url)
+    except HTTPException as se:
+        return ExtractedPage(
+            url=url,
+            title="",
+            content="",
+            success=False,
+            error=se.detail,
+        )
     cache_key = "extract:" + hashlib.sha256(json.dumps(cache_payload, sort_keys=True).encode()).hexdigest()
     try:
         cached = await get_cached(cache_key, db=db)
@@ -290,6 +302,9 @@ async def extract_schema_endpoint(
     
     if not request.url and not request.html:
         raise HTTPException(status_code=400, detail="Either 'url' or 'html' must be provided for schema extraction.")
+
+    if request.url:
+        validate_safe_url(str(request.url))
 
     response = await extract_with_schema(request, db=db)
     

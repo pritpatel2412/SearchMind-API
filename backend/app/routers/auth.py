@@ -16,6 +16,7 @@ from app.auth.jwt_auth import (
     ACCESS_TOKEN_EXPIRE_MINUTES,
 )
 from app.services.plan_service import get_plan_limits
+from app.middleware.rate_limiter import check_ip_rate_limit
 
 router = APIRouter()
 
@@ -189,6 +190,7 @@ class TokenResponse(BaseModel):
 @router.post("/auth/register", response_model=TokenResponse, tags=["Auth"])
 async def register(request: RegisterRequest, req: Request, db: AsyncSession = Depends(get_db)):
     """Register a new user account and return a JWT + a first API key."""
+    await check_ip_rate_limit(req, scope="user_register", max_requests=10, window_seconds=3600)
     # Extract client IP
     client_ip = req.headers.get("x-forwarded-for") or req.client.host if req.client else "unknown"
     if client_ip and "," in client_ip:
@@ -255,7 +257,8 @@ async def register(request: RegisterRequest, req: Request, db: AsyncSession = De
 
 @router.post("/auth/login", response_model=TokenResponse, tags=["Auth"])
 async def login(request: LoginRequest, req: Request, db: AsyncSession = Depends(get_db)):
-    """Authenticate and return a JWT access token."""
+    """Authenticate and return a JWT access token with brute force rate limiting."""
+    await check_ip_rate_limit(req, scope="user_login", max_requests=15, window_seconds=60)
     result = await db.execute(select(User).where(User.email == request.email))
     user = result.scalar_one_or_none()
 
