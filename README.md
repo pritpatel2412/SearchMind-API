@@ -439,6 +439,19 @@ python backend/tests/test_instruct_action.py
 
 ---
 
+## Contributing and Branch Governance
+
+SearchMind enforces strict repository governance:
+
+- **No Direct Pushes to `main`**: All direct pushes to `main` or production release branches are blocked.
+- **Pull Request Requirement**: All additions, fixes, and refactors must be submitted via Pull Requests from isolated topic branches (`feat/*`, `fix/*`, `security/*`, `docs/*`).
+- **Automated Verification**: Every Pull Request must pass the GitHub Actions CI pipeline, including OWASP security validations, unit test suites, and front-end production builds.
+- **Sole Merge Authority**: Only the repository owner and Lead Maintainer (`pritpatel2412`) has authorization to review and merge Pull Requests into `main`.
+
+For complete contribution procedures, conventional commit standards, and local pre-push hook setup, please refer to [CONTRIBUTING.md](CONTRIBUTING.md).
+
+---
+
 ## License
 
 Proprietary. All rights reserved. Refer to the organization repository administrator for licensing terms, commercial redistribution rights, and custom deployment inquiries.
