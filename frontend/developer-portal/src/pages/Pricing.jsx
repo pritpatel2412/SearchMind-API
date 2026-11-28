@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Check, Info, Mail, AlertTriangle, HelpCircle, X, ChevronDown, Gift } from 'lucide-react'
+import SEO from '../components/SEO.jsx'
 
 export default function Pricing({ token, user, setUser }) {
   const [billingPeriod, setBillingPeriod] = useState('monthly') // 'monthly' | 'annually'
@@ -169,6 +170,12 @@ export default function Pricing({ token, user, setUser }) {
 
   return (
     <div className="w-full min-h-screen bg-canvas text-ink py-16 px-6 md:px-8 relative overflow-hidden glow-red">
+      <SEO 
+        title="Developer Pricing & Subscription Plans"
+        description="Transparent developer pricing for SearchMind API. Free Sandbox with 500 requests, Developer Pro at $29/mo for 10k queries, and Scale Enterprise with custom rate limits."
+        keywords="search api pricing, tavily pricing alternative, firecrawl pricing alternative, ai agent search pricing, cheap web scraper api"
+        canonicalUrl="https://searchmind-api.vercel.app/#/pricing"
+      />
       
       {/* Dynamic background glows */}
       <div className="absolute top-[-10%] right-[-10%] w-[50%] h-[50%] rounded-full bg-primary/5 blur-[120px] pointer-events-none"></div>

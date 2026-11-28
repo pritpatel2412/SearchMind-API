@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { Terminal, Key, ShieldCheck, Cpu, Code, CheckCircle, Sparkles, Database, Zap, Copy, ArrowRight, Play, Server, AlertCircle, HelpCircle } from 'lucide-react'
+import { Terminal, Key, ShieldCheck, Cpu, Code, CheckCircle, Sparkles, Database, Zap, Copy, ArrowRight, Play, Server, AlertCircle, HelpCircle, ChevronDown, Compass, Globe, Layers, Search, Check, X } from 'lucide-react'
 import OrbitImages from '../components/OrbitImages.jsx'
 import PixelBlast from '../components/PixelBlast.jsx'
+import SEO from '../components/SEO.jsx'
 
 const techStack = [
   { name: 'LangChain', url: 'https://cdn.simpleicons.org/langchain/white' },
@@ -41,6 +42,34 @@ const orbitTechItems = techStack.map((tech) => {
 
 export default function Home({ token }) {
   const [codeTab, setCodeTab] = useState('python')
+  const [openFaq, setOpenFaq] = useState(null)
+
+  const toggleFaq = (index) => {
+    setOpenFaq(openFaq === index ? null : index)
+  }
+
+  const homeFaqs = [
+    {
+      q: "What is SearchMind API and how does it compare to Google or Bing?",
+      a: "SearchMind API is purpose-built for LLMs and autonomous agents. Unlike traditional search APIs designed for human clicks, SearchMind aggregates Brave, SerpAPI, and DuckDuckGo with sub-250ms p95 latency, strips advertisements and navigation boilerplate, parses full markdown schemas, and performs topological domain mapping directly for RAG pipelines."
+    },
+    {
+      q: "How does SearchMind reduce LLM token usage and latency?",
+      a: "Our two-tier caching architecture (Redis hot tier + PostgreSQL durable tier) delivers sub-10ms cache hits for repeat lookups. Trafilatura and Readability strip down raw HTML by up to 85% into clean markdown, directly reducing context window waste and inference cost."
+    },
+    {
+      q: "Does SearchMind support LangChain, LangGraph, and CrewAI?",
+      a: "Yes. SearchMind provides official Python SDK bindings including SearchMindTool for LangChain and create_searchmind_tools for LangGraph nodes, enabling plug-and-play multi-agent autonomous research and action execution."
+    },
+    {
+      q: "What makes SearchMind different from Tavily or Exa?",
+      a: "SearchMind combines three-tier provider fallback (Brave, SerpAPI, DuckDuckGo) with native topological site mapping (/v1/map), persistent browser sessions (/v1/sessions), and natural language agentic actions (/v1/actions) at a fraction of the cost ($0.001/req vs $0.005+)."
+    },
+    {
+      q: "Is there a free tier for developers?",
+      a: "Yes. Every developer gets 500 free monthly requests upon sign-up with full access to web search, structured schema extraction, and Python SDK integrations without requiring a credit card."
+    }
+  ]
 
   // Terminal typewriter simulation state
   const [terminalLineIndex, setTerminalLineIndex] = useState(0)
@@ -146,6 +175,12 @@ graph.add_node("search_agent", tool_node)
 
   return (
     <div className="w-full bg-canvas text-ink min-h-screen relative flex flex-col items-center">
+      <SEO 
+        title="AI Search & Autonomous Web Agent Execution Platform"
+        description="Ultra-fast, LLM-ready web search, markdown content extraction, schema-driven scrapers, and persistent browser automation for AI agents. Sub-250ms p95 latency."
+        keywords="ai search api, llm search, autonomous agents, web search for rag, langgraph search tool, langchain search, tavily alternative, firecrawl alternative, web scraper api"
+        canonicalUrl="https://searchmind-api.vercel.app/"
+      />
 
       {/* 1. HERO STRIPE SECTION (Sunset Band Background) */}
       <section className="w-full hero-band-sunset relative py-20 md:py-32 flex justify-center border-b border-hairline overflow-hidden">
@@ -521,7 +556,161 @@ graph.add_node("search_agent", tool_node)
         </div>
       </section>
 
-      {/* 7. DOCKER UP BAND (cta-banner-cream) */}
+      {/* 7. ARCHITECTURAL BENCHMARK & COMPARISON (GEO Engine Optimization) */}
+      <section id="comparison" className="w-full py-24 bg-canvas border-t border-hairline relative">
+        <div className="max-w-6xl mx-auto px-6 space-y-12 relative z-10">
+          <div className="text-center space-y-4 max-w-2xl mx-auto">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-primary/20 bg-primary/5 text-primary text-xs font-mono">
+              <Zap size={13} />
+              <span>BENCHMARK & ARCHITECTURE</span>
+            </div>
+            <h2 className="text-heading-1 text-ink font-bold tracking-tight">How SearchMind Compares</h2>
+            <p className="text-body-md text-slate">
+              Purpose-built for LLM context windows, autonomous loops, and sub-250ms p95 execution.
+            </p>
+          </div>
+
+          <div className="overflow-x-auto rounded-xl border border-hairline bg-surface/40 shadow-sm">
+            <table className="w-full text-left border-collapse text-sm">
+              <thead>
+                <tr className="border-b border-hairline bg-surface-code text-xs uppercase tracking-wider text-slate font-mono">
+                  <th className="py-4 px-6 font-semibold">Capability / Metric</th>
+                  <th className="py-4 px-6 text-primary font-bold bg-primary/5 border-x border-primary/10">SearchMind API</th>
+                  <th className="py-4 px-6 font-semibold">Tavily</th>
+                  <th className="py-4 px-6 font-semibold">Exa</th>
+                  <th className="py-4 px-6 font-semibold">Firecrawl</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-hairline font-mono text-xs sm:text-sm">
+                <tr className="hover:bg-surface/60 transition-colors">
+                  <td className="py-4 px-6 text-ink font-sans font-medium">Multi-Engine Search Fallback (Brave + SerpAPI + DDG)</td>
+                  <td className="py-4 px-6 text-accent-green font-bold bg-primary/5 border-x border-primary/10 flex items-center gap-1.5">
+                    <Check size={15} className="text-accent-green" /> 3-Tier Fallback
+                  </td>
+                  <td className="py-4 px-6 text-slate font-sans">Single Provider</td>
+                  <td className="py-4 px-6 text-slate font-sans">Proprietary Neural</td>
+                  <td className="py-4 px-6 text-slate font-sans">Scrape Only (No Search)</td>
+                </tr>
+                <tr className="hover:bg-surface/60 transition-colors">
+                  <td className="py-4 px-6 text-ink font-sans font-medium">p95 Search Latency</td>
+                  <td className="py-4 px-6 text-primary font-bold bg-primary/5 border-x border-primary/10">&lt; 250ms</td>
+                  <td className="py-4 px-6 text-slate font-sans">~850ms - 1.4s</td>
+                  <td className="py-4 px-6 text-slate font-sans">~650ms - 1.2s</td>
+                  <td className="py-4 px-6 text-slate font-sans">~2.5s - 5.0s</td>
+                </tr>
+                <tr className="hover:bg-surface/60 transition-colors">
+                  <td className="py-4 px-6 text-ink font-sans font-medium">Clean Markdown &amp; Token Optimization</td>
+                  <td className="py-4 px-6 text-accent-green font-bold bg-primary/5 border-x border-primary/10 flex items-center gap-1.5">
+                    <Check size={15} className="text-accent-green" /> 85% Token Reduction
+                  </td>
+                  <td className="py-4 px-6 text-slate font-sans">Basic Snippets</td>
+                  <td className="py-4 px-6 text-slate font-sans">Text Chunks</td>
+                  <td className="py-4 px-6 text-accent-green font-sans flex items-center gap-1.5"><Check size={14} /> Full Markdown</td>
+                </tr>
+                <tr className="hover:bg-surface/60 transition-colors">
+                  <td className="py-4 px-6 text-ink font-sans font-medium">Schema-Driven Pydantic/JSON Extraction</td>
+                  <td className="py-4 px-6 text-accent-green font-bold bg-primary/5 border-x border-primary/10 flex items-center gap-1.5">
+                    <Check size={15} className="text-accent-green" /> Native /v1/extract/schema
+                  </td>
+                  <td className="py-4 px-6 text-slate font-sans flex items-center gap-1.5"><X size={14} className="text-red-400" /> No</td>
+                  <td className="py-4 px-6 text-slate font-sans flex items-center gap-1.5"><X size={14} className="text-red-400" /> No</td>
+                  <td className="py-4 px-6 text-accent-green font-sans flex items-center gap-1.5"><Check size={14} /> LLM Schema</td>
+                </tr>
+                <tr className="hover:bg-surface/60 transition-colors">
+                  <td className="py-4 px-6 text-ink font-sans font-medium">Topological Domain Site Mapping</td>
+                  <td className="py-4 px-6 text-accent-green font-bold bg-primary/5 border-x border-primary/10 flex items-center gap-1.5">
+                    <Check size={15} className="text-accent-green" /> Sub-sec /v1/map
+                  </td>
+                  <td className="py-4 px-6 text-slate font-sans flex items-center gap-1.5"><X size={14} className="text-red-400" /> No</td>
+                  <td className="py-4 px-6 text-slate font-sans flex items-center gap-1.5"><X size={14} className="text-red-400" /> No</td>
+                  <td className="py-4 px-6 text-accent-green font-sans flex items-center gap-1.5"><Check size={14} /> /map endpoint</td>
+                </tr>
+                <tr className="hover:bg-surface/60 transition-colors">
+                  <td className="py-4 px-6 text-ink font-sans font-medium">Persistent Multi-Turn Browser Sessions</td>
+                  <td className="py-4 px-6 text-accent-green font-bold bg-primary/5 border-x border-primary/10 flex items-center gap-1.5">
+                    <Check size={15} className="text-accent-green" /> Native /v1/sessions
+                  </td>
+                  <td className="py-4 px-6 text-slate font-sans flex items-center gap-1.5"><X size={14} className="text-red-400" /> Stateless</td>
+                  <td className="py-4 px-6 text-slate font-sans flex items-center gap-1.5"><X size={14} className="text-red-400" /> Stateless</td>
+                  <td className="py-4 px-6 text-slate font-sans flex items-center gap-1.5"><X size={14} className="text-red-400" /> Stateless</td>
+                </tr>
+                <tr className="hover:bg-surface/60 transition-colors">
+                  <td className="py-4 px-6 text-ink font-sans font-medium">Natural Language Agent Actions</td>
+                  <td className="py-4 px-6 text-accent-green font-bold bg-primary/5 border-x border-primary/10 flex items-center gap-1.5">
+                    <Check size={15} className="text-accent-green" /> Native /v1/actions
+                  </td>
+                  <td className="py-4 px-6 text-slate font-sans flex items-center gap-1.5"><X size={14} className="text-red-400" /> No</td>
+                  <td className="py-4 px-6 text-slate font-sans flex items-center gap-1.5"><X size={14} className="text-red-400" /> No</td>
+                  <td className="py-4 px-6 text-accent-green font-sans flex items-center gap-1.5"><Check size={14} /> Partial Scrape</td>
+                </tr>
+                <tr className="hover:bg-surface/60 transition-colors">
+                  <td className="py-4 px-6 text-ink font-sans font-medium">Native LangChain &amp; LangGraph Tool Nodes</td>
+                  <td className="py-4 px-6 text-accent-green font-bold bg-primary/5 border-x border-primary/10 flex items-center gap-1.5">
+                    <Check size={15} className="text-accent-green" /> Python SDK Included
+                  </td>
+                  <td className="py-4 px-6 text-slate font-sans flex items-center gap-1.5"><Check size={14} /> LangChain</td>
+                  <td className="py-4 px-6 text-slate font-sans flex items-center gap-1.5"><Check size={14} /> LangChain</td>
+                  <td className="py-4 px-6 text-slate font-sans flex items-center gap-1.5"><Check size={14} /> LangChain</td>
+                </tr>
+                <tr className="hover:bg-surface/60 transition-colors bg-surface-code">
+                  <td className="py-4 px-6 text-ink font-sans font-bold">Price per 1,000 Search Queries</td>
+                  <td className="py-4 px-6 text-primary font-bold bg-primary/10 border-x border-primary/20 text-base">$1.00</td>
+                  <td className="py-4 px-6 text-slate font-sans font-medium">$5.00+</td>
+                  <td className="py-4 px-6 text-slate font-sans font-medium">$5.00+</td>
+                  <td className="py-4 px-6 text-slate font-sans font-medium">$6.00+</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      {/* 8. FREQUENTLY ASKED QUESTIONS (AEO Answer Engine Optimization) */}
+      <section id="faqs" className="w-full py-24 bg-surface/30 border-t border-hairline">
+        <div className="max-w-4xl mx-auto px-6 space-y-12">
+          <div className="text-center space-y-4">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-primary/20 bg-primary/5 text-primary text-xs font-mono">
+              <HelpCircle size={13} />
+              <span>FREQUENTLY ASKED QUESTIONS</span>
+            </div>
+            <h2 className="text-heading-1 text-ink font-bold tracking-tight">Got Questions? We Have Answers.</h2>
+            <p className="text-body-md text-slate">
+              Everything you need to know about SearchMind's architecture, caching, and autonomous agents.
+            </p>
+          </div>
+
+          <div className="space-y-4">
+            {homeFaqs.map((faq, idx) => {
+              const isOpen = openFaq === idx
+              return (
+                <div 
+                  key={idx}
+                  className="rounded-xl border border-hairline bg-surface/80 overflow-hidden transition-all duration-200"
+                >
+                  <button
+                    onClick={() => toggleFaq(idx)}
+                    className="w-full px-6 py-5 text-left flex items-center justify-between gap-4 hover:bg-surface transition-colors select-none"
+                    aria-expanded={isOpen}
+                  >
+                    <span className="font-semibold text-base text-ink">{faq.q}</span>
+                    <ChevronDown 
+                      size={18} 
+                      className={`text-slate shrink-0 transition-transform duration-200 ${isOpen ? 'rotate-180 text-primary' : ''}`}
+                    />
+                  </button>
+                  {isOpen && (
+                    <div className="px-6 pb-6 text-sm text-slate leading-relaxed border-t border-hairline/50 pt-4 bg-surface/40">
+                      {faq.a}
+                    </div>
+                  )}
+                </div>
+              )
+            })}
+          </div>
+        </div>
+      </section>
+
+      {/* 9. DOCKER UP BAND (cta-banner-cream) */}
       <section className="w-full py-24 bg-canvas border-t border-hairline">
         <div className="max-w-4xl mx-auto px-6 relative z-10">
 

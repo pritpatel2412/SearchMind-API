@@ -1,5 +1,6 @@
 import React, { useState } from 'react'
 import { Terminal, Key, Play, FileText, Sparkles, BarChart, ChevronRight, Copy, Check, Code2, Compass, Layers, MousePointerClick, Zap } from 'lucide-react'
+import SEO from '../components/SEO.jsx'
 
 export default function Docs({ apiKey }) {
   const [activeSec, setActiveSec] = useState('auth')
@@ -229,6 +230,12 @@ export default function Docs({ apiKey }) {
 
   return (
     <div className="max-w-7xl mx-auto px-6 md:px-8 py-12 text-left relative glow-orange">
+      <SEO 
+        title="API Reference & Integration Guide"
+        description="Comprehensive developer documentation for SearchMind API. Endpoints for /v1/search, /v1/extract, /v1/extract/schema, /v1/map, /v1/sessions, and /v1/actions."
+        keywords="searchmind docs, api reference, search api documentation, schema extraction api, site mapping api, browser sessions api, playwright api"
+        canonicalUrl="https://searchmind-api.vercel.app/#/docs"
+      />
       <div className="grid grid-cols-1 md:grid-cols-12 gap-8 items-start relative z-10">
         
         {/* Sidebar Navigation */}
