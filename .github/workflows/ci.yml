@@ -1,0 +1,78 @@
+name: Continuous Integration & Branch Protection
+
+on:
+  pull_request:
+    branches:
+      - main
+  push:
+    branches-ignore:
+      - main
+
+jobs:
+  backend-security-and-tests:
+    name: Backend Tests & OWASP Security Audit
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Source Code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: "pip"
+
+      - name: Install Python Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r backend/requirements.txt
+          pip install pytest httpx
+
+      - name: Run OWASP Security Test Suite (SSRF, Headers, IP Rate Limiting)
+        env:
+          DISABLE_PLAYWRIGHT: "1"
+          SECRET_KEY: "ci_test_secret_key_minimum_32_characters_long"
+        run: |
+          python backend/tests/test_owasp_security.py
+
+      - name: Run Admin Sessions Management Test
+        env:
+          DISABLE_PLAYWRIGHT: "1"
+          SECRET_KEY: "ci_test_secret_key_minimum_32_characters_long"
+        run: |
+          python backend/tests/test_admin_sessions.py
+
+      - name: Run Core Agent Primitives Tests
+        env:
+          DISABLE_PLAYWRIGHT: "1"
+          SECRET_KEY: "ci_test_secret_key_minimum_32_characters_long"
+        run: |
+          python -m pytest backend/tests/test_topological_map.py -v
+          python -m pytest backend/tests/test_schema_extraction.py -v
+          python -m pytest backend/tests/test_dynamic_highlights.py -v
+
+  frontend-build-verification:
+    name: Front-End Applications Build Verification
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Source Code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Build Developer Portal
+        run: |
+          cd frontend/developer-portal
+          npm ci || npm install
+          npm run build
+
+      - name: Build Administrative Console
+        run: |
+          cd frontend/admin
+          npm ci || npm install
+          npm run build
