@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react'
 import { HashRouter as Router, Routes, Route, Navigate, Link, useLocation } from 'react-router-dom'
-import { Users, BarChart3, ShieldCheck, Activity, Terminal, ExternalLink, Settings, LogOut, CheckCircle, RefreshCw, Ticket } from 'lucide-react'
+import { Users, BarChart3, ShieldCheck, Activity, Terminal, ExternalLink, Settings, LogOut, CheckCircle, RefreshCw, Ticket, Layers } from 'lucide-react'
 import UsersPage from './pages/Users.jsx'
 import AnalyticsPage from './pages/Analytics.jsx'
 import SystemHealthPage from './pages/SystemHealth.jsx'
 import NotFound from './pages/NotFound.jsx'
 import CouponsPage from './pages/Coupons.jsx'
+import SessionsPage from './pages/Sessions.jsx'
 import Login from './pages/Login.jsx'
 
 function AdminLayout({ children, onLogout }) {
@@ -38,6 +39,7 @@ function AdminLayout({ children, onLogout }) {
 
   const navItems = [
     { label: 'User Accounts', path: '/users', icon: Users },
+    { label: 'Browser Sessions', path: '/sessions', icon: Layers },
     { label: 'Platform Analytics', path: '/analytics', icon: BarChart3 },
     { label: 'Promo Coupons', path: '/coupons', icon: Ticket },
     { label: 'System Health', path: '/system', icon: Activity, badge: systemStatus }
@@ -214,6 +216,7 @@ export default function App() {
         <Routes>
           <Route path="/" element={<Navigate to="/users" replace />} />
           <Route path="/users" element={<UsersPage />} />
+          <Route path="/sessions" element={<SessionsPage />} />
           <Route path="/analytics" element={<AnalyticsPage />} />
           <Route path="/system" element={<SystemHealthPage />} />
           <Route path="/coupons" element={<CouponsPage />} />

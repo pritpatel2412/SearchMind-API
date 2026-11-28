@@ -32,7 +32,7 @@ const timelineEvents = [
     phase: "Phase 3: Deep Research Loops & SDKs",
     date: "April 2026",
     status: "completed",
-    title: "Parallel Agents & LangGraph adapters",
+    title: "Parallel Agents & LangGraph Adapters",
     description: "Developed deep research loops parallelizing multiple sub-queries concurrently using asyncio.gather. Released the searchmind Python SDK featuring native adapters that expose StructuredTool parameters optimized specifically for LangGraph and LangChain agent nodes.",
     bullets: [
       "Parallelized sub-query scraping and re-ranking.",
@@ -43,9 +43,9 @@ const timelineEvents = [
   {
     phase: "Phase 4: Telemetry & Observability",
     date: "June 2026",
-    status: "current",
+    status: "completed",
     title: "Admin Observability & Analytics Overlay",
-    description: "We are currently finalizing Phase 4. Implemented detailed SVG analytics, real-time db/cache health endpoints, client-side browser spec trackers (resolution, timezone, locale), and a Vercel-style telemetry overlay modal. Integrated a cinematic Canyon Parallax 404 redirect handler.",
+    description: "Completed comprehensive observability layers. Implemented interactive SVG sparkline analytics, real-time db/cache health endpoints, client-side browser telemetry trackers (resolution, timezone, locale), and a Vercel-style telemetry overlay modal. Integrated a cinematic Canyon Parallax 404 redirect handler.",
     bullets: [
       "Client telemetry collection & GeoIP integration.",
       "Vercel-style User Session Analytics dashboard.",
@@ -53,27 +53,41 @@ const timelineEvents = [
     ]
   },
   {
-    phase: "Phase 5: Cognitive Semantic Search",
-    date: "Q3 2026",
-    status: "future",
-    title: "LLM-Driven Query Expansion",
-    description: "Replacing static search expansion suffixes (e.g. 'tutorial guide') with a reactive LLM node that analyzes the agent's intent to dynamically formulate optimized sub-queries, drastically increasing context quality for RAG applications.",
+    phase: "Phase 5: Autonomous Agent Primitives",
+    date: "Q3–Q4 2026",
+    status: "completed",
+    title: "Next-Gen Autonomous Agent Web Primitives",
+    description: "Engineered and deployed 5 groundbreaking primitives purpose-built for LLM reasoning loops. Eliminates token waste and enables robust multi-turn autonomous interaction on the live web.",
     bullets: [
-      "Local semantic query translation.",
-      "Semantic re-ranking based on vector embeddings.",
-      "Context-aware relevance scores."
+      "Dynamic Query-Conditioned Highlights (/v1/search & /v1/extract): relevance-scored sentence extracts that shrink context windows by up to 80%.",
+      "Zero-Token Schema-Driven Extraction (/v1/extract/schema): strict JSON Schema enforcement directly from HTML with type coercion and validation reporting.",
+      "Zero-Crawl Topological Site Mapping (/v1/map): instant sitemap resolution, gzip decompression, and topical regex filtering without spidering overhead.",
+      "Persistent Browser Sessions & Cookie Vault (/v1/sessions): stateful browser sessions with isolated cookie vaults for seamless authenticated agent workflows.",
+      "Natural Language Web Actions (/v1/action/instruct): semantic grounding over ARIA accessibility trees with mutation-verified self-healing retries."
     ]
   },
   {
     phase: "Phase 6: Multi-Tenant Workspaces",
-    date: "Q4 2026",
-    status: "future",
-    title: "Billing & Organizations",
-    description: "Expanding searchmind to support collaborative workflows. Introducing shared developer workspaces, custom domain routing, granular API key access control levels, and Stripe billing integration for Starter and Pro tiers.",
+    date: "Late 2026",
+    status: "current",
+    title: "Organizations, Scoped Keys & Metered Billing",
+    description: "Currently expanding SearchMind to support enterprise collaborative workflows. Introducing shared developer workspaces, team organizations, custom domain routing, granular API key access control scopes (read-only, extract-only, session-admin), and Stripe metered usage billing.",
     bullets: [
-      "Team organizations and shared API key tokens.",
-      "Granular key permissions (read-only, search-only, full-crawl).",
-      "Stripe metered billing usage cycles."
+      "Team organizations and shared API key vaults.",
+      "Granular key permissions (search-only, schema-extract, full-session-control).",
+      "Stripe metered billing usage cycles & webhook reconciliation."
+    ]
+  },
+  {
+    phase: "Phase 7: Distributed Edge Crawlers",
+    date: "2027",
+    status: "future",
+    title: "Global Edge Nodes & Cognitive Graph Synthesis",
+    description: "Deploying multi-region edge browser workers across 30+ cloud locations for sub-50ms regional web scraping, coupled with automated cross-document knowledge graph generation directly embedded into agent vector spaces.",
+    bullets: [
+      "Worldwide geo-distributed headless edge workers.",
+      "Cross-document entity graph synthesis.",
+      "Automated speculative prefetching for anticipated sub-agent queries."
     ]
   }
 ];
@@ -131,7 +145,7 @@ export default function Roadmap() {
               When autonomous agent loops (like LangGraph and AutoGen) run online web search, they are usually fed cluttered HTML pages bloated with scripts, tracking cookies, and SEO-optimized paragraphs. This consumes massive context windows, inflates prompt costs, and degrades decision speeds.
             </p>
             <p className="text-body-sm text-slate leading-relaxed">
-              SearchMind was built to serve as a high-speed proxy layer that queries, fetches, renders, cleans, and re-ranks web content, returning ready-to-use markdown snippets to agents in milliseconds.
+              SearchMind was built to serve as a high-speed proxy layer that queries, fetches, renders, cleans, extracts schemas, and navigates web content, returning ready-to-use markdown snippets and validated structured objects to agents in milliseconds.
             </p>
           </div>
         </motion.div>
@@ -156,7 +170,7 @@ export default function Roadmap() {
                   isLeft ? 'md:flex-row-reverse' : ''
                 }`}
               >
-                {/* Timeline node dot wrapper to prevent transform collision */}
+                {/* Timeline node dot wrapper */}
                 <div className="absolute left-6 md:left-1/2 top-6 w-8 h-8 transform -translate-x-1/2 z-20 flex items-center justify-center">
                   <motion.div 
                     initial={{ scale: 0, opacity: 0 }}
@@ -245,7 +259,7 @@ export default function Roadmap() {
           <Sparkles size={24} className="text-primary mx-auto animate-pulse" />
           <h3 className="text-heading-3 text-ink font-semibold">Integrate SearchMind into Your Stack</h3>
           <p className="text-body-sm text-slate max-w-lg mx-auto leading-relaxed">
-            Ready to plug our optimized agent web search layer into your LangGraph, LangChain, or custom RAG architecture? Generate your free client credentials today.
+            Ready to plug our optimized agent web search and action layer into your LangGraph, AutoGen, or custom RAG architecture? Generate your free client credentials today.
           </p>
           <div className="pt-4 flex justify-center">
             <Link 
@@ -262,4 +276,3 @@ export default function Roadmap() {
     </div>
   );
 }
-

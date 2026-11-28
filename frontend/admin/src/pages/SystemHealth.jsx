@@ -245,6 +245,66 @@ export default function SystemHealthPage() {
 
       </div>
 
+      {/* AUTONOMOUS AGENT SUBSYSTEMS STATUS */}
+      <div className="card-base p-6 rounded-lg border border-beige-deep bg-cream/40 relative z-10 shadow-sm space-y-4">
+        <div className="flex items-center justify-between border-b border-beige-deep pb-3">
+          <div className="flex items-center gap-2">
+            <span className="text-micro-uppercase text-ink font-bold">Autonomous Agent Primitives Subsystems</span>
+            <span className="px-2 py-0.5 rounded text-[9px] font-mono font-bold bg-primary/10 text-primary border border-primary/20">
+              5 Primitives Active
+            </span>
+          </div>
+          <span className="text-[10px] font-mono text-slate">FastAPI Core Extensions</span>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3.5">
+          <div className="p-3.5 rounded bg-cream border border-beige-deep/70 space-y-1.5">
+            <div className="flex items-center justify-between text-xs font-mono font-semibold text-ink">
+              <span>Highlights</span>
+              <span className="text-accent-green text-[10px]">OK</span>
+            </div>
+            <p className="text-[10px] text-slate font-mono">Algorithm: Cosine Overlap</p>
+            <p className="text-[10px] text-steel font-sans">Passage compression active</p>
+          </div>
+
+          <div className="p-3.5 rounded bg-cream border border-beige-deep/70 space-y-1.5">
+            <div className="flex items-center justify-between text-xs font-mono font-semibold text-ink">
+              <span>Schema Extract</span>
+              <span className="text-accent-green text-[10px]">OK</span>
+            </div>
+            <p className="text-[10px] text-slate font-mono">Engine: JSON Draft 2020</p>
+            <p className="text-[10px] text-steel font-sans">Strict type coercion</p>
+          </div>
+
+          <div className="p-3.5 rounded bg-cream border border-beige-deep/70 space-y-1.5">
+            <div className="flex items-center justify-between text-xs font-mono font-semibold text-ink">
+              <span>Site Mapping</span>
+              <span className="text-accent-green text-[10px]">OK</span>
+            </div>
+            <p className="text-[10px] text-slate font-mono">Resolver: Gzip Sitemap</p>
+            <p className="text-[10px] text-steel font-sans">Max recursion depth 4</p>
+          </div>
+
+          <div className="p-3.5 rounded bg-cream border border-beige-deep/70 space-y-1.5">
+            <div className="flex items-center justify-between text-xs font-mono font-semibold text-ink">
+              <span>Browser Sessions</span>
+              <span className="text-accent-green text-[10px]">OK</span>
+            </div>
+            <p className="text-[10px] text-slate font-mono">Vault: In-Memory Safe</p>
+            <p className="text-[10px] text-steel font-sans">Auto-lease collection</p>
+          </div>
+
+          <div className="p-3.5 rounded bg-cream border border-beige-deep/70 space-y-1.5">
+            <div className="flex items-center justify-between text-xs font-mono font-semibold text-ink">
+              <span>Action Grounder</span>
+              <span className="text-accent-green text-[10px]">OK</span>
+            </div>
+            <p className="text-[10px] text-slate font-mono">Grounding: ARIA Tree</p>
+            <p className="text-[10px] text-steel font-sans">Mutation verification</p>
+          </div>
+        </div>
+      </div>
+
       {/* INTERACTIVE RUNBOOK SIMULATOR BUTTONS */}
       <div className="bg-cream border border-beige-deep p-4 rounded-lg relative z-10 shadow-sm">
         <span className="text-[10px] font-mono font-bold tracking-widest text-slate uppercase block mb-3">Diagnostic Runbook Simulator</span>

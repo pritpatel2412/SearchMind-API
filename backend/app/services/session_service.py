@@ -1,3 +1,4 @@
+import os
 import uuid
 import time
 import asyncio
@@ -56,7 +57,13 @@ class PersistentBrowserSession:
         self.browser: Optional[Any] = None
         self.context: Optional[Any] = None
         self.page: Optional[Any] = None
-        self.lock = asyncio.Lock()
+        self._lock_obj: Optional[asyncio.Lock] = None
+
+    @property
+    def lock(self) -> asyncio.Lock:
+        if self._lock_obj is None:
+            self._lock_obj = asyncio.Lock()
+        return self._lock_obj
 
     def is_expired(self) -> bool:
         return datetime.now(timezone.utc) > self.expires_at
@@ -92,8 +99,8 @@ class PersistentBrowserSession:
 
     async def initialize_playwright(self) -> None:
         """Initializes a real persistent Playwright browser context if playwright is installed."""
-        if not async_playwright:
-            logger.info("Playwright not installed; session %s operating in headless state container mode.", self.session_id)
+        if not async_playwright or os.environ.get("DISABLE_PLAYWRIGHT") == "1":
+            logger.info("Playwright not installed or disabled; session %s operating in headless state container mode.", self.session_id)
             return
 
         try:
@@ -187,7 +194,13 @@ class SessionManager:
     """Singleton registry tracking active stateful browser sessions."""
     def __init__(self):
         self._sessions: Dict[str, PersistentBrowserSession] = {}
-        self._lock = asyncio.Lock()
+        self._lock_obj: Optional[asyncio.Lock] = None
+
+    @property
+    def lock(self) -> asyncio.Lock:
+        if self._lock_obj is None:
+            self._lock_obj = asyncio.Lock()
+        return self._lock_obj
 
     async def create_session(
         self,
@@ -206,14 +219,14 @@ class SessionManager:
         )
         await session.initialize_playwright()
 
-        async with self._lock:
+        async with self.lock:
             self._sessions[session_id] = session
 
         return session.to_detail_response()
 
     async def get_session(self, session_id: str) -> Optional[PersistentBrowserSession]:
         self.clean_expired()
-        async with self._lock:
+        async with self.lock:
             session = self._sessions.get(session_id)
             if session and not session.is_expired() and session.is_active:
                 session.refresh_lease()
@@ -230,7 +243,7 @@ class SessionManager:
         return results
 
     async def delete_session(self, session_id: str) -> bool:
-        async with self._lock:
+        async with self.lock:
             session = self._sessions.pop(session_id, None)
         if session:
             await session.close()
